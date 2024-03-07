@@ -1,0 +1,10 @@
+services:
+  postgres:
+    build: .
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=recommendic'
+      - 'POSTGRES_PASSWORD=june12003'
+      - 'POSTGRES_USER=divjazz'
+    ports:
+      - '5432'
