@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class RecommendationId extends AbstractEntityId<UUID> {
 
-    private RecommendationId(){}
+    protected RecommendationId(){}
 
     public RecommendationId(UUID id){
         super(id);

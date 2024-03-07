@@ -4,20 +4,21 @@ import com.divjazz.recommendic.user.model.userAttributes.*;
 
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @MappedSuperclass
 public abstract class User extends AbstractEntity<UserId> {
 
-    private UserId id;
+    @Column(nullable = false)
     private UserName userName;
+    @Column(name = "email", nullable = false)
     private Email email;
 
+    @Column(name = "email", nullable = false)
     private PhoneNumber phoneNumber;
 
+    @Column(name = "gender", nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
