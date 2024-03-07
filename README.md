@@ -1,4 +1,4 @@
-### Medical Consultation and Recommendation Application ###
+# Medical Consultation and Recommendation Application #
 The idea of this application is inspired by the idea and observation of the hassels involved in medical consultations due to distance or location.
 This application brings the patients to certified medical practitioners of various disciplines from anywhere from around the world or even from their own communities for physical consultation and check-up scheduling.
 This app enphasises on ease and great user experiences for all our users.
