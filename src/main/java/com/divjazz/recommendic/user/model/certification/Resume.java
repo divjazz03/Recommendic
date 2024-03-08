@@ -2,9 +2,7 @@ package com.divjazz.recommendic.user.model.certification;
 
 import com.divjazz.recommendic.user.model.Consultant;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -15,13 +13,15 @@ public class Resume extends AbstractEntity<CertificationID> {
 
 
     @OneToOne
+    @Column(nullable = false)
     private Consultant ownerOFTheResume;
-    private File pdfOfResume;
+    @Lob
+    private Byte[] pdfOfResume;
 
     private boolean confirmed = false;
 
     protected Resume(){}
-    public Resume(CertificationID id, Consultant ownerOFTheResume, File pdfOfResume) {
+    public Resume(CertificationID id, Consultant ownerOFTheResume, Byte[] pdfOfResume) {
         super(id);
         this.ownerOFTheResume = ownerOFTheResume;
         this.pdfOfResume = pdfOfResume;

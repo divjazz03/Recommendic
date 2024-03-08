@@ -2,9 +2,7 @@ package com.divjazz.recommendic.user.model.certification;
 
 import com.divjazz.recommendic.user.model.Consultant;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
 import java.io.File;
 
@@ -12,13 +10,16 @@ import java.io.File;
 public class CertificationFromUni extends AbstractEntity<CertificationID> {
 
     @OneToOne
+    @JoinColumn(name = "consultant_id", nullable = false)
     private Consultant ownerOfCertification;
-    private File certificationInPdfFormat;
+
+    @Lob
+    private Byte[] certificationInPdfFormat;
 
     private boolean confirmed;
     protected CertificationFromUni(){}
 
-    public CertificationFromUni(CertificationID id, Consultant ownerOfCertification, File certificationInPdfFormat) {
+    public CertificationFromUni(CertificationID id, Consultant ownerOfCertification, Byte[] certificationInPdfFormat) {
         super(id);
         this.ownerOfCertification = ownerOfCertification;
         this.certificationInPdfFormat = certificationInPdfFormat;

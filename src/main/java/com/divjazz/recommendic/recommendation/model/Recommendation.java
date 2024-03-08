@@ -4,26 +4,25 @@ import com.divjazz.recommendic.recommendation.model.recommendationAttributes.Rec
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.util.Set;
 
 @Entity
 public class Recommendation extends AbstractEntity<RecommendationId> {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
-    @OneToMany
-
-    private Set<Consultant> consultants;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name="consultant_id")
+    private Consultant consultant;
     //Todo: Create a recommendation system for Articles
 
 
-    public Recommendation(RecommendationId id, Set<Consultant> consultants) {
+    public Recommendation(RecommendationId id, Consultant consultant) {
         super(id);
-        this.consultants = consultants;
+        this.consultant = consultant;
     }
     protected Recommendation(){}
 }

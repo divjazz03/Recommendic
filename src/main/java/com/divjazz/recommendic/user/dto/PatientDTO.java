@@ -1,7 +1,5 @@
 package com.divjazz.recommendic.user.dto;
 
-import com.divjazz.recommendic.user.model.userAttributes.Gender;
-import com.divjazz.recommendic.user.model.userAttributes.UserId;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 
-public record PatientDTO(UserId id, String firstName, String lastName, String phoneNumber, Gender gender) {}
+public record PatientDTO(UserName userName, Email email, PhoneNumber phoneNumber, Gender gender, Address address) {}

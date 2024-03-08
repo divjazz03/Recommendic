@@ -3,10 +3,7 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.user.model.certification.CertificationFromUni;
 import com.divjazz.recommendic.user.model.certification.Resume;
 import com.divjazz.recommendic.user.model.userAttributes.*;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -15,15 +12,17 @@ import java.util.Set;
 @Entity
 public class Consultant extends User{
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @Cascade(CascadeType.ALL)
+    @JoinColumn(name = "resume_id")
     private Resume resume;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @Cascade(CascadeType.ALL)
+    @JoinColumn(name = "certificate_id")
     private CertificationFromUni certification;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Patient> patients;
 
     private boolean certified;
@@ -48,5 +47,29 @@ public class Consultant extends User{
      */
     private void setCertified(){
         certified = this.resume.isConfirmed() && this.certification.isConfirmed();
+    }
+
+    public Resume getResume() {
+        return resume;
+    }
+
+    public void setResume(Resume resume) {
+        this.resume = resume;
+    }
+
+    public CertificationFromUni getCertification() {
+        return certification;
+    }
+
+    public void setCertification(CertificationFromUni certification) {
+        this.certification = certification;
+    }
+
+    public Set<Patient> getPatients() {
+        return patients;
+    }
+
+    public void setPatients(Set<Patient> patients) {
+        this.patients.addAll(patients);
     }
 }

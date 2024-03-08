@@ -6,11 +6,14 @@ import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @MappedSuperclass
-public abstract class User extends AbstractEntity<UserId> {
+public abstract class User extends AbstractEntity<UserId>{
 
     @Column(nullable = false)
+    @Embedded
     private UserName userName;
     @Column(name = "email", nullable = false)
     private Email email;
@@ -21,6 +24,8 @@ public abstract class User extends AbstractEntity<UserId> {
     @Column(name = "gender", nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    private Address address;
 
     protected User(){}
 

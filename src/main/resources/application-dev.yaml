@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    password: "june12003"
+    username: "divjazz"
+    url: "jdbc:postgresql://localhost:5432/recommendic"
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
