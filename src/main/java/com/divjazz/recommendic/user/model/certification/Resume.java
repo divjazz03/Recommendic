@@ -12,7 +12,7 @@ import java.io.File;
 public class Resume extends AbstractEntity<CertificationID> {
 
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "consultant_id",nullable = false)
     private Consultant ownerOFTheResume;
     @Lob

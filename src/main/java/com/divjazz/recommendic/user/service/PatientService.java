@@ -31,7 +31,9 @@ public class PatientService {
                 patientDTO.userName(),
                 patientDTO.email(),
                 patientDTO.phoneNumber(),
-                patientDTO.gender());
+                patientDTO.gender(),
+                patientDTO.address(),
+                patientDTO.password());
         var result = patientRepository.save(patient);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }

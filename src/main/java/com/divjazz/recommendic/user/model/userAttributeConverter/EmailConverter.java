@@ -1,11 +1,20 @@
 package com.divjazz.recommendic.user.model.userAttributeConverter;
 
 import com.divjazz.recommendic.user.model.userAttributes.Email;
-import org.springframework.core.convert.converter.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Converter;
 
-public class EmailConverter implements Converter<Email, String> {
+@Converter(autoApply = true)
+public class EmailConverter implements AttributeConverter<Email, String> {
+
     @Override
-    public String convert(Email source) {
-        return source.asString();
+    public String convertToDatabaseColumn(Email email) {
+        return email.asString();
+    }
+
+    @Override
+    public Email convertToEntityAttribute(String s) {
+        return new Email(s);
     }
 }

@@ -6,24 +6,31 @@ import com.divjazz.recommendic.user.model.userAttributes.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 @Entity
-public class Consultant extends User{
+public class Consultant extends User implements UserDetails {
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
     @Cascade(CascadeType.ALL)
     @JoinColumn(name = "resume_id")
-    private Resume resume;
+    private Set<Resume> resume;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
     @Cascade(CascadeType.ALL)
     @JoinColumn(name = "certificate_id")
-    private CertificationFromUni certification;
+    private Set<CertificationFromUni> certification;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Patient> patients;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 
     private boolean certified;
     protected Consultant (){}
@@ -32,9 +39,10 @@ public class Consultant extends User{
                       Email email,
                       PhoneNumber phoneNumber,
                       Gender gender,
-                      Resume resume,
-                      CertificationFromUni uni) {
-        super(id, userName, email, phoneNumber, gender);
+                      Address address,
+                      String password) {
+        super(id, userName, email, phoneNumber, gender,address);
+        this.password = password;
     }
 
 
@@ -46,23 +54,33 @@ public class Consultant extends User{
      * Checks if both the resume attached to the consultant has been confirmed
      */
     private void setCertified(){
-        certified = this.resume.isConfirmed() && this.certification.isConfirmed();
+        boolean checkIfExists = this.resume.stream().findFirst().isPresent() && this.certification.stream().findFirst().isPresent();
+        boolean resumeIsVerified = this.resume.stream()
+                .findFirst()
+                .get()
+                .isConfirmed();
+        boolean certificateIsVerified = this.resume.stream()
+                .findFirst()
+                .get()
+                .isConfirmed();
+        certified = (checkIfExists && resumeIsVerified && certificateIsVerified);
+
     }
 
-    public Resume getResume() {
+    public Set<Resume> getResume() {
         return resume;
     }
 
     public void setResume(Resume resume) {
-        this.resume = resume;
+        this.resume = Collections.singleton(resume);
     }
 
-    public CertificationFromUni getCertification() {
+    public Set<CertificationFromUni> getCertification() {
         return certification;
     }
 
     public void setCertification(CertificationFromUni certification) {
-        this.certification = certification;
+        this.certification = Collections.singleton(certification);
     }
 
     public Set<Patient> getPatients() {
@@ -71,5 +89,40 @@ public class Consultant extends User{
 
     public void setPatients(Set<Patient> patients) {
         this.patients.addAll(patients);
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return getEmail().asString();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
     }
 }

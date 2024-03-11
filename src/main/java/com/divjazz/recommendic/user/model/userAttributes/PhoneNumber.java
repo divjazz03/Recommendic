@@ -15,9 +15,10 @@ public class PhoneNumber {
     }
     protected PhoneNumber(){}
 
-    public String getPhoneNumber() {
+    public String asString(){
         return phoneNumber;
     }
+
 
     @Override
     public String toString() {

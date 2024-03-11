@@ -5,9 +5,6 @@ import com.divjazz.recommendic.user.model.userAttributes.*;
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 @MappedSuperclass
 public abstract class User extends AbstractEntity<UserId>{
@@ -31,14 +28,18 @@ public abstract class User extends AbstractEntity<UserId>{
     @Column(nullable = false)
     private Address address;
 
+
+
     protected User(){}
 
-    public User(UserId id, UserName userName, Email email, PhoneNumber phoneNumber, Gender gender){
+    public User(UserId id, UserName userName, Email email, PhoneNumber phoneNumber, Gender gender, Address address){
         super(id);
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
+        this.address = address;
+
     }
 
     public UserName getUserName() {

@@ -1,11 +1,19 @@
 package com.divjazz.recommendic.user.model.userAttributeConverter;
 
 import com.divjazz.recommendic.user.model.userAttributes.PhoneNumber;
-import org.springframework.core.convert.converter.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
-public class PhoneNumberConverter implements Converter<PhoneNumber, String> {
+@Converter(autoApply = true)
+public class PhoneNumberConverter implements AttributeConverter<PhoneNumber, String> {
+
     @Override
-    public String convert(PhoneNumber source) {
-        return source.getPhoneNumber();
+    public String convertToDatabaseColumn(PhoneNumber phoneNumber) {
+        return phoneNumber.asString();
+    }
+
+    @Override
+    public PhoneNumber convertToEntityAttribute(String s) {
+        return null;
     }
 }

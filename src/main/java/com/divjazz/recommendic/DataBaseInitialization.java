@@ -1,5 +1,6 @@
 package com.divjazz.recommendic;
 
+import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 
 import com.divjazz.recommendic.user.model.userAttributes.*;
@@ -43,8 +44,25 @@ public class DataBaseInitialization implements CommandLineRunner {
                 faker.address().zipCode(),
                 faker.address().city(),
                 faker.address().state(),
-                faker.address().country());
-        return new PatientDTO(userName, email, phoneNumber, gender, address);
+                faker.address().country()
+        );
+        String password = faker.internet().password();
+        return new PatientDTO(userName, email, phoneNumber, gender, address,password);
+    }
+    private ConsultantDTO generateUnverifiedConsultant(){
+        Name name = faker.name();
+        UserName userName = new UserName(name.firstName(), name.lastName());
+        Email email = new Email(faker.internet().emailAddress(generateEmailLocalPart(userName)));
+        PhoneNumber number = new PhoneNumber(faker.phoneNumber().phoneNumber());
+        Gender gender = faker.bool().bool()? Gender.FEMALE: Gender.MALE;
+        Address address = new Address(
+                faker.address().zipCode(),
+                faker.address().city(),
+                faker.address().state(),
+                faker.address().country()
+        );
+        return new ConsultantDTO(userName,email,number,gender,address);
+
     }
 
     private String generateEmailLocalPart(UserName userName) {

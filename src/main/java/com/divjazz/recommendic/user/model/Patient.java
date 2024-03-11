@@ -7,11 +7,11 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 @Entity
@@ -23,11 +23,16 @@ public class Patient extends User implements UserDetails{
     private Set<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Consultant> consultants;
+    @Column(name = "password", nullable = false)
+    private String password;
+
+
 
     protected Patient(){}
 
-    public Patient(UserId id, UserName userName, Email email, PhoneNumber phoneNumber, Gender gender) {
-        super(id, userName, email, phoneNumber, gender);
+    public Patient(UserId id, UserName userName, Email email, PhoneNumber phoneNumber, Gender gender, Address address, String password) {
+        super(id, userName, email, phoneNumber, gender,address);
+        this.password = password;
     }
 
     public Set<Recommendation> getRecommendations() {
@@ -40,21 +45,26 @@ public class Patient extends User implements UserDetails{
     private void addRecommendations(Set<Recommendation> recommendations){
         this.recommendations.addAll(recommendations);
     }
+    public void setConsultants(Set<Consultant> consultants){
+        this.consultants.addAll(consultants);
+    }
+    public Set<Consultant> getConsultants(){return consultants;}
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("USER");
+        return Collections.singletonList(authority);
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return getEmail().asString();
     }
 
     @Override
@@ -75,5 +85,9 @@ public class Patient extends User implements UserDetails{
     @Override
     public boolean isEnabled() {
         return false;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
