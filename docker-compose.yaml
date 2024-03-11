@@ -1,5 +1,9 @@
+version: '3'
+
+
 services:
   postgres:
+    container_name: 'recommendic'
     build: .
     image: 'postgres:latest'
     environment:
@@ -7,4 +11,4 @@ services:
       - 'POSTGRES_PASSWORD=june12003'
       - 'POSTGRES_USER=divjazz'
     ports:
-      - '5432'
+      - '5432:5432'

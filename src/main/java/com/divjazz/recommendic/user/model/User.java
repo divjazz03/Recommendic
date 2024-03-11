@@ -15,9 +15,11 @@ public abstract class User extends AbstractEntity<UserId>{
     @Column(nullable = false)
     @Embedded
     private UserName userName;
+    @Embedded
     @Column(name = "email", nullable = false)
     private Email email;
 
+    @Embedded
     @Column(name = "email", nullable = false)
     private PhoneNumber phoneNumber;
 
@@ -25,6 +27,8 @@ public abstract class User extends AbstractEntity<UserId>{
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @Embedded
+    @Column(nullable = false)
     private Address address;
 
     protected User(){}

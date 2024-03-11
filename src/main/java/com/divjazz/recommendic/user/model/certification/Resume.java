@@ -13,7 +13,7 @@ public class Resume extends AbstractEntity<CertificationID> {
 
 
     @OneToOne
-    @Column(nullable = false)
+    @JoinColumn(name = "consultant_id",nullable = false)
     private Consultant ownerOFTheResume;
     @Lob
     private Byte[] pdfOfResume;

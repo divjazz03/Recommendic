@@ -1,9 +1,11 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 import com.google.common.base.MoreObjects;
+import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
 
+@Embeddable
 public class PhoneNumber {
 
     private String phoneNumber;
