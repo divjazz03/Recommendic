@@ -1,6 +1,8 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.controller.admin.AdminResponse;
+import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.User;
@@ -33,10 +35,10 @@ public class AdminService {
         this.userService = userService;
     }
 
-    public ResponseEntity<User> createAdmin(AdminDTO adminDTO) {
-        User admin = null;
-        AdminPassword password = generateAdminPassword(admin);
-        admin = new User(
+    public ResponseEntity<AdminResponse> createAdmin(AdminDTO adminDTO) {
+        GenerateAdminPasswordResponse response = generateAdminPassword();
+        AdminPassword password = response.encryptedPassword();
+        User admin = new User(
                 userRepositoryCustom.nextId(),
                 adminDTO.userName(),
                 adminDTO.email(),
@@ -51,7 +53,9 @@ public class AdminService {
         if (userService.verifyIfEmailExists(admin.getEmail())) {
             userRepositoryCustom.save(admin);
             adminPasswordRepository.save(password);
-            return new ResponseEntity<>(admin, HttpStatus.CREATED);
+            return new ResponseEntity<>(new AdminResponse(admin.getEmail(),
+                    response.normalPassword(),
+                    password.getExpiryDate()), HttpStatus.CREATED);
         } else {
             throw new UserAlreadyExistsException(admin.getEmail());
         }
@@ -63,9 +67,10 @@ public class AdminService {
         return userRepositoryCustom.findByUserTypeAndEmail(UserType.ADMIN, email);
     }
 
-    private AdminPassword generateAdminPassword(User admin){
+    private GenerateAdminPasswordResponse generateAdminPassword(){
         Faker faker = new Faker();
-        return new AdminPassword(userRepositoryCustom.nextId(), admin, passwordEncoder.encode(faker.internet().password(10,15,true)));
+        String password = faker.internet().password(10,15,true);
+        return new GenerateAdminPasswordResponse(new AdminPassword(userRepositoryCustom.nextId(), null, passwordEncoder.encode(password)), password);
 
     }
 

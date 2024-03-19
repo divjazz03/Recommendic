@@ -22,7 +22,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    public ResponseEntity<User> createAdmin(@RequestBody AdminRequestParams requestParams){
+    public ResponseEntity<AdminResponse> createAdmin(@RequestBody AdminRequestParams requestParams){
         AdminDTO adminDTO = new AdminDTO(
                 new UserName(requestParams.firstName(), requestParams.lastName()), requestParams.email(), requestParams.phoneNumber(),
                 switch (requestParams.gender().toUpperCase()){

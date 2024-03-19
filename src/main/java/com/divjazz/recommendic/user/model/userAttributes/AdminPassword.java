@@ -7,6 +7,11 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +25,8 @@ public class AdminPassword extends AbstractEntity<UserId>{
 
     private String password;
 
+    private LocalDate expiryDate;
+
     protected AdminPassword() {
     }
 
@@ -27,6 +34,7 @@ public class AdminPassword extends AbstractEntity<UserId>{
         this.passwordId = passwordId;
         this.assignedAdmin = assignedAdmin;
         this.password = password;
+        expiryDate = LocalDate.now().plusYears(1);
     }
 
     public User getAssignedAdmin() {
@@ -43,5 +51,12 @@ public class AdminPassword extends AbstractEntity<UserId>{
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public UserId getPasswordId() {
+        return passwordId;
+    }
+    public LocalDate getExpiryDate(){
+        return expiryDate;
     }
 }
