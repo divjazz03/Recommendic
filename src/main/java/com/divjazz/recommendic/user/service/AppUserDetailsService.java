@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
 import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,9 +10,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AppUserDetailsService implements UserDetailsService {
 
-    private final UserRepositoryImpl userRepository;
+    private final UserRepositoryCustom userRepository;
 
-    public AppUserDetailsService(UserRepositoryImpl userRepository) {
+    public AppUserDetailsService(UserRepositoryCustom userRepository) {
         this.userRepository = userRepository;
     }
 

@@ -4,11 +4,11 @@ import io.github.wimdeblauwe.jpearl.AbstractEntityId;
 
 import java.util.UUID;
 
-public class RecommendationId extends AbstractEntityId<UUID> {
+public class RecommendationId  {
 
     protected RecommendationId(){}
 
     public RecommendationId(UUID id){
-        super(id);
+
     }
 }

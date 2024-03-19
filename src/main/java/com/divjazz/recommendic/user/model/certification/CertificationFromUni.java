@@ -6,11 +6,10 @@ import jakarta.persistence.*;
 
 import java.io.File;
 
-@Entity
-public class CertificationFromUni extends AbstractEntity<CertificationID> {
 
-    @OneToOne
-    @JoinColumn(name = "consultant_id", nullable = false)
+public class CertificationFromUni{
+
+
     private Consultant ownerOfCertification;
 
     @Lob
@@ -20,7 +19,7 @@ public class CertificationFromUni extends AbstractEntity<CertificationID> {
     protected CertificationFromUni(){}
 
     public CertificationFromUni(CertificationID id, Consultant ownerOfCertification, Byte[] certificationInPdfFormat) {
-        super(id);
+
         this.ownerOfCertification = ownerOfCertification;
         this.certificationInPdfFormat = certificationInPdfFormat;
     }

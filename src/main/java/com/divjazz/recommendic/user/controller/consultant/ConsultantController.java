@@ -25,8 +25,8 @@ public class ConsultantController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<User> createConsultant(@RequestParam ConsultantRequestParams requestParams){
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
-        Email userEmail = new Email(requestParams.email());
-        PhoneNumber phoneNumber = new PhoneNumber(requestParams.phoneNumber());
+        String userEmail = requestParams.email();
+        String phoneNumber = requestParams.phoneNumber();
         Gender gender = switch (requestParams.gender().toUpperCase()){
           case "MALE" -> Gender.MALE;
           case "FEMALE" -> Gender.FEMALE;

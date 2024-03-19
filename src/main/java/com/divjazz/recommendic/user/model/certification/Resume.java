@@ -8,12 +8,11 @@ import org.hibernate.annotations.CascadeType;
 
 import java.io.File;
 
-@Entity
-public class Resume extends AbstractEntity<CertificationID> {
+
+public class Resume{
 
 
-    @ManyToOne
-    @JoinColumn(name = "consultant_id",nullable = false)
+
     private Consultant ownerOFTheResume;
     @Lob
     private Byte[] pdfOfResume;
@@ -21,8 +20,8 @@ public class Resume extends AbstractEntity<CertificationID> {
     private boolean confirmed = false;
 
     protected Resume(){}
-    public Resume(CertificationID id, Consultant ownerOFTheResume, Byte[] pdfOfResume) {
-        super(id);
+    public Resume(Consultant ownerOFTheResume, Byte[] pdfOfResume) {
+
         this.ownerOFTheResume = ownerOFTheResume;
         this.pdfOfResume = pdfOfResume;
     }

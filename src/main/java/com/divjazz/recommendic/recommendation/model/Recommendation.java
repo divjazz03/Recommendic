@@ -8,20 +8,17 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
-@Entity
-public class Recommendation extends AbstractEntity<RecommendationId> {
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "patient_id", nullable = false)
+public class Recommendation {
+
+
     private Patient patient;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="consultant_id")
+
     private Consultant consultant;
     //Todo: Create a recommendation system for Articles
 
 
     public Recommendation(RecommendationId id, Consultant consultant) {
-        super(id);
         this.consultant = consultant;
     }
     protected Recommendation(){}

@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 @Entity
+@Table(name = "tt_user")
 public class User extends AbstractEntity<UserId> implements UserDetails {
 
     @Column(nullable = false)

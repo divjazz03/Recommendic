@@ -5,7 +5,6 @@ import com.divjazz.recommendic.user.model.User;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,10 +16,8 @@ import java.util.UUID;
 @Entity
 public class AdminPassword extends AbstractEntity<UserId>{
 
-    @Id
-    private UserId passwordId;
-
-    @ManyToOne
+    @JoinColumn(name = "admin_password")
+    @ManyToOne(cascade = CascadeType.ALL)
     private User assignedAdmin;
 
     private String password;
@@ -31,7 +28,7 @@ public class AdminPassword extends AbstractEntity<UserId>{
     }
 
     public AdminPassword(UserId passwordId, User assignedAdmin, String password) {
-        this.passwordId = passwordId;
+        super(passwordId);
         this.assignedAdmin = assignedAdmin;
         this.password = password;
         expiryDate = LocalDate.now().plusYears(1);
@@ -53,9 +50,6 @@ public class AdminPassword extends AbstractEntity<UserId>{
         this.password = password;
     }
 
-    public UserId getPasswordId() {
-        return passwordId;
-    }
     public LocalDate getExpiryDate(){
         return expiryDate;
     }

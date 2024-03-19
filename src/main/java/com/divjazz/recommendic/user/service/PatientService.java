@@ -2,11 +2,10 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
+import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
 import com.google.common.collect.ImmutableSet;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,18 +18,22 @@ import java.util.*;
 public class PatientService {
 
     private final UserRepositoryCustom userRepositoryCustom;
+    private final UserRepositoryImpl userRepository;
 
-    private final AppUserDetailsService service;
-    private final PasswordEncoder encoder;
-
-    public PatientService( UserRepositoryCustom userRepositoryCustom, AppUserDetailsService service, PasswordEncoder encoder) {
+    public PatientService(UserRepositoryCustom userRepositoryCustom, UserRepositoryImpl userRepository, AppUserDetailsService service, PasswordEncoder encoder) {
         this.userRepositoryCustom = userRepositoryCustom;
+        this.userRepository = userRepository;
         this.service = service;
         this.encoder = encoder;
     }
 
+    private final AppUserDetailsService service;
+    private final PasswordEncoder encoder;
+
+
+
     public ResponseEntity<User> createPatient(PatientDTO patientDTO){
-        User user = new User(userRepositoryCustom.nextId(),
+        User user = new User(userRepository.nextId(),
                 patientDTO.userName(),
                 patientDTO.email(),
                 patientDTO.phoneNumber(), patientDTO.gender(), patientDTO.address(), UserType.PATIENT, encoder.encode(patientDTO.password()));

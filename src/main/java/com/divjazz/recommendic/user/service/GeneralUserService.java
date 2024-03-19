@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GeneralUserService {
-    UserRepositoryImpl repositoryCustom;
+    UserRepositoryCustom repositoryCustom;
 
-    public GeneralUserService(UserRepositoryImpl repositoryCustom) {
+    public GeneralUserService(UserRepositoryCustom repositoryCustom) {
         this.repositoryCustom = repositoryCustom;
     }
 

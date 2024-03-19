@@ -43,7 +43,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v*/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
-                .formLogin(Customizer.withDefaults())
                 .build();
     }
 
