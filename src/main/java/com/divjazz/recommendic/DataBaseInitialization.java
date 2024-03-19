@@ -43,8 +43,8 @@ public class DataBaseInitialization implements CommandLineRunner {
     private PatientDTO generatePatient() {
         Name name = faker.name();
         UserName userName = new UserName(name.firstName(), name.lastName());
-        Email email = new Email(faker.internet().emailAddress(generateEmailLocalPart(userName)));
-        PhoneNumber phoneNumber = new PhoneNumber(faker.phoneNumber().phoneNumber());
+        String email = faker.internet().emailAddress(generateEmailLocalPart(userName));
+        String phoneNumber = faker.phoneNumber().phoneNumber();
         Gender gender = faker.bool().bool() ? Gender.MALE : Gender.FEMALE;
         Address address = new Address(
                 faker.address().zipCode(),
@@ -58,8 +58,8 @@ public class DataBaseInitialization implements CommandLineRunner {
     private ConsultantDTO generateUnverifiedConsultant(){
         Name name = faker.name();
         UserName userName = new UserName(name.firstName(), name.lastName());
-        Email email = new Email(faker.internet().emailAddress(generateEmailLocalPart(userName)));
-        PhoneNumber number = new PhoneNumber(faker.phoneNumber().phoneNumber());
+        String email = faker.internet().emailAddress(generateEmailLocalPart(userName));
+        String number = faker.phoneNumber().phoneNumber();
         Gender gender = faker.bool().bool()? Gender.FEMALE: Gender.MALE;
         Address address = new Address(
                 faker.address().zipCode(),
