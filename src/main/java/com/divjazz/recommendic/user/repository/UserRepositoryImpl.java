@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public class UserRepositoryImpl implements UserRepositoryCustom {
+public abstract class UserRepositoryImpl implements UserRepositoryCustom{
 
     private final UniqueIdGenerator<UUID> generator ;
 

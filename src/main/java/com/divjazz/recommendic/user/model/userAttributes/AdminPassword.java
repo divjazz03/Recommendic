@@ -1,28 +1,47 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 import com.divjazz.recommendic.user.model.Admin;
+import com.divjazz.recommendic.user.model.User;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
-@Entity
-public class AdminPassword extends AbstractEntity<UserId> {
+import java.util.UUID;
 
-    @JoinColumn(name = "name_admin")
+@Entity
+public class AdminPassword extends AbstractEntity<UserId>{
+
+    @Id
+    private UserId passwordId;
+
     @ManyToOne
-    private Admin assignedAdmin;
-    @Column(name = "password", nullable = false)
+    private User assignedAdmin;
+
     private String password;
 
     protected AdminPassword() {
     }
 
-    public AdminPassword(Admin assignedAdmin, String password) {
+    public AdminPassword(UserId passwordId, User assignedAdmin, String password) {
+        this.passwordId = passwordId;
         this.assignedAdmin = assignedAdmin;
+        this.password = password;
+    }
+
+    public User getAssignedAdmin() {
+        return assignedAdmin;
+    }
+
+    public void setAssignedAdmin(User assignedAdmin) {
+        this.assignedAdmin = assignedAdmin;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
         this.password = password;
     }
 }

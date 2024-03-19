@@ -1,44 +1,56 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
+import io.github.wimdeblauwe.jpearl.EntityId;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-@MappedSuperclass
-public abstract class User extends AbstractEntity<UserId>{
+import java.util.Collection;
+
+@Entity
+public class User extends AbstractEntity<UserId> implements UserDetails {
 
     @Column(nullable = false)
     @Embedded
     private UserName userName;
-    @Embedded
-    @Column(name = "email", nullable = false)
-    private Email email;
 
-    @Embedded
-    @Column(name = "email", nullable = false)
-    private PhoneNumber phoneNumber;
+    @Column(nullable = false)
+    String email;
 
-    @Column(name = "gender", nullable = false)
+    @Column(nullable = false)
+    String phoneNumber;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Embedded
     @Column(nullable = false)
     private Address address;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
+
+    private String password;
 
 
 
     protected User(){}
 
-    public User(UserId id, UserName userName, Email email, PhoneNumber phoneNumber, Gender gender, Address address){
+    public User(UserId id, UserName userName,String email, String phoneNumber, Gender gender, Address address, UserType userType, String password){
         super(id);
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.address = address;
+        this.userType = userType;
+        this.password = password;
 
     }
 
@@ -46,11 +58,11 @@ public abstract class User extends AbstractEntity<UserId>{
         return userName;
     }
 
-    public Email getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public PhoneNumber getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
@@ -58,15 +70,66 @@ public abstract class User extends AbstractEntity<UserId>{
         this.userName = userName;
     }
 
-    public void setEmail(Email email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public void setPhoneNumber(PhoneNumber phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
     public Gender getGender() {
         return gender;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

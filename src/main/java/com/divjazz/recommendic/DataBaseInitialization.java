@@ -5,6 +5,7 @@ import com.divjazz.recommendic.user.dto.PatientDTO;
 
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
+import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.github.javafaker.Faker;
 import com.github.javafaker.Name;
@@ -20,17 +21,22 @@ public class DataBaseInitialization implements CommandLineRunner {
 
     private final Faker faker = new Faker();
     private final PatientService patientService;
+    private final ConsultantService consultantService;
 
-    public DataBaseInitialization(PatientService patientService) {
+    public DataBaseInitialization(PatientService patientService, ConsultantService consultantService) {
         this.patientService = patientService;
+        this.consultantService = consultantService;
     }
 
     @Override
     public void run(String... args) throws Exception {
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             PatientDTO patientDTO = generatePatient();
+            ConsultantDTO consultantDTO = generateUnverifiedConsultant();
             patientService.createPatient(patientDTO);
+            consultantService.createConsultant(consultantDTO);
+
         }
     }
 
@@ -61,7 +67,8 @@ public class DataBaseInitialization implements CommandLineRunner {
                 faker.address().state(),
                 faker.address().country()
         );
-        return new ConsultantDTO(userName,email,number,gender,address);
+        String password = faker.internet().password();
+        return new ConsultantDTO(userName,email,number,gender,address, password);
 
     }
 

@@ -1,2 +1,5 @@
-package com.divjazz.recommendic.user;public enum UserType {
+package com.divjazz.recommendic.user;
+
+public enum UserType {
+    CONSULTANT,ADMIN,PATIENT
 }

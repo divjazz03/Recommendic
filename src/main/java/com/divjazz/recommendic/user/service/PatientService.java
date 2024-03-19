@@ -1,40 +1,51 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.EntityIdentityConfig;
+import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.UserId;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
-import com.divjazz.recommendic.user.repository.PatientRepository;
-import io.github.wimdeblauwe.jpearl.UniqueIdGenerator;
+import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
+import com.google.common.collect.ImmutableSet;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class PatientService {
 
-    private final PatientRepository patientRepository;
-    private final UniqueIdGenerator<UUID> uniqueIdGenerator;
+    private final UserRepositoryCustom userRepositoryCustom;
 
-    public PatientService(PatientRepository patientRepository, UniqueIdGenerator<UUID> uniqueIdGenerator) {
-        this.patientRepository = patientRepository;
-        this.uniqueIdGenerator = uniqueIdGenerator;
+    private final AppUserDetailsService service;
+    private final PasswordEncoder encoder;
 
+    public PatientService( UserRepositoryCustom userRepositoryCustom, AppUserDetailsService service, PasswordEncoder encoder) {
+        this.userRepositoryCustom = userRepositoryCustom;
+        this.service = service;
+        this.encoder = encoder;
     }
 
-    public ResponseEntity<Patient> createPatient(PatientDTO patientDTO){
-        Patient patient = new Patient(new UserId(uniqueIdGenerator.getNextUniqueId()),
+    public ResponseEntity<User> createPatient(PatientDTO patientDTO){
+        User user = new User(userRepositoryCustom.nextId(),
                 patientDTO.userName(),
                 patientDTO.email(),
-                patientDTO.phoneNumber(),
-                patientDTO.gender(),
-                patientDTO.address(),
-                patientDTO.password());
-        var result = patientRepository.save(patient);
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
+                patientDTO.phoneNumber(), patientDTO.gender(), patientDTO.address(), UserType.PATIENT, encoder.encode(patientDTO.password()));
+
+       return new ResponseEntity<>(userRepositoryCustom.save(user), HttpStatus.CREATED);
     }
+
+
+
+    public ResponseEntity<Set<User>> getAllPatients(){
+        UserType patient = UserType.PATIENT;
+        Set<User> patients = ImmutableSet
+                .copyOf(userRepositoryCustom
+                .findAllByUserType(patient).orElseThrow(() -> new UsernameNotFoundException("No patients found")));
+        return new ResponseEntity<>(patients,HttpStatus.OK);
+    }
+
 }
