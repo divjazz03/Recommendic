@@ -4,6 +4,7 @@ import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,5 +14,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConsultantService {
 
+    private final UserRepositoryCustom userRepository;
 
+
+    public ResponseEntity<User> createConsultant(ConsultantDTO consultantDTO) {
+        User user = new User()
+    }
 }

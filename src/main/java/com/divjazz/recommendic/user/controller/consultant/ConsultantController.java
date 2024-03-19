@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class ConsultantController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Consultant> createConsultant(@RequestParam ConsultantRequestParams requestParams){
+    public ResponseEntity<User> createConsultant(@RequestParam ConsultantRequestParams requestParams){
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
         Email userEmail = new Email(requestParams.email());
         PhoneNumber phoneNumber = new PhoneNumber(requestParams.phoneNumber());
