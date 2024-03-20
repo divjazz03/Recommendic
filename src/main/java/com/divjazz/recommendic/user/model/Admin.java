@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
+import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -17,12 +18,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-
-public class Admin{
-
-    private Set<AdminPassword> password;
+@Entity
+public class Admin extends AbstractEntity<UserId> {
 
     protected Admin() {
     }
+
+
 
 }

@@ -2,12 +2,12 @@ package com.divjazz.recommendic.user.controller.admin;
 
 
 import com.divjazz.recommendic.user.dto.AdminDTO;
-import com.divjazz.recommendic.user.model.Admin;
-import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.*;
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.Gender;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.AdminService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +22,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+    @PostMapping("create")
     public ResponseEntity<AdminResponse> createAdmin(@RequestBody AdminRequestParams requestParams){
         AdminDTO adminDTO = new AdminDTO(
                 new UserName(requestParams.firstName(), requestParams.lastName()), requestParams.email(), requestParams.phoneNumber(),

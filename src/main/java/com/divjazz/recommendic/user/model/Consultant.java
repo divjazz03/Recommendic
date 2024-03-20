@@ -2,11 +2,12 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.model.certification.CertificationFromUni;
+import com.divjazz.recommendic.user.model.certification.CertificationID;
 import com.divjazz.recommendic.user.model.certification.Resume;
 import com.divjazz.recommendic.user.model.userAttributes.*;
+import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,25 +16,30 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-
-public class Consultant {
-
-
-    private Set<Resume> resume;
+@Entity
+public class Consultant extends AbstractEntity<UserId> {
 
 
-    private Set<CertificationFromUni> certification;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "resume_id")
+    private Resume resume;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "certification_id")
+    private CertificationFromUni certification;
 
+    @ManyToMany
     private Set<Patient> patients;
-
-
-    private String password;
+    @OneToOne(targetEntity = User.class, optional = false)
+    @JoinColumn(name = "tt_user_id", nullable = false)
+    private User user;
 
     private boolean certified;
     protected Consultant (){}
 
-
+    public Consultant (UserId id){
+        super(id);
+    }
     public boolean isCertified() {
         return certified;
     }
@@ -42,33 +48,25 @@ public class Consultant {
      * Checks if both the resume attached to the consultant has been confirmed
      */
     private void setCertified(){
-        boolean checkIfExists = this.resume.stream().findFirst().isPresent() && this.certification.stream().findFirst().isPresent();
-        boolean resumeIsVerified = this.resume.stream()
-                .findFirst()
-                .get()
-                .isConfirmed();
-        boolean certificateIsVerified = this.resume.stream()
-                .findFirst()
-                .get()
-                .isConfirmed();
-        certified = (checkIfExists && resumeIsVerified && certificateIsVerified);
-
+        if (resume.isConfirmed() && certification.isConfirmed()){
+            certified = true;
+        }
     }
 
-    public Set<Resume> getResume() {
+    public Resume getResume() {
         return resume;
     }
 
     public void setResume(Resume resume) {
-        this.resume = Collections.singleton(resume);
+        this.resume = resume;
     }
 
-    public Set<CertificationFromUni> getCertification() {
+    public CertificationFromUni getCertification() {
         return certification;
     }
 
     public void setCertification(CertificationFromUni certification) {
-        this.certification = Collections.singleton(certification);
+        this.certification = certification;
     }
 
     public Set<Patient> getPatients() {

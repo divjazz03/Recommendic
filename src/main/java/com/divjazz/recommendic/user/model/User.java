@@ -8,9 +8,11 @@ import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import io.github.wimdeblauwe.jpearl.EntityId;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Table(name = "tt_user")
@@ -101,7 +103,12 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        SimpleGrantedAuthority authority = switch (userType){
+            case CONSULTANT, PATIENT -> new SimpleGrantedAuthority("USER");
+            case ADMIN -> new SimpleGrantedAuthority("ADMIN");
+
+        };
+        return Collections.singletonList(authority);
     }
 
     @Override

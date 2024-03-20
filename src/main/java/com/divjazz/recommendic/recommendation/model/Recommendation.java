@@ -8,18 +8,36 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+@Entity
+public class Recommendation extends AbstractEntity<RecommendationId> {
 
-public class Recommendation {
-
-
+    @ManyToOne
     private Patient patient;
 
+    @ManyToOne
     private Consultant consultant;
     //Todo: Create a recommendation system for Articles
 
 
     public Recommendation(RecommendationId id, Consultant consultant) {
+        super(id);
         this.consultant = consultant;
     }
     protected Recommendation(){}
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public Consultant getConsultant() {
+        return consultant;
+    }
+
+    public void setConsultant(Consultant consultant) {
+        this.consultant = consultant;
+    }
 }

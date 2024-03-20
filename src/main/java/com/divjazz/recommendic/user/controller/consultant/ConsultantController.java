@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/consultant")
+@CrossOrigin("*")
 public class ConsultantController {
 
     private final ConsultantService consultantService;
@@ -23,7 +24,7 @@ public class ConsultantController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<User> createConsultant(@RequestParam ConsultantRequestParams requestParams){
+    public ResponseEntity<User> createConsultant(@RequestBody ConsultantRequestParams requestParams){
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
         String userEmail = requestParams.email();
         String phoneNumber = requestParams.phoneNumber();

@@ -1,15 +1,13 @@
 package com.divjazz.recommendic.user.controller.patient;
 
-import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.*;
-import com.divjazz.recommendic.user.service.AppUserDetailsService;
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.Gender;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;

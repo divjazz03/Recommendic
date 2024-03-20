@@ -38,6 +38,7 @@ public class PatientService {
                 patientDTO.email(),
                 patientDTO.phoneNumber(), patientDTO.gender(), patientDTO.address(), UserType.PATIENT, encoder.encode(patientDTO.password()));
 
+
        return new ResponseEntity<>(userRepositoryCustom.save(user), HttpStatus.CREATED);
     }
 

@@ -5,6 +5,7 @@ import com.divjazz.recommendic.user.dto.PatientDTO;
 
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
+import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.github.javafaker.Faker;
@@ -23,7 +24,10 @@ public class DataBaseInitialization implements CommandLineRunner {
     private final PatientService patientService;
     private final ConsultantService consultantService;
 
-    public DataBaseInitialization(PatientService patientService, ConsultantService consultantService) {
+    private final AdminService adminService;
+
+    public DataBaseInitialization(PatientService patientService, ConsultantService consultantService, AdminService service) {
+        this.adminService = service;
         this.patientService = patientService;
         this.consultantService = consultantService;
     }
