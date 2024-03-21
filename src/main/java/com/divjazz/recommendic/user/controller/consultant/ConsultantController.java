@@ -6,14 +6,17 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.Set;
+
 @RestController
 @RequestMapping("api/v1/consultant")
-@CrossOrigin("*")
 public class ConsultantController {
 
     private final ConsultantService consultantService;
@@ -24,7 +27,7 @@ public class ConsultantController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<User> createConsultant(@RequestBody ConsultantRequestParams requestParams){
+    public ResponseEntity<ResponseMessage> createConsultant(@RequestBody ConsultantRequestParams requestParams){
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
         String userEmail = requestParams.email();
         String phoneNumber = requestParams.phoneNumber();
@@ -40,5 +43,11 @@ public class ConsultantController {
         ConsultantDTO consultantDTO = new ConsultantDTO(userName,userEmail,phoneNumber,gender,address, requestParams.password());
         return consultantService.createConsultant(consultantDTO);
 
+    }
+
+    @GetMapping("consultants")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseMessage> getConsultants(){
+        return consultantService.getAllConsultants();
     }
 }

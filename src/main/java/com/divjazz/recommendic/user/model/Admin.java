@@ -1,12 +1,10 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
@@ -21,9 +19,17 @@ import java.util.Set;
 @Entity
 public class Admin extends AbstractEntity<UserId> {
 
+    @OneToOne(targetEntity = User.class)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User adminUser;
+    @OneToMany
+    @JoinColumn(name = "assignment_id")
+    private Set<Assignment> assignment;
     protected Admin() {
     }
 
-
-
+    public Admin(UserId id, User adminUser) {
+        super(id);
+        this.adminUser = adminUser;
+    }
 }

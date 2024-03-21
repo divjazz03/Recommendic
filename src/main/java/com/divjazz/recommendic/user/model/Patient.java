@@ -30,8 +30,9 @@ public class Patient extends AbstractEntity<UserId> {
 
     protected Patient(){}
 
-    public Patient(UserId id){
+    public Patient(UserId id, User user){
         super(id);
+        this.user = user;
     }
 
     public Set<Recommendation> getRecommendations() {
@@ -53,7 +54,4 @@ public class Patient extends AbstractEntity<UserId> {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

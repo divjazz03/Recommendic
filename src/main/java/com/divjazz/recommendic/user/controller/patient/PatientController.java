@@ -6,6 +6,7 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class PatientController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<User> createPatient(@RequestBody PatientRequestParams requestParams){
+    public ResponseEntity<ResponseMessage> createPatient(@RequestBody PatientRequestParams requestParams){
         PatientDTO patient = new PatientDTO(
                 new UserName(requestParams.firstName(), requestParams.lastName()),
                 requestParams.email(), requestParams.phoneNumber(),

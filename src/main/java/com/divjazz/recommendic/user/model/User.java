@@ -57,7 +57,7 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
 
     }
 
-    public UserName getUserName() {
+    public UserName getUserNameObject() {
         return userName;
     }
 
@@ -97,16 +97,13 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
         return userType;
     }
 
-    public void setUserType(UserType userType) {
-        this.userType = userType;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         SimpleGrantedAuthority authority = switch (userType){
-            case CONSULTANT, PATIENT -> new SimpleGrantedAuthority("USER");
+            case CONSULTANT -> new SimpleGrantedAuthority("CONSULTANT");
+            case PATIENT -> new SimpleGrantedAuthority("PATIENT");
             case ADMIN -> new SimpleGrantedAuthority("ADMIN");
-
         };
         return Collections.singletonList(authority);
     }
@@ -139,5 +136,14 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String toString(){
+        return "User: [ name -> " +
+                this.userName.getFullName() +
+                ", gender -> " + this.gender.toString().toLowerCase() +
+                ", phone number -> " + this.phoneNumber +
+                ", email -> " + this.email;
     }
 }

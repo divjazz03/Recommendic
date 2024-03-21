@@ -1,32 +1,17 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.user.UserType;
-import com.divjazz.recommendic.user.model.certification.CertificationFromUni;
-import com.divjazz.recommendic.user.model.certification.CertificationID;
-import com.divjazz.recommendic.user.model.certification.Resume;
+import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Cascade;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 @Entity
 public class Consultant extends AbstractEntity<UserId> {
 
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "resume_id")
-    private Resume resume;
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "certification_id")
-    private CertificationFromUni certification;
+    @OneToMany
+    private Set<Certification> certifications;
 
     @ManyToMany
     private Set<Patient> patients;
@@ -37,8 +22,9 @@ public class Consultant extends AbstractEntity<UserId> {
     private boolean certified;
     protected Consultant (){}
 
-    public Consultant (UserId id){
+    public Consultant (UserId id, User user){
         super(id);
+        this.user = user;
     }
     public boolean isCertified() {
         return certified;
@@ -48,25 +34,17 @@ public class Consultant extends AbstractEntity<UserId> {
      * Checks if both the resume attached to the consultant has been confirmed
      */
     private void setCertified(){
-        if (resume.isConfirmed() && certification.isConfirmed()){
+        if (certifications.stream().allMatch(Certification::isConfirmed)){
             certified = true;
         }
     }
 
-    public Resume getResume() {
-        return resume;
+    public Set<Certification> getCertifications() {
+        return certifications;
     }
 
-    public void setResume(Resume resume) {
-        this.resume = resume;
-    }
-
-    public CertificationFromUni getCertification() {
-        return certification;
-    }
-
-    public void setCertification(CertificationFromUni certification) {
-        this.certification = certification;
+    public User getUser() {
+        return user;
     }
 
     public Set<Patient> getPatients() {

@@ -1,8 +1,10 @@
 package com.divjazz.recommendic;
 
+import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 import com.divjazz.recommendic.user.service.AdminService;
@@ -35,13 +37,24 @@ public class DataBaseInitialization implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             PatientDTO patientDTO = generatePatient();
             ConsultantDTO consultantDTO = generateUnverifiedConsultant();
             patientService.createPatient(patientDTO);
             consultantService.createConsultant(consultantDTO);
 
         }
+        generateDefaultAdmin();
+    }
+    private void generateDefaultAdmin(){
+        AdminDTO adminDTO = new AdminDTO(
+                new UserName("Maduka", "Akachukwu"),
+                "divjazz20@gmail.com",
+                "07058695592",
+                Gender.MALE,
+                new Address("2003940","Ibadan","Oyo","Nigeria")
+        );
+        System.out.println(adminService.createAdmin(adminDTO));
     }
 
     private PatientDTO generatePatient() {
