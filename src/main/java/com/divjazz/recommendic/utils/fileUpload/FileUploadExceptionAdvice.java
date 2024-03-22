@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.utils.fileUpload;
+package com.divjazz.recommendic.utils.fileUpload;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

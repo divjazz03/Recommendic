@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.utils.fileUpload;
+package com.divjazz.recommendic.utils.fileUpload;
 
 public class ResponseMessage {
     private String message;

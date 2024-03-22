@@ -4,8 +4,8 @@ import com.divjazz.recommendic.user.exceptions.NoSuchCertificateException;
 import com.divjazz.recommendic.user.model.certification.CertificateType;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import com.divjazz.recommendic.user.service.CertificationService;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseFile;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
+import com.divjazz.recommendic.utils.fileUpload.ResponseFile;
+import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/v1/file/")

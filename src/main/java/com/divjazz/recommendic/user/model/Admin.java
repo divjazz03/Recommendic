@@ -32,4 +32,19 @@ public class Admin extends AbstractEntity<UserId> {
         super(id);
         this.adminUser = adminUser;
     }
+
+    public User getAdminUser() {
+        return adminUser;
+    }
+
+    public Set<Assignment> getAssignment() {
+        return assignment;
+    }
+
+    @Override
+    public String toString(){
+        return "Admin: name -> " + adminUser.getUserNameObject().getFullName() +
+        "email -> " + adminUser.getEmail() +
+        "gender -> " + adminUser.getGender().name();
+    }
 }

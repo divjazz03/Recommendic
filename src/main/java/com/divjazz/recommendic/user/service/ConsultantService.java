@@ -9,11 +9,14 @@ import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
 import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
+import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ConsultantService {
@@ -52,11 +55,15 @@ public class ConsultantService {
         }
     }
 
-    public ResponseEntity<ResponseMessage> getAllConsultants(){
-        ImmutableSet<User> consultants = ImmutableSet.
+    public ResponseEntity<Set<Consultant>> getAllConsultants(){
+        Set<User> consultants = ImmutableSet.
                 copyOf(userRepositoryCustom
                         .findAllByUserType(UserType.CONSULTANT)
                         .orElseThrow(() -> new UserNotFoundException("No consultant was found")));
-        return new ResponseEntity<>(new ResponseMessage(consultants.toString()), HttpStatus.OK);
+        return new ResponseEntity<>(consultants.stream()
+                .map(user -> consultantRepository
+                        .findByUser(user)
+                        .orElseThrow(() -> new UserNotFoundException("Consultant was not found")))
+                .collect(Collectors.toSet()), HttpStatus.OK);
     }
 }

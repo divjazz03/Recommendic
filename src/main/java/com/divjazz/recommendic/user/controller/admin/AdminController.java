@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.controller.admin;
 
 
 import com.divjazz.recommendic.user.dto.AdminDTO;
+import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Gender;
@@ -37,7 +38,7 @@ public class AdminController {
     }
 
     @GetMapping("admins")
-    public ResponseEntity<Set<User>> getAdmins(){
+    public ResponseEntity<Set<Admin>> getAdmins(){
         return adminService.getAllAdmins();
     }
 }

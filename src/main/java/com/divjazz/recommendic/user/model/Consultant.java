@@ -54,4 +54,12 @@ public class Consultant extends AbstractEntity<UserId> {
     public void setPatients(Set<Patient> patients) {
         this.patients.addAll(patients);
     }
+
+    @Override
+    public String toString() {
+        return "Consultant: name -> " + user.getUserNameObject().getFullName() +
+                "email -> " + user.getEmail() +
+                "gender -> " + user.getGender().name();
+    }
+
 }

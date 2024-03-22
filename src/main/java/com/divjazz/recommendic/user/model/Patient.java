@@ -54,4 +54,10 @@ public class Patient extends AbstractEntity<UserId> {
         return user;
     }
 
+    @Override
+    public String toString() {
+        return "Patient: name -> " + user.getUserNameObject().getFullName() +
+                "email -> " + user.getEmail() +
+                "gender -> " + user.getGender().name();
+    }
 }

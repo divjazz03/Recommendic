@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -90,12 +91,17 @@ public class AdminService {
 
     }
 
-    public ResponseEntity<Set<User>> getAllAdmins(){
+    public ResponseEntity<Set<Admin>> getAllAdmins(){
         ImmutableSet<User> admins = ImmutableSet
                 .copyOf(userRepositoryCustom
                         .findAllByUserType(UserType.ADMIN)
                         .orElseThrow(() -> new UserNotFoundException("No Admins found")));
-        return new ResponseEntity<>(admins, HttpStatus.OK);
+
+        return new ResponseEntity<>(admins.stream()
+                .map(user -> adminRepository
+                        .findByAdminUser(user)
+                        .orElseThrow(() -> new UserNotFoundException("Admin user was not found")))
+                .collect(Collectors.toSet()), HttpStatus.OK);
     }
 
 }

@@ -2,7 +2,6 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.user.exceptions.CertificateNotFoundException;
 import com.divjazz.recommendic.user.exceptions.NoCertificateException;
-import com.divjazz.recommendic.user.exceptions.NoSuchCertificateException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.certification.CertificateType;
@@ -13,18 +12,15 @@ import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
 import com.divjazz.recommendic.user.repository.certificationRepo.ResumeRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.UniCertRepository;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseFile;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
+import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class CertificationService {

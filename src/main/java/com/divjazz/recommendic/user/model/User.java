@@ -23,10 +23,10 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
     private UserName userName;
 
     @Column(nullable = false)
-    String email;
+    private String email;
 
     @Column(nullable = false)
-    String phoneNumber;
+    private String phoneNumber;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

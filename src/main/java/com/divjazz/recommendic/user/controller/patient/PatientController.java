@@ -1,12 +1,12 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
-import com.divjazz.recommendic.user.utils.fileUpload.ResponseMessage;
+import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +44,7 @@ public class PatientController {
 
     @GetMapping("patients")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Set<User>> patients(){
+    public ResponseEntity<Set<Patient>> patients(){
         return patientService.getAllPatients();
     }
 
