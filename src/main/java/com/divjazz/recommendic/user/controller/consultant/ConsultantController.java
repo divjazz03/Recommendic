@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 @RestController
-@RequestMapping("api/v1/consultant")
+@RequestMapping("/api/v1/consultant")
 public class ConsultantController {
 
     private final ConsultantService consultantService;
@@ -24,7 +25,7 @@ public class ConsultantController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ResponseMessage> createConsultant(@RequestBody ConsultantRequestParams requestParams){
+    public ResponseEntity<ResponseMessage> createConsultant(@RequestBody ConsultantRegistrationParams requestParams){
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
         String userEmail = requestParams.email();
         String phoneNumber = requestParams.phoneNumber();

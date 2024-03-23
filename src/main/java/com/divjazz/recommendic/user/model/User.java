@@ -1,11 +1,11 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import io.github.wimdeblauwe.jpearl.EntityId;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,6 +38,9 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserType userType;
+    @OneToOne
+    @JoinColumn(name = "profile_picture_id")
+    private ProfilePicture profilePicture;
 
     private String password;
 
@@ -54,7 +57,18 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
         this.address = address;
         this.userType = userType;
         this.password = password;
+    }
 
+    public User(UserId id, UserName userName, String email, String phoneNumber, Gender gender, Address address, UserType userType, ProfilePicture profilePicture, String password) {
+        super(id);
+        this.userName = userName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.address = address;
+        this.userType = userType;
+        this.profilePicture = profilePicture;
+        this.password = password;
     }
 
     public UserName getUserNameObject() {
@@ -140,10 +154,18 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
 
     @Override
     public String toString(){
-        return "User: [ name -> " +
+        return "User: name -> " +
                 this.userName.getFullName() +
                 ", gender -> " + this.gender.toString().toLowerCase() +
                 ", phone number -> " + this.phoneNumber +
                 ", email -> " + this.email;
+    }
+
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

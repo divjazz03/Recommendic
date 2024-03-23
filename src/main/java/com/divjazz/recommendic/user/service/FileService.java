@@ -4,7 +4,7 @@ import com.divjazz.recommendic.user.exceptions.CertificateNotFoundException;
 import com.divjazz.recommendic.user.exceptions.NoCertificateException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.certification.CertificateType;
+import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.certification.CertificationID;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
@@ -23,14 +23,14 @@ import java.io.IOException;
 import java.util.*;
 
 @Service
-public class CertificationService {
+public class FileService {
     private final ResumeRepository resumeRepository;
     private final UniCertRepository uniCertRepository;
     private final UserRepositoryImpl userRepository;
     private final ConsultantRepository consultantRepository;
 
 
-    public CertificationService(ResumeRepository resumeRepository, UniCertRepository uniCertRepository, UserRepositoryImpl userRepository, ConsultantRepository consultantRepository) {
+    public FileService(ResumeRepository resumeRepository, UniCertRepository uniCertRepository, UserRepositoryImpl userRepository, ConsultantRepository consultantRepository) {
         this.resumeRepository = resumeRepository;
         this.uniCertRepository = uniCertRepository;
         this.userRepository = userRepository;

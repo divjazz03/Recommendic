@@ -4,7 +4,7 @@ import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 
-import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 import com.divjazz.recommendic.user.service.AdminService;

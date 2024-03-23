@@ -1,19 +1,10 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.user.UserType;
 import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 @Entity

@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
@@ -13,6 +13,7 @@ import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -25,12 +26,15 @@ public class ConsultantService {
     private final UserRepositoryImpl userRepository;
     private final ConsultantRepository consultantRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     private final GeneralUserService userService;
 
-    public ConsultantService(UserRepositoryCustom userRepositoryCustom, UserRepositoryImpl userRepository, ConsultantRepository consultantRepository, GeneralUserService userService) {
+    public ConsultantService(UserRepositoryCustom userRepositoryCustom, UserRepositoryImpl userRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
         this.userRepositoryCustom = userRepositoryCustom;
         this.userRepository = userRepository;
         this.consultantRepository = consultantRepository;
+        this.passwordEncoder = passwordEncoder;
         this.userService = userService;
     }
 
@@ -43,7 +47,7 @@ public class ConsultantService {
                 consultantDTO.gender(),
                 consultantDTO.address(),
                 UserType.CONSULTANT,
-                consultantDTO.password()
+                passwordEncoder.encode(consultantDTO.password())
         );
         if (!userService.verifyIfEmailExists(user.getEmail())) {
             userRepositoryCustom.save(user);

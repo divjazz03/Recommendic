@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.security;
 
-import com.divjazz.recommendic.user.service.AppUserDetailsService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,12 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -47,6 +41,11 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/login").permitAll()
+                        .requestMatchers("/api/v*/consultant/create").permitAll()
+                        .requestMatchers("/api/v*/patient/create").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v*/consultant/**").hasAuthority("ROLE_CONSULTANT")
+                        .requestMatchers(HttpMethod.POST,"/api/v*/patient/**").hasAuthority("ROLE_PATIENT")
+                        .requestMatchers("/api/v*/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
                 .httpBasic(withDefaults())
                 .formLogin(withDefaults())

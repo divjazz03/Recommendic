@@ -1,9 +1,10 @@
 package com.divjazz.recommendic.user.controller;
 
 import com.divjazz.recommendic.user.exceptions.NoSuchCertificateException;
-import com.divjazz.recommendic.user.model.certification.CertificateType;
+import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
-import com.divjazz.recommendic.user.service.CertificationService;
+import com.divjazz.recommendic.user.service.FileService;
+import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.utils.fileUpload.ResponseFile;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import org.springframework.http.HttpStatus;
@@ -19,18 +20,22 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/file/")
 public class FileController {
-    private final CertificationService certificationService;
+    private final FileService fileService;
+    private final GeneralUserService userService;
 
-    public FileController(CertificationService certificationService) {
-        this.certificationService = certificationService;
+    public FileController(FileService fileService, GeneralUserService userService) {
+        this.fileService = fileService;
 
+        this.userService = userService;
     }
 
     @PostMapping(value = "consultant/certification",
             params = {"consultant_id", "certificate_type"},
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<ResponseMessage> uploadCertification(@RequestParam(value = "consultant_id")String id, @RequestParam(value = "certificate_type") String certificateTypeString, @RequestBody MultipartFile multipartFile){
+    public ResponseEntity<ResponseMessage> uploadCertification(@RequestParam(value = "consultant_id")String id,
+                                                               @RequestParam(value = "certificate_type") String certificateTypeString,
+                                                               @RequestBody MultipartFile multipartFile){
         String message = "";
         CertificateType certificateType = switch (certificateTypeString.toUpperCase()){
             case "RESUME" -> CertificateType.RESUME;
@@ -38,7 +43,7 @@ public class FileController {
             case null, default -> throw new NoSuchCertificateException();
         };
         try{
-            certificationService.storeCertificate(multipartFile, new UserId(UUID.fromString(id)), certificateType);
+            fileService.storeCertificate(multipartFile, new UserId(UUID.fromString(id)), certificateType);
         } catch (Exception e){
             message = "Could not upload the file: " + multipartFile.getOriginalFilename() + "!";
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
@@ -47,9 +52,9 @@ public class FileController {
         message = "Uploaded the file successfully: " + multipartFile.getOriginalFilename();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseMessage(message));
     }
-    @GetMapping(value = "consultant/certification", params = {"certificate_id"})
-    public ResponseEntity<List<ResponseFile>> getCertificationByConsultantId(@RequestParam("certificate_id") String id){
-        List<ResponseFile> files = certificationService
+    @GetMapping(value = "consultant/certification/{consultant_id}")
+    public ResponseEntity<List<ResponseFile>> getCertificationByConsultantId(@PathVariable("consultant_id") String id){
+        List<ResponseFile> files = fileService
                 .getAllCertificationsByConsultantId(new UserId(UUID.fromString(id)))
                 .stream().map(file -> {
                     String fileDownloadUri = ServletUriComponentsBuilder
@@ -60,12 +65,11 @@ public class FileController {
 
                     return new ResponseFile(file.getFileName(),
                             fileDownloadUri,
-                            file.getCertificateType().name(),
+                            MediaType.APPLICATION_PDF_VALUE,
                             file.getFileContent().length);
                 }).toList();
         return ResponseEntity.status(HttpStatus.OK).body(files);
-
-
     }
+
 
 }

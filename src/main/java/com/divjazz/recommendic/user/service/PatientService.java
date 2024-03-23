@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;

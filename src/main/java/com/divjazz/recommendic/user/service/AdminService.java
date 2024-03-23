@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.UserType;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.controller.admin.AdminResponse;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;

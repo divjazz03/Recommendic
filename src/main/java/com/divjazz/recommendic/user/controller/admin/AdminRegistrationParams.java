@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.controller.admin;
 
-public record AdminRequestParams(
+public record AdminRegistrationParams(
     String firstName,
     String lastName,
     String email,

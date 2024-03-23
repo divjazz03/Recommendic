@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.model.certification;
+package com.divjazz.recommendic.user.enums;
 
 public enum CertificateType {
     RESUME, UNI_CERTIFICATE

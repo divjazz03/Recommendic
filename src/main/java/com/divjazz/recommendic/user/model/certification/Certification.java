@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model.certification;
 
+import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Consultant;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
