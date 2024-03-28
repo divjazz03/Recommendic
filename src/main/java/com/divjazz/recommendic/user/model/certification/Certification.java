@@ -18,16 +18,17 @@ public class Certification extends AbstractEntity<CertificationID> {
     private CertificateType certificateType;
 
     @Lob
-    private Byte[] fileContent;
+    private byte[] fileContent;
 
     private boolean confirmed = false;
 
     protected Certification(){}
 
-    public Certification(CertificationID id, Consultant ownerOfCertification, String fileName){
+    public Certification(CertificationID id, Consultant ownerOfCertification, String fileName, byte[] fileContent){
         super(id);
         this.ownerOfCertification = ownerOfCertification;
         this.fileName = fileName;
+        this.fileContent = fileContent;
     }
 
     public String getFileName() {
@@ -38,7 +39,7 @@ public class Certification extends AbstractEntity<CertificationID> {
         return certificateType;
     }
 
-    public Byte[] getFileContent() {
+    public byte[] getFileContent() {
         return fileContent;
     }
 

@@ -1,18 +1,17 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
-import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
+import com.divjazz.recommendic.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GeneralUserService {
-    UserRepositoryCustom repositoryCustom;
+    UserRepository repositoryCustom;
 
-    public GeneralUserService(UserRepositoryCustom repositoryCustom) {
+    public GeneralUserService(UserRepository repositoryCustom) {
         this.repositoryCustom = repositoryCustom;
     }
 
-    public boolean verifyIfEmailExists(String email){
+    public boolean verifyIfEmailNotExists(String email){
         return (repositoryCustom.findUserByEmail(email).isPresent());
     }
 }

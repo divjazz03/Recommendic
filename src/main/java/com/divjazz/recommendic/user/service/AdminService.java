@@ -11,8 +11,8 @@ import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.AdminPassword;
 import com.divjazz.recommendic.user.repository.AdminPasswordRepository;
 import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
-import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
+import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 @Service
 public class AdminService {
 
-    private final UserRepositoryCustom userRepositoryCustom;
+    private final UserRepository userRepository;
 
-    private final UserRepositoryImpl userRepositoryImpl;
+    private final UserIdRepository userRepositoryImpl;
 
     private final AdminPasswordRepository adminPasswordRepository;
 
@@ -39,8 +39,8 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
 
-    public AdminService(UserRepositoryCustom userRepositoryCustom, UserRepositoryImpl userRepositoryImpl, AdminPasswordRepository adminPasswordRepository, GeneralUserService userService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
-        this.userRepositoryCustom = userRepositoryCustom;
+    public AdminService(UserRepository userRepository, UserIdRepository userRepositoryImpl, AdminPasswordRepository adminPasswordRepository, GeneralUserService userService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
+        this.userRepository = userRepository;
         this.userRepositoryImpl = userRepositoryImpl;
         this.adminPasswordRepository = adminPasswordRepository;
         this.userService = userService;
@@ -65,8 +65,8 @@ public class AdminService {
         );
         password.setAssignedAdmin(adminUser);
 
-        if (!userService.verifyIfEmailExists(adminUser.getEmail())) {
-            userRepositoryCustom.save(adminUser);
+        if (userService.verifyIfEmailNotExists(adminUser.getEmail())) {
+            userRepository.save(adminUser);
             Admin admin = new Admin(userRepositoryImpl.nextId(), adminUser);
             adminRepository.save(admin);
             adminPasswordRepository.save(password);
@@ -81,7 +81,7 @@ public class AdminService {
     }
 
     public Optional<User> getAdminByEmail(String email){
-        return userRepositoryCustom.findByUserTypeAndEmail(UserType.ADMIN, email);
+        return userRepository.findByUserTypeAndEmail(UserType.ADMIN, email);
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword(){
@@ -93,7 +93,7 @@ public class AdminService {
 
     public ResponseEntity<Set<Admin>> getAllAdmins(){
         ImmutableSet<User> admins = ImmutableSet
-                .copyOf(userRepositoryCustom
+                .copyOf(userRepository
                         .findAllByUserType(UserType.ADMIN)
                         .orElseThrow(() -> new UserNotFoundException("No Admins found")));
 

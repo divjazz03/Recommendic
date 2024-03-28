@@ -7,8 +7,8 @@ import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
-import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
+import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
@@ -22,16 +22,16 @@ import java.util.stream.Collectors;
 @Service
 public class ConsultantService {
 
-    private final UserRepositoryCustom userRepositoryCustom;
-    private final UserRepositoryImpl userRepository;
+    private final UserRepository userRepository;
+    private final UserIdRepository userRepository;
     private final ConsultantRepository consultantRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     private final GeneralUserService userService;
 
-    public ConsultantService(UserRepositoryCustom userRepositoryCustom, UserRepositoryImpl userRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
-        this.userRepositoryCustom = userRepositoryCustom;
+    public ConsultantService(UserRepository userRepositoryCustom, UserIdRepository userRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
+        this.userRepository = userRepositoryCustom;
         this.userRepository = userRepository;
         this.consultantRepository = consultantRepository;
         this.passwordEncoder = passwordEncoder;
@@ -49,8 +49,8 @@ public class ConsultantService {
                 UserType.CONSULTANT,
                 passwordEncoder.encode(consultantDTO.password())
         );
-        if (!userService.verifyIfEmailExists(user.getEmail())) {
-            userRepositoryCustom.save(user);
+        if (userService.verifyIfEmailNotExists(user.getEmail())) {
+            userRepository.save(user);
             Consultant consultant = new Consultant(userRepository.nextId(), user);
             consultantRepository.save(consultant);
             return new ResponseEntity<>(new ResponseMessage(user.toString()), HttpStatus.CREATED);
@@ -61,7 +61,7 @@ public class ConsultantService {
 
     public ResponseEntity<Set<Consultant>> getAllConsultants(){
         Set<User> consultants = ImmutableSet.
-                copyOf(userRepositoryCustom
+                copyOf(userRepository
                         .findAllByUserType(UserType.CONSULTANT)
                         .orElseThrow(() -> new UserNotFoundException("No consultant was found")));
         return new ResponseEntity<>(consultants.stream()

@@ -40,15 +40,15 @@ public class WebSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll()
                         .requestMatchers("/api/v*/consultant/create").permitAll()
                         .requestMatchers("/api/v*/patient/create").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v*/consultant/**").hasAuthority("ROLE_CONSULTANT")
-                        .requestMatchers(HttpMethod.POST,"/api/v*/patient/**").hasAuthority("ROLE_PATIENT")
+                        .requestMatchers(HttpMethod.PUT, "/api/v*/consultant/**").hasAuthority("ROLE_CONSULTANT")
+                        .requestMatchers(HttpMethod.PUT,"/api/v*/patient/**").hasAuthority("ROLE_PATIENT")
+                        .requestMatchers(HttpMethod.DELETE,"/api/v*/consultant/**").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v*/patient/**").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
                         .requestMatchers("/api/v*/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
                 .httpBasic(withDefaults())
-                .formLogin(withDefaults())
                 .build();
     }
 

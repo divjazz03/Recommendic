@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 
-public interface UserRepositoryCustom extends JpaRepository<User, UserId> {
+public interface UserRepository extends JpaRepository<User, UserId> {
 
     Optional<User>  findByUserTypeAndEmail(UserType userType, String email);
      Optional<Set<User>> findAllByUserType(UserType userType);

@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.repository.UserRepositoryCustom;
-import com.divjazz.recommendic.user.repository.UserRepositoryImpl;
+import com.divjazz.recommendic.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AppUserDetailsService implements UserDetailsService {
 
-    private final UserRepositoryCustom userRepository;
+    private final UserRepository userRepository;
 
-    public AppUserDetailsService(UserRepositoryCustom userRepository) {
+    public AppUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

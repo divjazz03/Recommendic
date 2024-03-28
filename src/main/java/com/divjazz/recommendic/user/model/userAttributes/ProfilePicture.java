@@ -16,10 +16,10 @@ public class ProfilePicture extends AbstractEntity<UserId> {
     private String name;
 
     @Lob
-    private Byte[] pictureData;
+    private byte[] pictureData;
 
-    public ProfilePicture(UserId id, User user, String name, Byte[] pictureData) {
-        super(id);
+    public ProfilePicture(UserId profilePictureID, User user, String name, byte[] pictureData) {
+        super(profilePictureID);
         this.user = user;
         this.name = name;
         this.pictureData = pictureData;
@@ -44,11 +44,11 @@ public class ProfilePicture extends AbstractEntity<UserId> {
         this.name = name;
     }
 
-    public Byte[] getPictureData() {
+    public byte[] getPictureData() {
         return pictureData;
     }
 
-    public void setPictureData(Byte[] pictureData) {
+    public void setPictureData(byte[] pictureData) {
         this.pictureData = pictureData;
     }
 }
