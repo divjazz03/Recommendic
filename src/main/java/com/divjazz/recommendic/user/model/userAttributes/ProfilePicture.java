@@ -6,6 +6,7 @@ import com.divjazz.recommendic.user.model.User;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToOne;
+import org.hibernate.annotations.Type;
 
 @Entity
 public class ProfilePicture extends AbstractEntity<UserId> {

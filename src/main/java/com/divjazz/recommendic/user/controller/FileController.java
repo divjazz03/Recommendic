@@ -104,8 +104,8 @@ public class FileController {
      * @param certificate_id this represents the certificate id gotten from the previous request
      * @return a Response Entity that contains the byte array data of the file
      */
-    @GetMapping(value = "/consultant/certification/{certificate_id}")
-    public ResponseEntity<byte[]> getCertificateFile(@PathVariable String certificate_id){
+    @GetMapping(value = "consultant/certification/{certificate_id}")
+    public ResponseEntity<byte[]> getCertificateFile(@PathVariable("certificate_id") String certificate_id){
         Certification certification = fileService.getCertificationById(certificate_id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + certification.getFileName() + "\"" )
@@ -117,7 +117,7 @@ public class FileController {
 
         String fileDownloadUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("user/profiles_pics")
+                .path("user/profile_pics/")
                 .path(profilePicture.getId().asString())
                 .toUriString();
         ResponseFile responseFile = new ResponseFile(profilePicture.getName(),
@@ -127,8 +127,8 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.OK).body(responseFile);
     }
 
-    @GetMapping(value = "/user/profile_pics/{profile_pics_id}")
-    public ResponseEntity<byte[]> getProfilePics(@PathVariable String profile_pics_id){
+    @GetMapping(value = "user/profile_pics/{profile_pics_id}")
+    public ResponseEntity<byte[]> getProfilePics(@PathVariable("profile_pics_id") String profile_pics_id){
         ProfilePicture profilePicture = fileService.getProfilePictureByProfilePictureId(profile_pics_id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + profilePicture.getName() + "\"")

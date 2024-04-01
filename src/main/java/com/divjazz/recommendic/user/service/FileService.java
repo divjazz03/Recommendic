@@ -83,6 +83,7 @@ public class FileService {
         };
     }
 
+
     public ProfilePicture getProfilePictureByUserId(String userId) {
         User user = userRepository.findById(new UserId(UUID.fromString(userId)))
                 .orElseThrow(() -> new UserNotFoundException(String
@@ -101,11 +102,13 @@ public class FileService {
                 .orElseThrow(() -> new CertificateNotFoundException(consultant)));
         return certifications;
     }
+
     public ProfilePicture getProfilePictureByProfilePictureId(String id){
         return profilePictureRepository.findById(new UserId(UUID.fromString(id)))
-                .orElseThrow(() -> new UserNotFoundException(String.format("No user of id %s found!", id)));
+                .orElseThrow(() -> new UserNotFoundException(String.format("No profile picture of id %s!", id)));
     }
 
+    @Transactional
     public Certification getCertificationById(String id){
         Optional<Certification> test1 = resumeRepository.findById(new CertificationID(UUID.fromString(id)));
         Optional<Certification> test2 = uniCertRepository.findById(new CertificationID(UUID.fromString(id)));
