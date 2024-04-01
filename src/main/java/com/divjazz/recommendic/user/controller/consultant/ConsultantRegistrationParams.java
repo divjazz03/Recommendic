@@ -9,6 +9,7 @@ public record ConsultantRegistrationParams(String firstName,
                                            String zipCode,
                                            String city,
                                            String state,
-                                           String country
+                                           String country,
+                                           String medicalCategory
                                       ) {
 }

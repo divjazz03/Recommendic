@@ -15,7 +15,7 @@ public class Patient extends AbstractEntity<UserId> {
     private Set<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = Consultant.class)
     private Set<Consultant> consultants;
-    @OneToOne(targetEntity = User.class, optional = false)
+    @OneToOne(targetEntity = User.class, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "tt_user_id", nullable = false)
     private User user;
 

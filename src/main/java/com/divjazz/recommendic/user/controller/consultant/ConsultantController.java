@@ -3,14 +3,18 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
+import com.github.javafaker.Medical;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 @RestController
@@ -38,7 +42,22 @@ public class ConsultantController {
                 requestParams.city(),
                 requestParams.state(),
                 requestParams.country());
-        ConsultantDTO consultantDTO = new ConsultantDTO(userName,userEmail,phoneNumber,gender,address, requestParams.password());
+        MedicalCategory medicalCategory = switch (requestParams.medicalCategory().toUpperCase()){
+            case "PEDIATRICIAN" -> MedicalCategory.PEDIATRICIAN;
+            case "CARDIOLOGY" -> MedicalCategory.CARDIOLOGY;
+            case "ONCOLOGY" -> MedicalCategory.ONCOLOGY;
+            case "DERMATOLOGY" -> MedicalCategory.DERMATOLOGY;
+            case "ORTHOPEDIC_SURGERY" -> MedicalCategory.ORTHOPEDIC_SURGERY;
+            case "NEUROSURGERY" -> MedicalCategory.NEUROSURGERY;
+            case "CARDIOVASCULAR_SURGERY" -> MedicalCategory.CARDIOVASCULAR_SURGERY;
+            case "GYNECOLOGY" -> MedicalCategory.GYNECOLOGY;
+            case "PSYCHIATRY" -> MedicalCategory.PSYCHIATRY;
+            case "DENTISTRY" -> MedicalCategory.DENTISTRY;
+            case "OPHTHALMOLOGY" -> MedicalCategory.OPHTHALMOLOGY;
+            case "PHYSICAL_THERAPY" -> MedicalCategory.PHYSICAL_THERAPY;
+            case null, default -> throw new NoSuchMedicalCategory();
+        };
+        ConsultantDTO consultantDTO = new ConsultantDTO(userName,userEmail,phoneNumber,gender,address, requestParams.password(), medicalCategory);
         return consultantService.createConsultant(consultantDTO);
 
     }

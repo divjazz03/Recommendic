@@ -1,8 +1,10 @@
 spring:
+  config:
+    import: file:/.env
   datasource:
-    password: "june12003"
-    username: "divjazz"
-    url: "jdbc:postgresql://localhost:5432/recommendic"
+    password: ${POSTGRES_PASSWORD}
+    username: ${POSTGRES_USER}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
 
   jpa:
     hibernate:

@@ -12,6 +12,6 @@ public class GeneralUserService {
     }
 
     public boolean verifyIfEmailNotExists(String email){
-        return (repositoryCustom.findUserByEmail(email).isPresent());
+        return (repositoryCustom.findUserByEmail(email).isEmpty());
     }
 }

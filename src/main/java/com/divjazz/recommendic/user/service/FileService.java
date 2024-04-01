@@ -54,8 +54,9 @@ public class FileService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Could not find user with that ID"));
         ProfilePicture profilePicture = new ProfilePicture(userIdRepository.nextId(), user, user.getUserNameObject().getFullName() + " profile pic", file.getBytes());
+        profilePictureRepository.save(profilePicture);
         User updatedUser = new User(user.getId(), user.getUserNameObject(),user.getEmail(),user.getPhoneNumber(),user.getGender(),user.getAddress(),user.getUserType(),profilePicture, user.getPassword());
-        userRepository.save(user);
+        userRepository.save(updatedUser);
 
     }
     @Transactional
@@ -68,6 +69,8 @@ public class FileService {
             case RESUME -> resumeRepository.save(certification);
             case UNI_CERTIFICATE -> uniCertRepository.save(certification);
         }
+        Consultant updatedConsultant = new Consultant(consultant.getId(), consultant.getUser(),certification);
+        consultantRepository.save(updatedConsultant);
     }
     public Certification getCertificationByConsultant(Consultant consultant, CertificateType type){
         return switch (type){
@@ -80,16 +83,27 @@ public class FileService {
         };
     }
 
+    public ProfilePicture getProfilePictureByUserId(String userId) {
+        User user = userRepository.findById(new UserId(UUID.fromString(userId)))
+                .orElseThrow(() -> new UserNotFoundException(String
+                        .format("User with id %s not found", userId)));
+        return user.getProfilePicture();
+
+    }
+
     public Set<Certification> getAllCertificationsByConsultantId(UserId userId){
-        Consultant consultant = consultantRepository.findById(userId).orElseThrow(() ->new UserNotFoundException("User with the id was not found"));
+        Consultant consultant = consultantRepository.findById(userId)
+                .orElseThrow(() ->new UserNotFoundException("User with the id was not found"));
         Set<Certification> certifications = new HashSet<>();
-        certifications.add(resumeRepository
-                .findByOwnerOfCertification(consultant)
+        certifications.add(resumeRepository.findByOwnerOfCertification(consultant)
                 .orElseThrow(() -> new CertificateNotFoundException(consultant)));
-        certifications.add(uniCertRepository
-                .findByOwnerOfCertification(consultant)
+        certifications.add(uniCertRepository.findByOwnerOfCertification(consultant)
                 .orElseThrow(() -> new CertificateNotFoundException(consultant)));
         return certifications;
+    }
+    public ProfilePicture getProfilePictureByProfilePictureId(String id){
+        return profilePictureRepository.findById(new UserId(UUID.fromString(id)))
+                .orElseThrow(() -> new UserNotFoundException(String.format("No user of id %s found!", id)));
     }
 
     public Certification getCertificationById(String id){

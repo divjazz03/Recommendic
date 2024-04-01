@@ -38,7 +38,7 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserType userType;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_picture_id")
     private ProfilePicture profilePicture;
 
@@ -154,7 +154,9 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
 
     @Override
     public String toString(){
-        return "User: name -> " +
+        return "User: " +
+                ", id -> " + this.getId().toString() +
+                ", name -> " +
                 this.userName.getFullName() +
                 ", gender -> " + this.gender.toString().toLowerCase() +
                 ", phone number -> " + this.phoneNumber +

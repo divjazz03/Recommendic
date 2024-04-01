@@ -19,7 +19,7 @@ public class Recommendation extends AbstractEntity<RecommendationId> {
     //Todo: Create a recommendation system for Articles
 
 
-    public Recommendation(RecommendationId id, Consultant consultant) {
+    public Recommendation(RecommendationId id, Consultant consultant, Patient patient) {
         super(id);
         this.consultant = consultant;
     }

@@ -10,10 +10,10 @@ import java.util.Set;
 @Entity
 public class Admin extends AbstractEntity<UserId> {
 
-    @OneToOne(targetEntity = User.class)
+    @OneToOne(targetEntity = User.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private User adminUser;
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "assignment_id")
     private Set<Assignment> assignment;
     protected Admin() {

@@ -5,6 +5,7 @@ import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 import com.divjazz.recommendic.user.service.AdminService;
@@ -78,6 +79,7 @@ public class DataBaseInitialization implements CommandLineRunner {
         String email = faker.internet().emailAddress(generateEmailLocalPart(userName));
         String number = faker.phoneNumber().phoneNumber();
         Gender gender = faker.bool().bool()? Gender.FEMALE: Gender.MALE;
+        MedicalCategory medicalCategory = MedicalCategory.CARDIOLOGY;
         Address address = new Address(
                 faker.address().zipCode(),
                 faker.address().city(),
@@ -85,7 +87,7 @@ public class DataBaseInitialization implements CommandLineRunner {
                 faker.address().country()
         );
         String password = faker.internet().password();
-        return new ConsultantDTO(userName,email,number,gender,address, password);
+        return new ConsultantDTO(userName,email,number,gender,address, password, medicalCategory);
 
     }
 

@@ -23,16 +23,16 @@ import java.util.stream.Collectors;
 public class ConsultantService {
 
     private final UserRepository userRepository;
-    private final UserIdRepository userRepository;
+    private final UserIdRepository userIdRepository;
     private final ConsultantRepository consultantRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     private final GeneralUserService userService;
 
-    public ConsultantService(UserRepository userRepositoryCustom, UserIdRepository userRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
+    public ConsultantService(UserRepository userRepositoryCustom, UserIdRepository userIdRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
         this.userRepository = userRepositoryCustom;
-        this.userRepository = userRepository;
+        this.userIdRepository = userIdRepository;
         this.consultantRepository = consultantRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
@@ -40,7 +40,7 @@ public class ConsultantService {
 
     public ResponseEntity<ResponseMessage> createConsultant(ConsultantDTO consultantDTO) {
         User user = new User(
-                userRepository.nextId(),
+                userIdRepository.nextId(),
                 consultantDTO.userName(),
                 consultantDTO.email(),
                 consultantDTO.phoneNumber(),
@@ -51,7 +51,7 @@ public class ConsultantService {
         );
         if (userService.verifyIfEmailNotExists(user.getEmail())) {
             userRepository.save(user);
-            Consultant consultant = new Consultant(userRepository.nextId(), user);
+            Consultant consultant = new Consultant(userIdRepository.nextId(), user, consultantDTO.medicalCategory());
             consultantRepository.save(consultant);
             return new ResponseEntity<>(new ResponseMessage(user.toString()), HttpStatus.CREATED);
         } else {

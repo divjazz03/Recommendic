@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.controller;
 import com.divjazz.recommendic.user.exceptions.NoSuchCertificateException;
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.certification.Certification;
+import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import com.divjazz.recommendic.user.service.FileService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -37,10 +38,9 @@ public class FileController {
     }
 
     @PutMapping(value = "user/profile_pics",
-            params = "user_id",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<ResponseMessage> uploadProfilePics(@RequestParam(value = "user_id") String userid, @RequestBody MultipartFile multipartFile){
+    public ResponseEntity<ResponseMessage> uploadProfilePics(@RequestParam(value = "user_id") String userid, @RequestParam(value = "file") MultipartFile multipartFile){
         StringBuilder message = new StringBuilder();
         try{
             fileService.storeProfilePicture(multipartFile, new UserId(UUID.fromString(userid)));
@@ -57,12 +57,11 @@ public class FileController {
                 .body(new ResponseMessage(message.toString()));
     }
     @PutMapping(value = "consultant/certification",
-            params = {"consultant_id", "certificate_type"},
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<ResponseMessage> uploadCertification(@RequestParam(value = "consultant_id")String id,
                                                                @RequestParam(value = "certificate_type") String certificateTypeString,
-                                                               @RequestBody MultipartFile multipartFile){
+                                                               @RequestParam(value = "file") MultipartFile multipartFile){
         String message = "";
         CertificateType certificateType = switch (certificateTypeString.toUpperCase()){
             case "RESUME" -> CertificateType.RESUME;
@@ -106,11 +105,34 @@ public class FileController {
      * @return a Response Entity that contains the byte array data of the file
      */
     @GetMapping(value = "/consultant/certification/{certificate_id}")
-    public ResponseEntity<byte[]> getFile (@PathVariable String certificate_id){
+    public ResponseEntity<byte[]> getCertificateFile(@PathVariable String certificate_id){
         Certification certification = fileService.getCertificationById(certificate_id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + certification.getFileName() + "\"" )
                 .body(certification.getFileContent());
+    }
+    @GetMapping(value = "user/profile_pics")
+    public ResponseEntity<ResponseFile> getProfilePicsInfoByUserId(@RequestParam("user_id") String id){
+        ProfilePicture profilePicture= fileService.getProfilePictureByUserId(id);
+
+        String fileDownloadUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("user/profiles_pics")
+                .path(profilePicture.getId().asString())
+                .toUriString();
+        ResponseFile responseFile = new ResponseFile(profilePicture.getName(),
+                fileDownloadUrl,
+                MediaType.IMAGE_JPEG_VALUE,
+                profilePicture.getPictureData().length);
+        return ResponseEntity.status(HttpStatus.OK).body(responseFile);
+    }
+
+    @GetMapping(value = "/user/profile_pics/{profile_pics_id}")
+    public ResponseEntity<byte[]> getProfilePics(@PathVariable String profile_pics_id){
+        ProfilePicture profilePicture = fileService.getProfilePictureByProfilePictureId(profile_pics_id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + profilePicture.getName() + "\"")
+                .body(profilePicture.getPictureData());
     }
 
 
