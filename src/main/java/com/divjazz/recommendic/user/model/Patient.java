@@ -1,11 +1,14 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.recommendation.model.Recommendation;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
+
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,6 +22,8 @@ public class Patient extends AbstractEntity<UserId> {
     @JoinColumn(name = "tt_user_id", nullable = false)
     private User user;
 
+    private Set<MedicalCategory> medicalCategories;
+
 
 
     protected Patient(){}
@@ -26,6 +31,25 @@ public class Patient extends AbstractEntity<UserId> {
     public Patient(UserId id, User user){
         super(id);
         this.user = user;
+        medicalCategories = new HashSet<>();
+    }
+    public Patient(UserId id, User user, Set<MedicalCategory> medicalCategories){
+        super(id);
+        this.user = user;
+        this.medicalCategories = medicalCategories;
+
+    }
+
+    public Set<MedicalCategory> getMedicalCategories() {
+        return medicalCategories;
+    }
+
+    public void setMedicalCategories(Set<MedicalCategory> medicalCategories) {
+        if (this.medicalCategories == null){
+            medicalCategories = medicalCategories;
+        }else {
+            this.medicalCategories.addAll(medicalCategories);
+        }
     }
 
     public Set<Recommendation> getRecommendations() {
