@@ -82,6 +82,10 @@ public class PatientService {
         return new ResponseMessage("The deletion was successful");
     }
 
+    public void modifyPatient(Patient patient){
+        patientRepository.save(patient);
+    }
+
     public Patient findPatientById(String id){
         return patientRepository.findById(new UserId(UUID.fromString(id)))
                 .orElseThrow(() -> new UserNotFoundException(String.format("Patient with id %s was not found", id)));

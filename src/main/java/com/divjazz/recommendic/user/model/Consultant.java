@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.search.Search;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
@@ -8,6 +9,7 @@ import jakarta.persistence.*;
 import org.aspectj.weaver.patterns.IfPointcut;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 

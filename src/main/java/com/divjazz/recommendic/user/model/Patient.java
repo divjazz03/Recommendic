@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.recommendation.model.Recommendation;
+import com.divjazz.recommendic.search.Search;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
@@ -9,6 +10,7 @@ import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -23,6 +25,8 @@ public class Patient extends AbstractEntity<UserId> {
     private User user;
 
     private Set<MedicalCategory> medicalCategories;
+    @OneToMany
+    private List<Search> searches;
 
 
 
@@ -69,6 +73,9 @@ public class Patient extends AbstractEntity<UserId> {
 
     public User getUser() {
         return user;
+    }
+    public List<Search> getSearches(){
+        return this.searches;
     }
 
     @Override

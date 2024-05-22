@@ -3,7 +3,9 @@ package com.divjazz.recommendic.user.controller.patient;
 import com.divjazz.recommendic.recommendation.dto.RecommendationDTO;
 import com.divjazz.recommendic.recommendation.model.Recommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
+import com.divjazz.recommendic.search.SearchService;
 import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -23,12 +25,14 @@ import java.util.Set;
 public class PatientController {
     private final PatientService patientService;
     private final RecommendationService recommendationService;
+    private final SearchService searchService;
 
 
-    public PatientController(PatientService patientService, RecommendationService recommendationService) {
+    public PatientController(PatientService patientService, RecommendationService recommendationService, SearchService searchService) {
         this.patientService = patientService;
 
         this.recommendationService = recommendationService;
+        this.searchService = searchService;
     }
 
     @PostMapping("create")
@@ -66,6 +70,11 @@ public class PatientController {
         Set<RecommendationDTO> recommendations = recommendationService.retrieveRecommendationByPatient(patient);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(recommendations);
+    }
+    @GetMapping("search/{query}/{patients_id}")
+    public ResponseEntity<Set<Consultant>> retrieveConsultantsAccordingToCategory(@PathVariable("query") String query, @PathVariable("patients_id") String id){
+        Set<Consultant> consultantsWithCategory = searchService.executeQuery(query,id);
+        return new ResponseEntity<>(consultantsWithCategory, HttpStatus.OK);
     }
 
 }

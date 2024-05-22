@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
@@ -69,5 +70,24 @@ public class ConsultantService {
                         .findByUser(user)
                         .orElseThrow(() -> new UserNotFoundException("Consultant was not found")))
                 .collect(Collectors.toSet()), HttpStatus.OK);
+    }
+
+    public Set<Consultant> getConsultantByCategory(MedicalCategory category){
+        return ImmutableSet.
+                copyOf(
+                        consultantRepository.findByMedicalCategory(category)
+                                .orElseThrow(() -> new UserNotFoundException("Consultant with that Category does not exist"))
+                );
+    }
+
+    public Set<Consultant> getConsultantByName(String name){
+        Set<User> consultantUsers = Set.copyOf(userRepository
+                .findAllByUserType(UserType.CONSULTANT)
+                .orElseThrow(() -> new UserNotFoundException("User was not found try again later")))
+                .stream().filter(user -> user.getUsername().contains(name))
+                .collect(Collectors.toSet());
+        return consultantUsers.stream().map(consultantUser -> consultantRepository.findByUser(consultantUser)
+                .orElseThrow(() -> new UserNotFoundException("No Consultant with name " + consultantUser.getUsername() + " found")))
+                .collect(Collectors.toSet());
     }
 }
