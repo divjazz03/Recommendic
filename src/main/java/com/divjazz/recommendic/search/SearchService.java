@@ -25,10 +25,13 @@ public class SearchService {
         this.patientService = patientService;
     }
 
-    /*
-    The Search Is by Category
+    /**
+    The Search is determined by the 0th index of String Array of the query after it has been split
+     @param query This represents the query string which could either be "category" or the consultant name
+     @param userId This represents the user's id who made the search
+     @return Returns a Set of Consultant Objects
      */
-    public Set<Consultant> executeQueryForCategory(String query, String userId){
+    public Set<Consultant> executeQuery(String query, String userId){
         Patient patient = patientService.findPatientById(userId);
         Search search = new Search(new SearchId(UUID.randomUUID()), query);
         Set<Consultant> consultants = new HashSet<>(20);

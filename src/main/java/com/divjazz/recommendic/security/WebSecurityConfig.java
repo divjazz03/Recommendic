@@ -35,16 +35,17 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
+    public SecurityFilterChain webSecurity(HttpSecurity http,AuthenticationManager authenticationManager) throws Exception {
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .authenticationManager(authenticationManager)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v*/consultant/create").permitAll()
                         .requestMatchers("/api/v*/patient/create").permitAll()
-                        .requestMatchers("/api/v*/file/consultant/certification").hasAuthority("ROLE_CONSULTANT")
+                        .requestMatchers("/api/v*/file/consultant/certification").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/v*/consultant/**").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v*/patient/**").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v*/patient/**").hasAnyAuthority("ROLE_PATIENT","ROLE_ADMIN")
                         .requestMatchers("/api/v*/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/v*/file/user/profile_pics").authenticated()
                         .anyRequest().authenticated())
