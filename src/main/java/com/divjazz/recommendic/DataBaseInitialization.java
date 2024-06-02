@@ -19,6 +19,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Random;
+
 @Component
 @Profile("init-db")
 public class DataBaseInitialization implements CommandLineRunner {
@@ -28,11 +32,15 @@ public class DataBaseInitialization implements CommandLineRunner {
     private final ConsultantService consultantService;
 
     private final AdminService adminService;
+    String[] medicalCategories = Arrays.stream(MedicalCategory.values())
+            .map(Enum::name)
+            .toArray(String[]::new);
 
     public DataBaseInitialization(PatientService patientService, ConsultantService consultantService, AdminService service) {
         this.adminService = service;
         this.patientService = patientService;
         this.consultantService = consultantService;
+
     }
 
     @Override
@@ -71,7 +79,15 @@ public class DataBaseInitialization implements CommandLineRunner {
                 faker.address().country()
         );
         String password = faker.internet().password();
-        return new PatientDTO(userName, email, phoneNumber, gender, address,password);
+
+        Random randomNumber = new Random();
+        return new PatientDTO(userName,
+                email,
+                phoneNumber,
+                gender,
+                address,
+                password,
+                Arrays.copyOf(medicalCategories, randomNumber.nextInt(1, medicalCategories.length - 1) ));
     }
     private ConsultantDTO generateUnverifiedConsultant(){
         Name name = faker.name();
@@ -79,7 +95,8 @@ public class DataBaseInitialization implements CommandLineRunner {
         String email = faker.internet().emailAddress(generateEmailLocalPart(userName));
         String number = faker.phoneNumber().phoneNumber();
         Gender gender = faker.bool().bool()? Gender.FEMALE: Gender.MALE;
-        MedicalCategory medicalCategory = MedicalCategory.CARDIOLOGY;
+        Random random = new Random();
+        MedicalCategory medicalCategory = MedicalCategory.valueOf(medicalCategories[random.nextInt(medicalCategories.length - 1)].toUpperCase(Locale.ROOT));
         Address address = new Address(
                 faker.address().zipCode(),
                 faker.address().city(),

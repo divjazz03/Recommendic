@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
@@ -12,12 +13,9 @@ import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,13 +33,16 @@ public class PatientService {
     private final AppUserDetailsService service;
     private final PasswordEncoder encoder;
 
-    public PatientService(UserRepository userRepositoryCustom, UserIdRepository userIdRepository, PatientRepository patientRepository, GeneralUserService userService, AppUserDetailsService service, PasswordEncoder encoder) {
+    private final String[] categoriesOfInterest;
+
+    public PatientService(UserRepository userRepositoryCustom, UserIdRepository userIdRepository, PatientRepository patientRepository, GeneralUserService userService, AppUserDetailsService service, PasswordEncoder encoder, String[] categoriesOfInterest) {
         this.userRepository = userRepositoryCustom;
         this.userIdRepository = userIdRepository;
         this.patientRepository = patientRepository;
         this.userService = userService;
         this.service = service;
         this.encoder = encoder;
+        this.categoriesOfInterest = categoriesOfInterest;
     }
 
 
@@ -54,7 +55,9 @@ public class PatientService {
 
         if (userService.verifyIfEmailNotExists(user.getEmail())) {
             userRepository.save(user);
-            Patient patient = new Patient(userIdRepository.nextId(), user);
+            Patient patient = new Patient(userIdRepository.nextId(), user,Arrays.stream(patientDTO.categoryOfInterest())
+                    .map(MedicalCategory::valueOf)
+                    .collect(Collectors.toSet()));
             patientRepository.save(patient);
             return new ResponseMessage(user.toString());
         } else {

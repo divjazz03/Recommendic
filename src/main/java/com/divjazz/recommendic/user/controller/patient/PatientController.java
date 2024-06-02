@@ -52,7 +52,8 @@ public class PatientController {
                     default -> throw new IllegalArgumentException("No Such Gender");
                 },
                 new Address(requestParams.zipCode(), requestParams.city(), requestParams.state(), requestParams.country()),
-                requestParams.password()
+                requestParams.password(),
+                requestParams.categoryOfInterest()
         );
         return new ResponseEntity<>(patientService.createPatient(patient), HttpStatus.CREATED);
     }
@@ -63,11 +64,7 @@ public class PatientController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(message);
     }
 
-    @GetMapping("patients")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Set<Patient>> patients(){
-        return new ResponseEntity<>(patientService.getAllPatients(), HttpStatus.OK);
-    }
+
 
     @GetMapping("recommendations/{patient_id}")
     public ResponseEntity<Set<RecommendationDTO>> retrieveRecommendationsBasedOnCurrentPatientId(@PathVariable("patient_id") String id){

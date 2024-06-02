@@ -39,7 +39,6 @@ public class WebSecurityConfig {
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .authenticationManager(authenticationManager)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v*/consultant/create").permitAll()
                         .requestMatchers("/api/v*/patient/create").permitAll()

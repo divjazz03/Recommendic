@@ -10,5 +10,6 @@ package com.divjazz.recommendic.user.controller.patient;
                                             String zipCode,
                                             String city,
                                             String state,
+                                            String[] categoryOfInterest,
                                             String country) {}
 

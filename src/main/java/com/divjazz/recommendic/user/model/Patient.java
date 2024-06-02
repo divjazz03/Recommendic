@@ -24,6 +24,7 @@ public class Patient extends AbstractEntity<UserId> {
     @JoinColumn(name = "tt_user_id", nullable = false)
     private User user;
 
+    @Enumerated(value = EnumType.STRING)
     private Set<MedicalCategory> medicalCategories;
     @OneToMany
     private List<Search> searches;
