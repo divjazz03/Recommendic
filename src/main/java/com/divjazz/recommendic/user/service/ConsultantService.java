@@ -31,7 +31,11 @@ public class ConsultantService {
 
     private final GeneralUserService userService;
 
-    public ConsultantService(UserRepository userRepositoryCustom, UserIdRepository userIdRepository, ConsultantRepository consultantRepository, PasswordEncoder passwordEncoder, GeneralUserService userService) {
+    public ConsultantService(UserRepository userRepositoryCustom,
+                             UserIdRepository userIdRepository,
+                             ConsultantRepository consultantRepository,
+                             PasswordEncoder passwordEncoder,
+                             GeneralUserService userService) {
         this.userRepository = userRepositoryCustom;
         this.userIdRepository = userIdRepository;
         this.consultantRepository = consultantRepository;

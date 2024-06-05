@@ -6,9 +6,6 @@ import com.divjazz.recommendic.user.model.Patient;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 
-import java.util.Objects;
-import java.util.Set;
-
 @Entity
 public class Recommendation extends AbstractEntity<RecommendationId> {
 
@@ -41,6 +38,5 @@ public class Recommendation extends AbstractEntity<RecommendationId> {
     public void setConsultant(Consultant consultant) {
         this.consultant = consultant;
     }
-
 
 }

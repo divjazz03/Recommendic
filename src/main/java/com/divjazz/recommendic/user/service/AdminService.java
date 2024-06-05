@@ -39,7 +39,12 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
 
-    public AdminService(UserRepository userRepository, UserIdRepository userRepositoryImpl, AdminPasswordRepository adminPasswordRepository, GeneralUserService userService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
+    public AdminService(UserRepository userRepository,
+                        UserIdRepository userRepositoryImpl,
+                        AdminPasswordRepository adminPasswordRepository,
+                        GeneralUserService userService,
+                        PasswordEncoder passwordEncoder,
+                        AdminRepository adminRepository) {
         this.userRepository = userRepository;
         this.userRepositoryImpl = userRepositoryImpl;
         this.adminPasswordRepository = adminPasswordRepository;

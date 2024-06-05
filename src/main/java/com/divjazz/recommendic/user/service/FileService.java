@@ -39,7 +39,12 @@ public class FileService {
     private final ConsultantRepository consultantRepository;
 
 
-    public FileService(ResumeRepository resumeRepository, UniCertRepository uniCertRepository, ProfilePictureRepository profilePictureRepository, UserRepository userRepositoryCustom, UserIdRepository userIdRepository, ConsultantRepository consultantRepository) {
+    public FileService(ResumeRepository resumeRepository,
+                       UniCertRepository uniCertRepository,
+                       ProfilePictureRepository profilePictureRepository,
+                       UserRepository userRepositoryCustom,
+                       UserIdRepository userIdRepository,
+                       ConsultantRepository consultantRepository) {
         this.resumeRepository = resumeRepository;
         this.uniCertRepository = uniCertRepository;
         this.profilePictureRepository = profilePictureRepository;

@@ -6,10 +6,15 @@ import com.divjazz.recommendic.recommendation.model.recommendationAttributes.Rec
 import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
 import com.divjazz.recommendic.search.Search;
 import com.divjazz.recommendic.search.SearchService;
+import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,14 +35,35 @@ public class RecommendationService {
         this.patientService = patientService;
     }
 
-    public Set<RecommendationDTO> retrieveRecommendationByPatient(Patient patient){
-        return recommendationRepository.findByPatient(patient)
-                .orElse(Collections.emptySet())
-                .stream().map(recommendation -> new RecommendationDTO(recommendation.getId(),
-                        recommendation.getConsultant(),
-                        recommendation.getPatient()))
-                .collect(Collectors.toSet());
+    public List<RecommendationDTO> retrieveRecommendationByPatient(Patient patient){
+        createRecommendationForPatient(patient);
 
+        return patient.getRecommendations().stream()
+                .map(recommendation -> new RecommendationDTO(recommendation.getId(),
+                        toConsultantInfoResponse(recommendation.getConsultant()))
+                )
+                .collect(Collectors.toList());
+
+    }
+    private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant){
+        return new ConsultantInfoResponse(
+                consultant.getId(),
+                consultant.getUser().getUserNameObject().getLastName(),
+                consultant.getUser().getUserNameObject().getFirstName(),
+                consultant.getUser().getGender().toString(),
+                consultant.getUser().getAddress(),
+                consultant.getMedicalCategory()
+        );
+    }
+    private PatientInfoResponse toPatientInfoResponse(Patient patient){
+        return new PatientInfoResponse(
+                patient.getId(),
+                patient.getUser().getUserNameObject().getLastName(),
+                patient.getUser().getUserNameObject().getFirstName(),
+                patient.getUser().getPhoneNumber(),
+                patient.getUser().getGender().toString(),
+                patient.getUser().getAddress()
+        );
     }
 
     public void createRecommendationForPatient(Patient patient){
@@ -47,7 +73,8 @@ public class RecommendationService {
 
     }
 
-    private Set<Recommendation> generateRecommendation(Patient patient){
+
+    private Set<Recommendation> generateRecommendation( Patient patient){
         List<Search> searches = patient.getSearches();
         Set<Recommendation> recommendations = new HashSet<>(20);
         int searchForPEDIATRICIAN = (int) searches.stream()
@@ -80,7 +107,7 @@ public class RecommendationService {
         int searchForDERMATOLOGY = (int) searches.stream()
                 .filter(search -> search.getQuery().contains("DERMATOLOGY"))
                 .count();
-        if(searchForCARDIOLOGY > 20){
+        if(searchForDERMATOLOGY > 20){
             recommendations.addAll(consultantService
                     .getConsultantByCategory(MedicalCategory.DERMATOLOGY).stream()
                     .map(consultant -> new Recommendation(new RecommendationId(UUID.randomUUID()),consultant,patient))
@@ -156,8 +183,15 @@ public class RecommendationService {
             recommendations.addAll(consultantService
                     .getConsultantByCategory(MedicalCategory.PHYSICAL_THERAPY).stream()
                     .map(consultant -> new Recommendation(new RecommendationId(UUID.randomUUID()),consultant,patient))
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toSet())
+            );
         }
+        recommendations.addAll(patient.getMedicalCategories()
+                .stream()
+                .flatMap(medicalCategory -> consultantService.getConsultantByCategory(medicalCategory).stream())
+                .map(consultant -> new Recommendation(new RecommendationId(UUID.randomUUID()), consultant,patient))
+                .collect(Collectors.toSet())
+        );
         return recommendations;
 
     }

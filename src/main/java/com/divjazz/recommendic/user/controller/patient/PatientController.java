@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,15 +67,15 @@ public class PatientController {
 
 
 
-    @GetMapping("recommendations/{patient_id}")
-    public ResponseEntity<Set<RecommendationDTO>> retrieveRecommendationsBasedOnCurrentPatientId(@PathVariable("patient_id") String id){
+    @GetMapping("recommendations")
+    public ResponseEntity<List<RecommendationDTO>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String id){
         Patient patient = patientService.findPatientById(id);
-        Set<RecommendationDTO> recommendations = recommendationService.retrieveRecommendationByPatient(patient);
+        List<RecommendationDTO> recommendations = recommendationService.retrieveRecommendationByPatient(patient);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(recommendations);
     }
-    @GetMapping("search/{query}/{patients_id}")
-    public ResponseEntity<Set<ConsultantSearchResult>> retrieveConsultantsAccordingToQuery(@PathVariable("query") String query, @PathVariable("patients_id") String id){
+    @GetMapping("search")
+    public ResponseEntity<Set<ConsultantSearchResult>> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patients_id") String id){
         Set<Consultant> consultantsResults = searchService.executeQuery(query,id);
         var consultantsResultDTO = consultantsResults.stream().map(consultant -> new ConsultantSearchResult(
                 consultant.getUser().getUsername(),

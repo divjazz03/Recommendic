@@ -30,19 +30,22 @@ public class PatientService {
 
     private final GeneralUserService userService;
 
-    private final AppUserDetailsService service;
     private final PasswordEncoder encoder;
 
-    private final String[] categoriesOfInterest;
 
-    public PatientService(UserRepository userRepositoryCustom, UserIdRepository userIdRepository, PatientRepository patientRepository, GeneralUserService userService, AppUserDetailsService service, PasswordEncoder encoder, String[] categoriesOfInterest) {
+
+    public PatientService(UserRepository userRepositoryCustom,
+                          UserIdRepository userIdRepository,
+                          PatientRepository patientRepository,
+                          GeneralUserService userService,
+                          PasswordEncoder encoder
+                          ) {
         this.userRepository = userRepositoryCustom;
         this.userIdRepository = userIdRepository;
         this.patientRepository = patientRepository;
         this.userService = userService;
-        this.service = service;
         this.encoder = encoder;
-        this.categoriesOfInterest = categoriesOfInterest;
+
     }
 
 
@@ -51,15 +54,20 @@ public class PatientService {
         User user = new User(userIdRepository.nextId(),
                 patientDTO.userName(),
                 patientDTO.email(),
-                patientDTO.phoneNumber(), patientDTO.gender(), patientDTO.address(), UserType.PATIENT, encoder.encode(patientDTO.password()));
+                patientDTO.phoneNumber(),
+                patientDTO.gender(),
+                patientDTO.address(),
+                UserType.PATIENT,
+                encoder.encode(patientDTO.password()));
 
         if (userService.verifyIfEmailNotExists(user.getEmail())) {
             userRepository.save(user);
-            Patient patient = new Patient(userIdRepository.nextId(), user,Arrays.stream(patientDTO.categoryOfInterest())
+            UserId patientID = userIdRepository.nextId();
+            Patient patient = new Patient(patientID, user,Arrays.stream(patientDTO.categoryOfInterest())
                     .map(MedicalCategory::valueOf)
                     .collect(Collectors.toSet()));
             patientRepository.save(patient);
-            return new ResponseMessage(user.toString());
+            return new ResponseMessage(user.toString() + " Patient_id + " + patientID.toString());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }

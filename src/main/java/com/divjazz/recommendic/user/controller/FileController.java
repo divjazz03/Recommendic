@@ -38,7 +38,7 @@ public class FileController {
     }
 
     @PutMapping(value = "user/profile_pics",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
     )
     public ResponseEntity<ResponseMessage> uploadProfilePics(@RequestParam(value = "user_id") String userid, @RequestParam(value = "file") MultipartFile multipartFile){
         StringBuilder message = new StringBuilder();
@@ -104,20 +104,20 @@ public class FileController {
      * @param certificate_id this represents the certificate id gotten from the previous request
      * @return a Response Entity that contains the byte array data of the file
      */
-    @GetMapping(value = "consultant/certification/{certificate_id}")
-    public ResponseEntity<byte[]> getCertificateFile(@PathVariable("certificate_id") String certificate_id){
+    @GetMapping(value = "consultant/certification")
+    public ResponseEntity<byte[]> getCertificateFile(@RequestParam("certificate_id") String certificate_id){
         Certification certification = fileService.getCertificationById(certificate_id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + certification.getFileName() + "\"" )
                 .body(certification.getFileContent());
     }
-    @GetMapping(value = "user/profile_pics")
+    @GetMapping(value = "user/profile_pics_info")
     public ResponseEntity<ResponseFile> getProfilePicsInfoByUserId(@RequestParam("user_id") String id){
         ProfilePicture profilePicture= fileService.getProfilePictureByUserId(id);
 
         String fileDownloadUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("user/profile_pics/")
+                .path("api/v1/file/user/profile_pics/")
                 .path(profilePicture.getId().asString())
                 .toUriString();
         ResponseFile responseFile = new ResponseFile(profilePicture.getName(),

@@ -19,7 +19,9 @@ public class SearchService {
     private final ConsultantService consultantService;
     private final PatientService patientService;
 
-    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, PatientService patientService){
+    public SearchService(SearchRepository searchRepository,
+                         ConsultantService consultantService,
+                         PatientService patientService){
         this.searchRepository = searchRepository;
         this.consultantService = consultantService;
         this.patientService = patientService;
