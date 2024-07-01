@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service

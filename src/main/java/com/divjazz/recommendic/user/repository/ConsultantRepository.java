@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface ConsultantRepository extends JpaRepository<Consultant, UserId> {
-    Optional<Consultant> findByUser(User user);
+public interface ConsultantRepository extends JpaRepository<Consultant, UUID> {
+    Optional<Consultant> findByEmail(String email);
+    boolean existsByEmail(String email);
     Optional<List<Consultant>> findByMedicalCategory(MedicalCategory category);
 }

@@ -78,12 +78,12 @@ public class PatientController {
     public ResponseEntity<Set<ConsultantSearchResult>> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patients_id") String id){
         Set<Consultant> consultantsResults = searchService.executeQuery(query,id);
         var consultantsResultDTO = consultantsResults.stream().map(consultant -> new ConsultantSearchResult(
-                consultant.getUser().getUsername(),
-                consultant.getUser().getEmail(),
-                consultant.getUser().getPhoneNumber(),
-                consultant.getUser().getGender().toString().toLowerCase(Locale.ROOT),
-                consultant.getUser().getAddress(),
-                consultant.getMedicalCategory().name().toLowerCase(Locale.ROOT)
+                consultant.getUsername(),
+                consultant.getEmail(),
+                consultant.getPhoneNumber(),
+                consultant.getGender().toString().toLowerCase(),
+                consultant.getAddress(),
+                consultant.getMedicalCategory().name().toLowerCase()
         )).collect(Collectors.toSet());
         return new ResponseEntity<>(consultantsResultDTO, HttpStatus.OK);
     }

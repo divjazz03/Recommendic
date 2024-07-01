@@ -1,40 +1,36 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import com.divjazz.recommendic.user.model.User;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.OneToOne;
 import org.hibernate.annotations.Type;
 
+import java.util.UUID;
+
 @Entity
-public class ProfilePicture extends AbstractEntity<UserId> {
-    @OneToOne(targetEntity = User.class)
-    @JoinColumn(name = "tt_user_id", nullable = false)
-    private User user;
+public final class ProfilePicture{
+    @Id
+    private UUID id;
 
     private String name;
 
-    @Lob
-    private byte[] pictureData;
+    private String pictureUrl;
 
-    public ProfilePicture(UserId profilePictureID, User user, String name, byte[] pictureData) {
-        super(profilePictureID);
-        this.user = user;
+    public ProfilePicture(UUID id, UUID owner, String name, String pictureUrl) {
+        this.id = id;
         this.name = name;
-        this.pictureData = pictureData;
+        this.pictureUrl = pictureUrl;
     }
 
     protected ProfilePicture() {
     }
 
-    public User getUser() {
-        return user;
+    public UUID getId() {
+        return id;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -45,11 +41,11 @@ public class ProfilePicture extends AbstractEntity<UserId> {
         this.name = name;
     }
 
-    public byte[] getPictureData() {
-        return pictureData;
+    public String getPictureUrl() {
+        return pictureUrl;
     }
 
-    public void setPictureData(byte[] pictureData) {
-        this.pictureData = pictureData;
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

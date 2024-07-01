@@ -29,12 +29,6 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(UserDetailsService.class)
-    InMemoryUserDetailsManager inMemoryUserDetailsManager(){
-        return new InMemoryUserDetailsManager(User.withUsername("user").password("admin").roles("ADMIN").build());
-    }
-
-    @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http,AuthenticationManager authenticationManager) throws Exception {
         return http
                 .cors(AbstractHttpConfigurer::disable)
@@ -49,6 +43,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v*/file/user/profile_pics").authenticated()
                         .anyRequest().authenticated())
                 .httpBasic(withDefaults())
+                .authenticationManager(authenticationManager)
                 .build();
     }
 

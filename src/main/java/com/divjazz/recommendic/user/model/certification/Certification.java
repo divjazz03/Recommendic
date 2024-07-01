@@ -5,54 +5,78 @@ import com.divjazz.recommendic.user.model.Consultant;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 
-@Entity
-public class Certification extends AbstractEntity<CertificationID> {
+import java.util.UUID;
 
-    @OneToOne(targetEntity = Consultant.class,
-            cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "consultant_id", nullable = false)
+@Entity
+public class Certification {
+    @Id
+    private UUID id;
+    @OneToOne(cascade = CascadeType.ALL)
     private Consultant ownerOfCertification;
 
     private String fileName;
+    private String fileUrl;
 
     private CertificateType certificateType;
 
-    @Lob
-    private byte[] fileContent;
 
     private boolean confirmed = false;
 
     protected Certification(){}
 
-    public Certification(CertificationID id, Consultant ownerOfCertification, String fileName, byte[] fileContent){
-        super(id);
+    public Certification(UUID id, Consultant ownerOfCertification, String fileName, String fileUrl){
+        this.id = id;
         this.ownerOfCertification = ownerOfCertification;
         this.fileName = fileName;
-        this.fileContent = fileContent;
+        this.fileUrl = fileUrl;
     }
 
-    public String getFileName() {
-        return fileName;
+
+    public UUID getId() {
+        return id;
     }
 
-    public CertificateType getCertificateType() {
-        return certificateType;
-    }
-
-    public byte[] getFileContent() {
-        return fileContent;
-    }
-
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
-    }
-
-    public boolean isConfirmed() {
-        return confirmed;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public Consultant getOwnerOfCertification() {
         return ownerOfCertification;
     }
 
+    public void setOwnerOfCertification(Consultant ownerOfCertification) {
+        this.ownerOfCertification = ownerOfCertification;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public CertificateType getCertificateType() {
+        return certificateType;
+    }
+
+    public void setCertificateType(CertificateType certificateType) {
+        this.certificateType = certificateType;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
 }

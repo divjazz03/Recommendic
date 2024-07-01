@@ -47,22 +47,22 @@ public class RecommendationService {
     }
     private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant){
         return new ConsultantInfoResponse(
-                consultant.getId(),
-                consultant.getUser().getUserNameObject().getLastName(),
-                consultant.getUser().getUserNameObject().getFirstName(),
-                consultant.getUser().getGender().toString(),
-                consultant.getUser().getAddress(),
+                consultant.getId().toString(),
+                consultant.getUserNameObject().getLastName(),
+                consultant.getUserNameObject().getFirstName(),
+                consultant.getGender().toString(),
+                consultant.getAddress(),
                 consultant.getMedicalCategory()
         );
     }
     private PatientInfoResponse toPatientInfoResponse(Patient patient){
         return new PatientInfoResponse(
-                patient.getId(),
-                patient.getUser().getUserNameObject().getLastName(),
-                patient.getUser().getUserNameObject().getFirstName(),
-                patient.getUser().getPhoneNumber(),
-                patient.getUser().getGender().toString(),
-                patient.getUser().getAddress()
+                patient.getId().toString(),
+                patient.getUserNameObject().getLastName(),
+                patient.getUserNameObject().getFirstName(),
+                patient.getPhoneNumber(),
+                patient.getGender().toString(),
+                patient.getAddress()
         );
     }
 

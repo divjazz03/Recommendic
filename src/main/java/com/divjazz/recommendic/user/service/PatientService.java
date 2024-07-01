@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
@@ -9,8 +8,6 @@ import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
-import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

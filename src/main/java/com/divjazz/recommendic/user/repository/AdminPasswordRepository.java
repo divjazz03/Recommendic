@@ -4,5 +4,7 @@ import com.divjazz.recommendic.user.model.userAttributes.AdminPassword;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AdminPasswordRepository extends JpaRepository<AdminPassword, UserId> {
+import java.util.UUID;
+
+public interface AdminPasswordRepository extends JpaRepository<AdminPassword, UUID> {
 }

@@ -43,7 +43,7 @@ public class SearchService {
             searchRepository.save(search);
             return consultants;
         }else {
-            consultants = consultantService.getConsultantByName(query.trim().split(":")[1]);
+            consultants = consultantService.getConsultantsByName(query.trim().split(":")[1]);
         }
         return consultants;
     }

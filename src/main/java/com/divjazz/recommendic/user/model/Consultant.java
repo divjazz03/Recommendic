@@ -1,46 +1,46 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.search.Search;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 import org.aspectj.weaver.patterns.IfPointcut;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-public class Consultant extends AbstractEntity<UserId> {
+public final class Consultant extends User{
 
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Certification> certifications;
 
     @ManyToMany
     private Set<Patient> patients;
-    @OneToOne(targetEntity = User.class, optional = false, cascade = CascadeType.ALL)
-    @JoinColumn(name = "tt_user_id", nullable = false)
-    private User user;
+
     @Enumerated(value = EnumType.STRING)
     private MedicalCategory medicalCategory;
 
     private boolean certified;
     protected Consultant (){}
 
-    public Consultant (UserId id, User user, MedicalCategory medicalCategory){
-        super(id);
-        this.user = user;
+    public Consultant (UUID id,
+                       UserName userName,
+                       String email,
+                       String phoneNumber,
+                       Gender gender,
+                       Address address,
+                       String password,
+                       MedicalCategory medicalCategory){
+        super(id,userName,email,phoneNumber,gender,address,password);
         this.medicalCategory = medicalCategory;
-        certifications = new HashSet<>();
-    }
-    public Consultant (UserId id, User user, Certification certification){
-        super(id);
-        this.user = user;
-
-        certifications.add(Objects.requireNonNull(certification, "certification was null"));
+        certifications = new HashSet<>(30);
+        patients = new HashSet<>(30);
+        certified = false;
     }
     public boolean isCertified() {
         return certified;
@@ -59,10 +59,6 @@ public class Consultant extends AbstractEntity<UserId> {
         return certifications;
     }
 
-    public User getUser() {
-        return user;
-    }
-
     public Set<Patient> getPatients() {
         return patients;
     }
@@ -73,12 +69,20 @@ public class Consultant extends AbstractEntity<UserId> {
 
     @Override
     public String toString() {
-        return "Consultant: name -> " + user.getUserNameObject().getFullName() +
-                "email -> " + user.getEmail() +
-                "gender -> " + user.getGender().name();
+        return "Consultant{" +
+                "certifications=" + certifications +
+                ", patients=" + patients +
+                ", medicalCategory=" + medicalCategory +
+                ", certified=" + certified +
+                '}';
     }
 
     public MedicalCategory getMedicalCategory() {
         return medicalCategory;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("CONSULTANT"));
     }
 }

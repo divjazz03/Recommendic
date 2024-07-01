@@ -12,13 +12,8 @@ import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.ProfilePictureRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
-import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.ResumeRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.UniCertRepository;
-import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,48 +29,45 @@ public class FileService {
 
     private final ProfilePictureRepository profilePictureRepository;
 
-    private final UserRepository userRepository;
-    private final UserIdRepository userIdRepository;
     private final ConsultantRepository consultantRepository;
+    private final AppUserDetailsService userRepository;
+    private final Random random;
 
 
     public FileService(ResumeRepository resumeRepository,
                        UniCertRepository uniCertRepository,
                        ProfilePictureRepository profilePictureRepository,
-                       UserRepository userRepositoryCustom,
-                       UserIdRepository userIdRepository,
-                       ConsultantRepository consultantRepository) {
+                       ConsultantRepository consultantRepository, AppUserDetailsService userRepository) {
         this.resumeRepository = resumeRepository;
         this.uniCertRepository = uniCertRepository;
         this.profilePictureRepository = profilePictureRepository;
-        this.userRepository = userRepositoryCustom;
-        this.userIdRepository = userIdRepository;
         this.consultantRepository = consultantRepository;
+        this.userRepository = userRepository;
+        random = new Random();
     }
 
 
     @Transactional
-    public void storeProfilePicture(MultipartFile file, UserId id) throws IOException {
-        User user = userRepository.findById(id)
+    public void storeProfilePicture(UUID userId, String pictureUrl) throws IOException {
+        User user = userRepository.retrieveUserByID(userId)
                 .orElseThrow(() -> new UserNotFoundException("Could not find user with that ID"));
-        ProfilePicture profilePicture = new ProfilePicture(userIdRepository.nextId(), user, user.getUserNameObject().getFullName() + " profile pic", file.getBytes());
-        profilePictureRepository.save(profilePicture);
-        User updatedUser = new User(user.getId(), user.getUserNameObject(),user.getEmail(),user.getPhoneNumber(),user.getGender(),user.getAddress(),user.getUserType(),profilePicture, user.getPassword());
-        userRepository.save(updatedUser);
 
+        ProfilePicture profilePicture = new ProfilePicture(UUID.randomUUID(), user.getId(), user.getUserNameObject().getFullName() + " profile pic " + String.valueOf(random.nextInt(0,500)),pictureUrl);
+        profilePictureRepository.save(profilePicture);
     }
     @Transactional
-    public void storeCertificate(MultipartFile file, UserId userId, CertificateType type) throws IOException{
+    public void storeCertificate(UUID userId, CertificateType type, String certificateUrl) throws IOException{
         Consultant consultant = consultantRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("The consultant was not found"));
-        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-        Certification certification = new Certification(userIdRepository.nextCertificateId(), consultant, fileName, file.getBytes());
+
+        Certification certification = new Certification(UUID.randomUUID(),
+                consultant,
+                consultant.getUserNameObject().getFullName() + "certificate " + String.valueOf(random.nextInt(0,500)),
+                certificateUrl);
 
         switch (type){
             case RESUME -> resumeRepository.save(certification);
             case UNI_CERTIFICATE -> uniCertRepository.save(certification);
         }
-        Consultant updatedConsultant = new Consultant(consultant.getId(), consultant.getUser(),certification);
-        consultantRepository.save(updatedConsultant);
     }
     public Certification getCertificationByConsultant(Consultant consultant, CertificateType type){
         return switch (type){
@@ -90,14 +82,17 @@ public class FileService {
 
 
     public ProfilePicture getProfilePictureByUserId(String userId) {
-        User user = userRepository.findById(new UserId(UUID.fromString(userId)))
-                .orElseThrow(() -> new UserNotFoundException(String
-                        .format("User with id %s not found", userId)));
+        User user = null;
+        UUID id = UUID.fromString(userId);
+        if (userRepository.retrieveUserByID(id).isPresent()){
+            user = userRepository.retrieveUserByID(id).get();
+        } else
+            throw new UserNotFoundException("User was not found");
         return user.getProfilePicture();
 
     }
 
-    public Set<Certification> getAllCertificationsByConsultantId(UserId userId){
+    public Set<Certification> getAllCertificationsByConsultantId(UUID userId){
         Consultant consultant = consultantRepository.findById(userId)
                 .orElseThrow(() ->new UserNotFoundException("User with the id was not found"));
         Set<Certification> certifications = new HashSet<>();

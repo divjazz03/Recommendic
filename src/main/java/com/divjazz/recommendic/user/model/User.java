@@ -1,11 +1,9 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 
-import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,11 +11,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.UUID;
 
-@Entity
-@Table(name = "tt_user")
-public class User extends AbstractEntity<UserId> implements UserDetails {
 
+@MappedSuperclass
+public sealed abstract class  User implements UserDetails permits Admin, Consultant, Patient {
+
+    @Id
+    private UUID id;
     @Column(nullable = false)
     @Embedded
     private UserName userName;
@@ -35,9 +37,6 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
     @Embedded
     @Column(nullable = false)
     private Address address;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserType userType;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "profile_picture_id")
     private ProfilePicture profilePicture;
@@ -48,27 +47,38 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
 
     protected User(){}
 
-    public User(UserId id, UserName userName,String email, String phoneNumber, Gender gender, Address address, UserType userType, String password){
-        super(id);
+    public User(UUID id, UserName userName,String email, String phoneNumber, Gender gender, Address address, String password){
+        this.id = id;
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.address = address;
-        this.userType = userType;
         this.password = password;
     }
 
-    public User(UserId id, UserName userName, String email, String phoneNumber, Gender gender, Address address, UserType userType, ProfilePicture profilePicture, String password) {
-        super(id);
+    public User(UUID id, UserName userName,String email, String phoneNumber, Gender gender, Address address){
+        this.id = id;
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.address = address;
-        this.userType = userType;
-        this.profilePicture = profilePicture;
+    }
+
+    public User(UUID id, UserName userName, String email, String phoneNumber, Gender gender, Address address, ProfilePicture profilePicture, String password) {
+        this.id = id;
+        this.userName = userName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.address = address;
         this.password = password;
+        this.profilePicture = profilePicture;
+    }
+
+    public UUID getId(){
+        return this.id;
     }
 
     public UserName getUserNameObject() {
@@ -107,20 +117,8 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
         return address;
     }
 
-    public UserType getUserType() {
-        return userType;
-    }
 
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = switch (userType){
-            case CONSULTANT -> new SimpleGrantedAuthority("CONSULTANT");
-            case PATIENT -> new SimpleGrantedAuthority("PATIENT");
-            case ADMIN -> new SimpleGrantedAuthority("ADMIN");
-        };
-        return Collections.singletonList(authority);
-    }
 
     @Override
     public String getPassword() {
@@ -161,6 +159,37 @@ public class User extends AbstractEntity<UserId> implements UserDetails {
                 ", gender -> " + this.gender.toString().toLowerCase() +
                 ", phone number -> " + this.phoneNumber +
                 ", email -> " + this.email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        if (!Objects.equals(id, user.id)) return false;
+        if (!Objects.equals(userName, user.userName)) return false;
+        if (!Objects.equals(email, user.email)) return false;
+        if (!Objects.equals(phoneNumber, user.phoneNumber)) return false;
+        if (gender != user.gender) return false;
+        if (!Objects.equals(address, user.address)) return false;
+        if (!Objects.equals(profilePicture, user.profilePicture))
+            return false;
+        return Objects.equals(password, user.password);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (userName != null ? userName.hashCode() : 0);
+        result = 31 * result + (email != null ? email.hashCode() : 0);
+        result = 31 * result + (phoneNumber != null ? phoneNumber.hashCode() : 0);
+        result = 31 * result + (gender != null ? gender.hashCode() : 0);
+        result = 31 * result + (address != null ? address.hashCode() : 0);
+        result = 31 * result + (profilePicture != null ? profilePicture.hashCode() : 0);
+        result = 31 * result + (password != null ? password.hashCode() : 0);
+        return result;
     }
 
     public ProfilePicture getProfilePicture() {

@@ -1,15 +1,11 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
-import com.divjazz.recommendic.user.repository.UserIdRepository;
 import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
@@ -18,46 +14,41 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class ConsultantService {
 
-    private final UserRepository userRepository;
-    private final UserIdRepository userIdRepository;
+
     private final ConsultantRepository consultantRepository;
 
     private final PasswordEncoder passwordEncoder;
 
-    private final GeneralUserService userService;
+    private final AppUserDetailsService userService;
 
-    public ConsultantService(UserRepository userRepositoryCustom,
-                             UserIdRepository userIdRepository,
+    public ConsultantService(
                              ConsultantRepository consultantRepository,
                              PasswordEncoder passwordEncoder,
-                             GeneralUserService userService) {
-        this.userRepository = userRepositoryCustom;
-        this.userIdRepository = userIdRepository;
+                             AppUserDetailsService userService) {
         this.consultantRepository = consultantRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
     }
 
     public ResponseEntity<ResponseMessage> createConsultant(ConsultantDTO consultantDTO) {
-        User user = new User(
-                userIdRepository.nextId(),
+        Consultant user = new Consultant(
+                UUID.randomUUID(),
                 consultantDTO.userName(),
                 consultantDTO.email(),
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                UserType.CONSULTANT,
-                passwordEncoder.encode(consultantDTO.password())
+                passwordEncoder.encode(consultantDTO.password()),
+                consultantDTO.medicalCategory()
         );
-        if (userService.verifyIfEmailNotExists(user.getEmail())) {
-            userRepository.save(user);
-            Consultant consultant = new Consultant(userIdRepository.nextId(), user, consultantDTO.medicalCategory());
-            consultantRepository.save(consultant);
+        if (!userService.isUserExists(user.getEmail())) {
+            consultantRepository.save(user);
             return new ResponseEntity<>(new ResponseMessage(user.toString()), HttpStatus.CREATED);
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
@@ -65,15 +56,9 @@ public class ConsultantService {
     }
 
     public ResponseEntity<Set<Consultant>> getAllConsultants(){
-        Set<User> consultants = ImmutableSet.
-                copyOf(userRepository
-                        .findAllByUserType(UserType.CONSULTANT)
-                        .orElseThrow(() -> new UserNotFoundException("No consultant was found")));
-        return new ResponseEntity<>(consultants.stream()
-                .map(user -> consultantRepository
-                        .findByUser(user)
-                        .orElseThrow(() -> new UserNotFoundException("Consultant was not found")))
-                .collect(Collectors.toSet()), HttpStatus.OK);
+        Set<Consultant> consultants = ImmutableSet.
+                copyOf(consultantRepository.findAll());
+        return new ResponseEntity<>(consultants, HttpStatus.OK);
     }
 
     public Set<Consultant> getConsultantByCategory(MedicalCategory category){
@@ -84,14 +69,10 @@ public class ConsultantService {
                 );
     }
 
-    public Set<Consultant> getConsultantByName(String name){
-        Set<User> consultantUsers = Set.copyOf(userRepository
-                .findAllByUserType(UserType.CONSULTANT)
-                .orElseThrow(() -> new UserNotFoundException("User was not found try again later")))
+    public Set<Consultant> getConsultantsByName(String name){
+
+        return Set.copyOf(consultantRepository.findAll()
                 .stream().filter(user -> user.getUsername().contains(name))
-                .collect(Collectors.toSet());
-        return consultantUsers.stream().map(consultantUser -> consultantRepository.findByUser(consultantUser)
-                .orElseThrow(() -> new UserNotFoundException("No Consultant with name " + consultantUser.getUsername() + " found")))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()));
     }
 }

@@ -1,41 +1,44 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
-public class Admin extends AbstractEntity<UserId> {
+public final class Admin extends User{
 
-    @OneToOne(targetEntity = User.class, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User adminUser;
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "assignment_id")
     private Set<Assignment> assignment;
     protected Admin() {
     }
 
-    public Admin(UserId id, User adminUser) {
-        super(id);
-        this.adminUser = adminUser;
+    public Admin(UUID id,
+                 UserName userName,
+                 String email,
+                 String phoneNumber,
+                 Gender gender,
+                 Address address) {
+        super(id,userName,email,phoneNumber,gender,address);
     }
 
-    public User getAdminUser() {
-        return adminUser;
-    }
 
     public Set<Assignment> getAssignment() {
         return assignment;
     }
 
+
     @Override
-    public String toString(){
-        return "Admin: name -> " + adminUser.getUserNameObject().getFullName() +
-        "email -> " + adminUser.getEmail() +
-        "gender -> " + adminUser.getGender().name();
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ADMIN"));
     }
 }
