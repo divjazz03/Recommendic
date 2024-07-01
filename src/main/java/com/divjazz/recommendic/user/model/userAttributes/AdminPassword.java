@@ -49,6 +49,9 @@ public class AdminPassword{
         return assignedAdmin;
     }
 
+    public void setAssignedAdmin(Admin assignedAdmin) {
+        this.assignedAdmin = assignedAdmin;
+    }
 
     public String getPassword() {
         return password;
