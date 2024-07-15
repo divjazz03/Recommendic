@@ -1,10 +1,8 @@
 package com.divjazz.recommendic.search;
 
-import com.divjazz.recommendic.search.searchAttributes.SearchId;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.UserId;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
@@ -35,7 +33,7 @@ public class SearchService {
      */
     public Set<Consultant> executeQuery(String query, String userId){
         Patient patient = patientService.findPatientById(userId);
-        Search search = new Search(new SearchId(UUID.randomUUID()), query);
+        Search search = new Search(UUID.randomUUID(), query);
         Set<Consultant> consultants = new HashSet<>(20);
         search.setOwnerOfSearch(patient);
         if (query.trim().split(":")[0].equalsIgnoreCase("category")){

@@ -9,7 +9,6 @@ public class CertificateNotFoundException extends RuntimeException{
     public CertificateNotFoundException(Consultant consultant) {
         super(String.
                 format(ERROR_MESSAGE, consultant
-                        .getUser()
                         .getUserNameObject()
                         .getFullName()));
     }

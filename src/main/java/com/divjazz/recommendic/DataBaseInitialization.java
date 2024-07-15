@@ -24,7 +24,7 @@ import java.util.Locale;
 import java.util.Random;
 
 @Component
-@Profile("init-db")
+@Profile("dev")
 public class DataBaseInitialization implements CommandLineRunner {
 
     private final Faker faker = new Faker();

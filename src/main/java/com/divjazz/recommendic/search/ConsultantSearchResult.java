@@ -4,21 +4,12 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 
 import java.util.Objects;
 
-public final class ConsultantSearchResult extends SearchResult {
-    String username;
-    String email;
-    String phoneNumber;
-    String gender;
-    Address address;
+public final class ConsultantSearchResult extends UserSearchResult {
+
     String medicalExpertise;
 
     public ConsultantSearchResult(String username, String email, String phoneNumber, String gender, Address address, String medicalExpertise) {
-        super();
-        this.username = username;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.address = address;
+        super(username,email,phoneNumber,gender,address);
         this.medicalExpertise = medicalExpertise;
     }
 

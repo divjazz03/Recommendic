@@ -6,24 +6,33 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
+import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.*;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
+
 @Entity
+@JsonInclude(NON_DEFAULT)
 public final class Patient extends User {
 
-    @OneToMany(targetEntity = Recommendation.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = Recommendation.class, fetch = FetchType.LAZY, mappedBy = "patient")
     private Set<Recommendation> recommendations;
-    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Consultant.class)
+    @ManyToMany(mappedBy = "patients")
     private Set<Consultant> consultants;
 
     @Enumerated(value = EnumType.STRING)
     private Set<MedicalCategory> medicalCategories;
     @OneToMany
     private List<Search> searches;
+
+    private String password;
+    @OneToOne
+    private PatientCredential credential;
 
 
 
@@ -34,10 +43,10 @@ public final class Patient extends User {
                    String email,
                    String phoneNumber,
                    Gender gender,
-                   Address address,
-                   String password){
+                   Address address){
 
-        super(id,userName,email,phoneNumber,gender,address,password);
+        super(userName,email,phoneNumber,gender,address);
+        setId(id);
         medicalCategories = new HashSet<>(30);
         consultants = new HashSet<>(30);
         recommendations = new HashSet<>(30);
@@ -90,4 +99,18 @@ public final class Patient extends User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("PATIENT"));
     }
+
+    @Override
+    public String getPassword() {
+        return this.credential.getPassword();
+    }
+
+    public void setCredential(PatientCredential credential) {
+        this.credential = credential;
+    }
+
+    public PatientCredential getCredential() {
+        return credential;
+    }
 }
+

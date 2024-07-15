@@ -8,8 +8,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class FileUploadExceptionAdvice extends ResponseEntityExceptionHandler {
-
-    public ResponseEntity<ResponseMessage> handleMaxSizeException(MaxUploadSizeExceededException exceededException){
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage("File too large!"));
+    
+    public ResponseEntity<FileResponseMessage> handleMaxSizeException(MaxUploadSizeExceededException exceededException){
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new FileResponseMessage("File too large!"));
     }
 }

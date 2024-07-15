@@ -1,41 +1,47 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.UserId;
+import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.utils.fileUpload.ResponseMessage;
+import com.divjazz.recommendic.user.repository.credential.PatientCredentialRepository;
+import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import com.google.common.collect.ImmutableSet;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.AlternativeJdkIdGenerator;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PatientService {
 
 
     private final PatientRepository patientRepository;
 
+    private final PatientCredentialRepository patientCredentialRepository;
+
     private final AppUserDetailsService userService;
 
     private final PasswordEncoder encoder;
 
+    private final AlternativeJdkIdGenerator idGenerator;
 
 
-    public PatientService(
+
+    public PatientService(AlternativeJdkIdGenerator idGenerator,
                           PatientRepository patientRepository,
-                          AppUserDetailsService userService,
+                          PatientCredentialRepository patientCredentialRepository, AppUserDetailsService userService,
                           PasswordEncoder encoder
                           ) {
-
+        this.idGenerator = idGenerator;
         this.patientRepository = patientRepository;
+        this.patientCredentialRepository = patientCredentialRepository;
         this.userService = userService;
         this.encoder = encoder;
 
@@ -43,24 +49,32 @@ public class PatientService {
 
 
 
-    public ResponseMessage createPatient(PatientDTO patientDTO){
-        Patient user = new Patient(UUID.randomUUID(),
+
+    public PatientInfoResponse createPatient(PatientDTO patientDTO){
+        Patient user = new Patient(idGenerator.generateId(),
                 patientDTO.userName(),
                 patientDTO.email(),
                 patientDTO.phoneNumber(),
                 patientDTO.gender(),
-                patientDTO.address(),
+                patientDTO.address());
+        PatientCredential patientCredential = new PatientCredential(user,
+                encoder.encode(patientDTO.password()),
+                idGenerator.generateId());
+        user.setCredential(patientCredential);
 
-                encoder.encode(patientDTO.password()));
-
-        if (userService.isUserExists(user.getEmail())) {
+        if (!userService.isUserExists(user.getEmail())) {
             patientRepository.save(user);
-            return new ResponseMessage(user.toString());
+            patientCredentialRepository.save(patientCredential);
+            return new PatientInfoResponse(user.getId().toString()
+                    ,user.getUserNameObject().getLastName()
+                    ,user.getUserNameObject().getFirstName()
+                    ,user.getPhoneNumber()
+                    ,user.getGender().toString()
+                    ,user.getAddress());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }
     }
-
 
 
     public Set<Patient> getAllPatients(){
@@ -68,9 +82,9 @@ public class PatientService {
                 .copyOf(patientRepository.findAll());
     }
 
-    public ResponseMessage deletePatientById(String patient_Id){
+    public FileResponseMessage deletePatientById(String patient_Id){
         patientRepository.deleteById(UUID.fromString(patient_Id));
-        return new ResponseMessage("The deletion was successful");
+        return new FileResponseMessage("The deletion was successful");
     }
 
     public void modifyPatient(Patient patient){

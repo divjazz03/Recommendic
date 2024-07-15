@@ -3,7 +3,8 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
-import io.github.wimdeblauwe.jpearl.AbstractEntity;
+import com.divjazz.recommendic.user.model.userAttributes.credential.AdminCredential;
+import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,11 +17,15 @@ import java.util.UUID;
 @Entity
 public final class Admin extends User{
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany()
     @JoinColumn(name = "assignment_id")
     private Set<Assignment> assignment;
-    protected Admin() {
-    }
+
+    @OneToOne
+    private AdminCredential adminCredential
+
+    protected Admin(){}
+
 
     public Admin(UUID id,
                  UserName userName,
@@ -28,17 +33,33 @@ public final class Admin extends User{
                  String phoneNumber,
                  Gender gender,
                  Address address) {
-        super(id,userName,email,phoneNumber,gender,address);
+        super(userName,email,phoneNumber,gender,address);
+        setId(id);
     }
-
 
     public Set<Assignment> getAssignment() {
         return assignment;
     }
 
+    public void setAssignment(Set<Assignment> assignment) {
+        this.assignment = assignment;
+    }
+
+    public AdminCredential getAdminCredential() {
+        return adminCredential;
+    }
+
+    public void setAdminCredential(AdminCredential adminCredential) {
+        this.adminCredential = adminCredential;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ADMIN"));
+        return Set.of(new SimpleGrantedAuthority("ADMIN"));
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
     }
 }

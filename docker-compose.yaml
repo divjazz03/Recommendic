@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   postgres:
@@ -6,6 +6,13 @@ services:
     build: .
     image: 'postgres:latest'
     env_file: .env
+    expose:
+      - "5432"
     ports:
-      - '5432:5432'
+      - "5432:5432"
     restart: always
+    volumes:
+      - postgresvolume:/var/lib/postgresql/data
+
+volumes:
+  postgresvolume:

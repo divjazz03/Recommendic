@@ -1,10 +1,16 @@
-spring:
-  datasource:
-    password: ${POSTGRES_PASSWORD}
-    username: ${POSTGRES_USER}
-    url: ${POSTGRES_URL}
+POSTGRES_PASSWORD : june12003
+POSTGRES_URL : jdbc:postgresql://localhost:5432/recommendic
+POSTGRES_USER : divjazz
 
+EMAIL_HOST: smtp.gmail.com
+EMAIL_PORT: 587
+EMAIL_ID: "divjazz03@gmail.com"
+EMAIL_PASSWORD: "june12003"
+CLIENT_ID:
+
+spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+      ddl-auto: update
+  mail:
+    username:

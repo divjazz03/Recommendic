@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.utils.fileUpload;
 
-public class ResponseMessage {
+public class FileResponseMessage {
     private String message;
 
-    public ResponseMessage(String message) {
+    public FileResponseMessage(String message) {
         this.message = message;
     }
 

@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
-import io.github.wimdeblauwe.jpearl.AbstractEntity;
+
 import jakarta.persistence.*;
-import com.divjazz.recommendic.user.model.User;
-import org.hibernate.annotations.Type;
+
 
 import java.util.UUID;
 
@@ -11,6 +10,8 @@ import java.util.UUID;
 public final class ProfilePicture{
     @Id
     private UUID id;
+
+    private UUID owner;
 
     private String name;
 
@@ -20,6 +21,7 @@ public final class ProfilePicture{
         this.id = id;
         this.name = name;
         this.pictureUrl = pictureUrl;
+        this.owner = owner;
     }
 
     protected ProfilePicture() {
@@ -47,5 +49,9 @@ public final class ProfilePicture{
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public UUID getOwner() {
+        return owner;
     }
 }

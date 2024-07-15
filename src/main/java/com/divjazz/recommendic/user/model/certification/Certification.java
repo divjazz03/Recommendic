@@ -2,8 +2,9 @@ package com.divjazz.recommendic.user.model.certification;
 
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Consultant;
-import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.UUID;
 
@@ -11,8 +12,14 @@ import java.util.UUID;
 public class Certification {
     @Id
     private UUID id;
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name = "consultant_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Consultant ownerOfCertification;
+
+    @ManyToOne( fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id")
+    private Assignment assignment;
 
     private String fileName;
     private String fileUrl;

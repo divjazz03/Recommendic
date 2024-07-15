@@ -1,31 +1,31 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.user.controller.admin.AdminResponse;
+import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
-import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.AdminPassword;
-import com.divjazz.recommendic.user.repository.AdminPasswordRepository;
+import com.divjazz.recommendic.user.model.userAttributes.credential.AdminCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
+import com.divjazz.recommendic.user.repository.credential.AdminCredentialRepository;
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.AlternativeJdkIdGenerator;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class AdminService {
 
-    private final AdminPasswordRepository adminPasswordRepository;
+    private final AdminCredentialRepository adminCredentialRepository;
 
     private final AppUserDetailsService userService;
 
@@ -33,23 +33,24 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
 
-    public AdminService(
-                        AdminPasswordRepository adminPasswordRepository,
-                        AppUserDetailsService userService,
-                        PasswordEncoder passwordEncoder,
-                        AdminRepository adminRepository) {
+    private final AlternativeJdkIdGenerator idGenerator;
 
-        this.adminPasswordRepository = adminPasswordRepository;
+    public AdminService(
+            AdminCredentialRepository adminCredentialRepository, AppUserDetailsService userService,
+            PasswordEncoder passwordEncoder,
+            AdminRepository adminRepository, AlternativeJdkIdGenerator idGenerator) {
+        this.adminCredentialRepository = adminCredentialRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
 
+        this.idGenerator = idGenerator;
     }
 
 
-    public ResponseEntity<AdminResponse> createAdmin(AdminDTO adminDTO) {
+    public AdminCredentialResponse createAdmin(AdminDTO adminDTO) {
         GenerateAdminPasswordResponse response = generateAdminPassword();
-        AdminPassword password = response.encryptedPassword();
+        String password = response.encryptedPassword();
 
         Admin admin = new Admin(
                 UUID.randomUUID(),
@@ -59,30 +60,30 @@ public class AdminService {
                 adminDTO.gender(),
                 adminDTO.address()
         );
-        password.setAssignedAdmin(admin);
 
-        if (userService.isUserExists(admin.getEmail())) {
+        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword(),idGenerator.generateId());
 
+        if (!userService.isUserExists(admin.getEmail())) {
             adminRepository.save(admin);
-            adminPasswordRepository.save(password);
-            return new ResponseEntity<>(new AdminResponse(admin.getEmail(),
-                    response.normalPassword(),
-                    password.getExpiryDate()), HttpStatus.CREATED);
+            adminCredentialRepository.save(adminCredential);
+            return new AdminCredentialResponse(admin.getEmail(),
+                    password,
+                    adminCredential.getExpiryDate());
         } else {
             throw new UserAlreadyExistsException(admin.getEmail());
         }
 
-
     }
 
-    public Optional<Admin> getAdminByUsername(String email){
-        return adminRepository.findByEmail(email);
+    public Admin getAdminByUsername(String email){
+        return adminRepository
+                .findByEmail(email).orElseThrow(() -> new UserNotFoundException("This Admin was not found"));
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword(){
         Faker faker = new Faker();
-        String password = faker.internet().password(10,15,true);
-        return new GenerateAdminPasswordResponse(new AdminPassword(UUID.randomUUID(), null, passwordEncoder.encode(password)), password);
+        String password = faker.internet().password(8,15,true);
+        return new GenerateAdminPasswordResponse( passwordEncoder.encode(password), password);
 
     }
 

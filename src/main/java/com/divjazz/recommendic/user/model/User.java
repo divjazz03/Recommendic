@@ -1,25 +1,19 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
 
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.UUID;
 
 
 @MappedSuperclass
-public sealed abstract class  User implements UserDetails permits Admin, Consultant, Patient {
+public sealed abstract class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
 
-    @Id
-    private UUID id;
     @Column(nullable = false)
     @Embedded
     private UserName userName;
@@ -37,28 +31,19 @@ public sealed abstract class  User implements UserDetails permits Admin, Consult
     @Embedded
     @Column(nullable = false)
     private Address address;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_picture_id")
-    private ProfilePicture profilePicture;
 
-    private String password;
+
+    private String profilePictureUrl;
+
+    private boolean accountNonExpired;
+    private boolean accountNonLocked;
+    private boolean enabled;
 
 
 
     protected User(){}
 
-    public User(UUID id, UserName userName,String email, String phoneNumber, Gender gender, Address address, String password){
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.address = address;
-        this.password = password;
-    }
-
-    public User(UUID id, UserName userName,String email, String phoneNumber, Gender gender, Address address){
-        this.id = id;
+    public User(UserName userName,String email, String phoneNumber, Gender gender, Address address){
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -66,20 +51,6 @@ public sealed abstract class  User implements UserDetails permits Admin, Consult
         this.address = address;
     }
 
-    public User(UUID id, UserName userName, String email, String phoneNumber, Gender gender, Address address, ProfilePicture profilePicture, String password) {
-        this.id = id;
-        this.userName = userName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.address = address;
-        this.password = password;
-        this.profilePicture = profilePicture;
-    }
-
-    public UUID getId(){
-        return this.id;
-    }
 
     public UserName getUserNameObject() {
         return userName;
@@ -121,28 +92,23 @@ public sealed abstract class  User implements UserDetails permits Admin, Consult
 
 
     @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
     public String getUsername() {
         return email;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return accountNonExpired;
     }
 
     @Override
@@ -150,53 +116,7 @@ public sealed abstract class  User implements UserDetails permits Admin, Consult
         return true;
     }
 
-    @Override
-    public String toString(){
-        return "User: " +
-                ", id -> " + this.getId().toString() +
-                ", name -> " +
-                this.userName.getFullName() +
-                ", gender -> " + this.gender.toString().toLowerCase() +
-                ", phone number -> " + this.phoneNumber +
-                ", email -> " + this.email;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User user = (User) o;
-
-        if (!Objects.equals(id, user.id)) return false;
-        if (!Objects.equals(userName, user.userName)) return false;
-        if (!Objects.equals(email, user.email)) return false;
-        if (!Objects.equals(phoneNumber, user.phoneNumber)) return false;
-        if (gender != user.gender) return false;
-        if (!Objects.equals(address, user.address)) return false;
-        if (!Objects.equals(profilePicture, user.profilePicture))
-            return false;
-        return Objects.equals(password, user.password);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (userName != null ? userName.hashCode() : 0);
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (phoneNumber != null ? phoneNumber.hashCode() : 0);
-        result = 31 * result + (gender != null ? gender.hashCode() : 0);
-        result = 31 * result + (address != null ? address.hashCode() : 0);
-        result = 31 * result + (profilePicture != null ? profilePicture.hashCode() : 0);
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        return result;
-    }
-
-    public ProfilePicture getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(ProfilePicture profilePicture) {
-        this.profilePicture = profilePicture;
+    public String getProfilePicture() {
+        return profilePictureUrl;
     }
 }

@@ -6,10 +6,10 @@ This app emphasises on ease and great user experiences for all our users.
 
 ## Entities with their responsibilities and capabilities ##
 - **Users**: This encapsulates all the users of the platform of which include the Potential patients, Administrators, certified practitioner and administrators.
-- **Registration**: This is the conversion of a guest user to an authenticated user. The guest user can be converted to a potential patient or a Practitioner. To register as a practitioner, the admin assigned must verify the authenticity of the certification, or in later versions can be verified by artificial intelligence.
+- **Registration**: This is the conversion of a guest user to an authenticated user. The guest user can be converted to a potential patient or a Practitioner. To register as a practitioner, the user assigned must verify the authenticity of the certification, or in later versions can be verified by artificial intelligence.
 - **Login**: This logs in the users into the platform, it makes the feeds and data displayed to them personalized according to their recent activities or authorization level.
 - **Recommendation**: This is unique to potential patients. It recommends consultants or articles according to search patterns, location or recent activities.
 - **Real Time Consultation**: This involves real time consultation/chats with consultants whom the user has started a consultation with. It utilizes web sockets. The user can have a real-time conversation with the practitioner of there choosing about topics they are interested in.
-- **Admin Registration**: A user can be registered as an admin and assigned a password by another admin and an automatically generated password is assigned to that user.
-- **Consultant Certification**: Admins are assigned the certifications of the consultants that haven't been certified. Once the assigned admin certifies the certificates. The Consultant is automatically verified.
+- **Admin Registration**: A user can be registered as an user and assigned a password by another user and an automatically generated password is assigned to that user.
+- **Consultant Certification**: Admins are assigned the certifications of the consultants that haven't been certified. Once the assigned user certifies the certificates. The Consultant is automatically verified.
 - **File upload**: The practitioner can upload pdf documents or clear images of their certifications. Everyone practitioners and potential patients need to upload their profile pictures for visual identification.

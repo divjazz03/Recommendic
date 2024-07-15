@@ -1,16 +1,17 @@
 package com.divjazz.recommendic.search;
 
-import com.divjazz.recommendic.search.searchAttributes.SearchId;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.User;
-import io.github.wimdeblauwe.jpearl.AbstractEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 
-import java.util.List;
+import java.util.UUID;
 
 @Entity
-public class Search extends AbstractEntity<SearchId> {
+public class Search {
+
+    @Id
+    private UUID searchId;
 
     private String query;
 
@@ -19,8 +20,8 @@ public class Search extends AbstractEntity<SearchId> {
 
     protected Search(){
     }
-    public Search(SearchId searchId, String query){
-        super(searchId);
+    public Search(UUID searchId, String query){
+        this.searchId = searchId;
         this.query = query;
     }
 
