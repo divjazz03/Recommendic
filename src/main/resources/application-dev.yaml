@@ -6,7 +6,8 @@ EMAIL_HOST: smtp.gmail.com
 EMAIL_PORT: 587
 EMAIL_ID: "divjazz03@gmail.com"
 EMAIL_PASSWORD: "june12003"
-CLIENT_ID:
+VERIFY_EMAIL_HOST: ""
+#CLIENT_ID: ""
 
 spring:
   jpa:

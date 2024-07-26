@@ -7,19 +7,21 @@ import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
-import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
-import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
+import com.divjazz.recommendic.utils.RequestUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/consultant")
@@ -33,7 +35,7 @@ public class ConsultantController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Response> createConsultant(@RequestBody ConsultantRegistrationParams requestParams){
+    public ResponseEntity<Response> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams, HttpServletRequest httpServletRequest){
         try {
             UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
             String userEmail = requestParams.email();
@@ -47,7 +49,7 @@ public class ConsultantController {
                     requestParams.city(),
                     requestParams.state(),
                     requestParams.country());
-            MedicalCategory medicalCategory = switch (requestParams.medicalCategory().toUpperCase()){
+            MedicalCategory medicalCategory = switch (requestParams.medicalSpecialization().toUpperCase()){
                 case "PEDIATRICIAN" -> MedicalCategory.PEDIATRICIAN;
                 case "CARDIOLOGY" -> MedicalCategory.CARDIOLOGY;
                 case "ONCOLOGY" -> MedicalCategory.ONCOLOGY;
@@ -64,38 +66,29 @@ public class ConsultantController {
             };
             ConsultantDTO consultantDTO = new ConsultantDTO(userName,userEmail,phoneNumber,gender,address, requestParams.password(), medicalCategory);
             var fileResponse = consultantService.createConsultant(consultantDTO);
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.CREATED.value(),
-                    "",
-                    HttpStatus.CREATED,
-                    "The Consultant was successfully created",
-                    "",
-                    Map.of("id", fileResponse.consultantId(),
-                            "last_name", fileResponse.lastName(),
-                            "first_name", fileResponse.firstName(),
-                            "gender", fileResponse.gender().toLowerCase(),
-                            "address", fileResponse.address(),
-                            "area_of_specialization", fileResponse.medicalSpecialization())
-            );
+            var response = getResponse(httpServletRequest,
+                            Map.of("id", fileResponse.consultantId(),
+                                    "last_name", fileResponse.lastName(),
+                                    "first_name", fileResponse.firstName(),
+                                    "gender", fileResponse.gender().toLowerCase(),
+                                    "address", fileResponse.address(),
+                                    "area_of_specialization", fileResponse.medicalSpecialization()),
+                            "The Consultant was successfully created, Check your email to activate your account",
+                            HttpStatus.CREATED
+                            );
             return new ResponseEntity<>(response,HttpStatus.EXPECTATION_FAILED);
         } catch (IllegalArgumentException|NoSuchMedicalCategory e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.EXPECTATION_FAILED.value(),
-                    "",
+            var response = getErrorResponse(
+                    httpServletRequest,
                     HttpStatus.EXPECTATION_FAILED,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.EXPECTATION_FAILED);
         } catch (Exception e){
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+            var response =  getErrorResponse(
+                    httpServletRequest,
+                    HttpStatus.EXPECTATION_FAILED,
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -104,7 +97,7 @@ public class ConsultantController {
 
     @GetMapping("consultants")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Response> getConsultants(){
+    public ResponseEntity<Response> getConsultants(HttpServletRequest httpServletRequest ){
         try {
             var data = consultantService.getAllConsultants().stream()
                     .map(consultant -> new ConsultantInfoResponse(
@@ -125,13 +118,10 @@ public class ConsultantController {
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+            var response =  getErrorResponse(
+                    httpServletRequest,
+                    HttpStatus.EXPECTATION_FAILED,
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }

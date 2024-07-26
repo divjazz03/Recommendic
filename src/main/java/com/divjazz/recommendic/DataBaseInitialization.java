@@ -1,5 +1,7 @@
 package com.divjazz.recommendic;
 
+import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.PatientDTO;
@@ -15,19 +17,23 @@ import com.github.javafaker.Faker;
 import com.github.javafaker.Name;
 import org.apache.commons.lang3.StringUtils;
 
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 
 @Component
 @Profile("dev")
-public class DataBaseInitialization implements CommandLineRunner {
+public class DataBaseInitialization implements ApplicationRunner {
 
     private final Faker faker = new Faker();
+
+    private final static UUID ROOT_ADMIN_ID = UUID.randomUUID();
     private final PatientService patientService;
     private final ConsultantService consultantService;
 
@@ -43,19 +49,7 @@ public class DataBaseInitialization implements CommandLineRunner {
 
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-
-        for (int i = 0; i < 30; i++) {
-            PatientDTO patientDTO = generatePatient();
-            ConsultantDTO consultantDTO = generateUnverifiedConsultant();
-            patientService.createPatient(patientDTO);
-            consultantService.createConsultant(consultantDTO);
-
-        }
-        generateDefaultAdmin();
-    }
-    private void generateDefaultAdmin(){
+    private AdminCredentialResponse generateDefaultAdmin(){
         AdminDTO adminDTO = new AdminDTO(
                 new UserName("Maduka", "Akachukwu"),
                 "divjazz20@gmail.com",
@@ -63,7 +57,7 @@ public class DataBaseInitialization implements CommandLineRunner {
                 Gender.MALE,
                 new Address("2003940","Ibadan","Oyo","Nigeria")
         );
-        System.out.println(adminService.createAdmin(adminDTO));
+        return adminService.createAdmin(adminDTO, ROOT_ADMIN_ID);
     }
 
     private PatientDTO generatePatient() {
@@ -114,4 +108,18 @@ public class DataBaseInitialization implements CommandLineRunner {
     }
 
 
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+
+        RequestContext.setUserId(ROOT_ADMIN_ID);
+        var admin = generateDefaultAdmin();
+        for (int i = 0; i < 30; i++) {
+            PatientDTO patientDTO = generatePatient();
+            ConsultantDTO consultantDTO = generateUnverifiedConsultant();
+            patientService.createPatient(patientDTO);
+            consultantService.createConsultant(consultantDTO);
+
+        }
+
+    }
 }

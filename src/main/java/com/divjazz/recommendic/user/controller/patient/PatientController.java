@@ -14,6 +14,7 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,7 @@ public class PatientController {
 
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Response> createPatient(@RequestBody PatientRegistrationParams requestParams){
+    public ResponseEntity<Response> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams){
         try {
             PatientDTO patient = new PatientDTO(
                     new UserName(requestParams.firstName(), requestParams.lastName()),

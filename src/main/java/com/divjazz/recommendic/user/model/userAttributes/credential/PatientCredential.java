@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.model.userAttributes.credential;
 
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +23,7 @@ public class PatientCredential extends UserCredential {
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
-    private Patient patient;
+    private User patient;
 
     public PatientCredential(Patient patient, String password, UUID referenceId) {
         super(password, referenceId);
@@ -32,7 +33,7 @@ public class PatientCredential extends UserCredential {
     protected PatientCredential() {
     }
 
-    public Patient getPatient() {
+    public User getPatient() {
         return patient;
     }
 

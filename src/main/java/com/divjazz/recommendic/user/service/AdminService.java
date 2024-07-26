@@ -75,6 +75,33 @@ public class AdminService {
 
     }
 
+    public AdminCredentialResponse createAdmin(AdminDTO adminDTO, UUID id) {
+        GenerateAdminPasswordResponse response = generateAdminPassword();
+        String password = response.encryptedPassword();
+
+        Admin admin = new Admin(
+                id,
+                adminDTO.userName(),
+                adminDTO.email(),
+                adminDTO.number(),
+                adminDTO.gender(),
+                adminDTO.address()
+        );
+
+        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword(),idGenerator.generateId());
+
+        if (!userService.isUserExists(admin.getEmail())) {
+            adminRepository.save(admin);
+            adminCredentialRepository.save(adminCredential);
+            return new AdminCredentialResponse(admin.getEmail(),
+                    password,
+                    adminCredential.getExpiryDate());
+        } else {
+            throw new UserAlreadyExistsException(admin.getEmail());
+        }
+
+    }
+
     public Admin getAdminByUsername(String email){
         return adminRepository
                 .findByEmail(email).orElseThrow(() -> new UserNotFoundException("This Admin was not found"));

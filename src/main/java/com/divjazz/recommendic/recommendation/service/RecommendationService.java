@@ -2,7 +2,6 @@ package com.divjazz.recommendic.recommendation.service;
 
 import com.divjazz.recommendic.recommendation.dto.RecommendationDTO;
 import com.divjazz.recommendic.recommendation.model.Recommendation;
-import com.divjazz.recommendic.recommendation.model.recommendationAttributes.RecommendationId;
 import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
 import com.divjazz.recommendic.search.Search;
 import com.divjazz.recommendic.search.SearchService;
@@ -15,7 +14,10 @@ import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,7 +52,7 @@ public class RecommendationService {
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
                 consultant.getAddress(),
-                consultant.getMedicalCategory()
+                consultant.getMedicalCategory().toString()
         );
     }
     private PatientInfoResponse toPatientInfoResponse(Patient patient){

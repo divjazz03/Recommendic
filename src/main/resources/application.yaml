@@ -17,6 +17,12 @@ spring:
       enabled: true
       max-file-size: 10MB
 
+  sql:
+    init:
+      mode: never
+      continue-on-error: false
+      schema-locations: classpath:/sql/schema.sql
+      data-locations: classpath:/sql/data.sql
 
 
   datasource:
@@ -57,6 +63,8 @@ spring:
     verify:
       host: ${VERIFY_EMAIL_HOST}
 server:
+  http2:
+    enabled: true
   port: ${CONTAINER_PORT:8080}
   error:
     whitelabel:

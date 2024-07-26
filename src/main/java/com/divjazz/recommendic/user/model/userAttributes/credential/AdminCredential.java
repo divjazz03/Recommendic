@@ -25,7 +25,7 @@ public class AdminCredential extends UserCredential {
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
     @NotNull
-    private User user;
+    private User admin;
     @CreatedDate
     @NotNull
     private LocalDateTime expiryDate = getCreatedAt().plusMonths(6L);
@@ -34,15 +34,15 @@ public class AdminCredential extends UserCredential {
 
     public AdminCredential(Admin admin, String password, UUID referenceId) {
         super(password, referenceId);
-        this.user = admin;
+        this.admin = admin;
     }
 
-    public User getUser() {
-        return user;
+    public User getAdmin() {
+        return admin;
     }
 
-    public void setUser(Admin user) {
-        this.user = user;
+    public void setAdmin(Admin admin) {
+        this.admin = admin;
     }
 
     public LocalDateTime getExpiryDate() {

@@ -23,18 +23,18 @@ public class ConsultantConfirmation extends UserConfirmation{
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
     @NotNull
-    private User user;
+    private User consultant;
 
     public ConsultantConfirmation(User admin) {
-        this.user = admin;
+        this.consultant = admin;
     }
     protected ConsultantConfirmation(){}
 
-    public User getUser() {
-        return user;
+    public User getConsultant() {
+        return consultant;
     }
 
-    public void setUser(User admin) {
-        this.user = admin;
+    public void setConsultant(User admin) {
+        this.consultant = admin;
     }
 }

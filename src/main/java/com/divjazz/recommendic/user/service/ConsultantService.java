@@ -70,7 +70,7 @@ public class ConsultantService {
                    user.getUserNameObject().getFirstName(),
                    user.getGender().toString(),
                    user.getAddress(),
-                   user.getMedicalCategory());
+                   user.getMedicalCategory().toString());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }

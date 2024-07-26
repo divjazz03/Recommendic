@@ -11,6 +11,6 @@ import java.util.UUID;
 @Repository
 public interface AdminConfirmationRepository extends JpaRepository<AdminConfirmation, UUID> {
     public Optional<AdminConfirmation> findByKey(String key);
-    public Optional<AdminConfirmation> findByUser(User admin);
+    public Optional<AdminConfirmation> getAdminConfirmationByAdmin_Id(UUID admin);
 
 }

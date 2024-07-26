@@ -10,6 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface PatientConfirmationRepository extends JpaRepository<PatientConfirmation, UUID> {
-    public Optional<PatientConfirmation> findByUser(User user);
+    public Optional<PatientConfirmation> getPatientConfirmationByPatient_Id(UUID user);
     public Optional<PatientConfirmation> findByKey(String key);
 }

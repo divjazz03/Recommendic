@@ -13,9 +13,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.utils.RequestUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -31,7 +37,7 @@ public class AdminController {
     }
 
     @PostMapping("create")
-    public ResponseEntity<Response> createAdmin(@RequestBody AdminRegistrationParams requestParams){
+    public ResponseEntity<Response> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest){
         try {
             AdminDTO adminDTO = new AdminDTO(
                     new UserName(requestParams.firstName(), requestParams.lastName()), requestParams.email(), requestParams.phoneNumber(),
@@ -43,89 +49,67 @@ public class AdminController {
                     new Address(requestParams.zipcode(), requestParams.city(), requestParams.state(), requestParams.country())
             );
             AdminCredentialResponse adminResponse = adminService.createAdmin(adminDTO);
+            var data = Map.of(
+                    "email",adminResponse.email(),
+                    "password",adminResponse.password(),
+                    "dateOfExpiry",adminResponse.dateOfExpiry().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.CREATED.value(),
-                    "",
-                    HttpStatus.CREATED,
-                    "The Admin Account was Successfully created",
-                    "",
-                    Map.of(
-                            "email",adminResponse.email(),
-                            "password",adminResponse.password(),
-                            "dateOfExpiry",adminResponse.dateOfExpiry().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                    );
+
+            var response = getResponse(httpServletRequest,
+                            data,
+                            "The Admin Account was Successfully created, Check your Email to enable your Account",
+                            HttpStatus.CREATED);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.EXPECTATION_FAILED.value(),
-                    "",
+            var response = getErrorResponse(httpServletRequest,
                     HttpStatus.EXPECTATION_FAILED,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.EXPECTATION_FAILED);
         }
         catch (Exception e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
+            var response = getErrorResponse(httpServletRequest,
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
-            );
+                    e);
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("patients")
-    public ResponseEntity<Response> patients(){
+    public ResponseEntity<Response> patients(HttpServletRequest httpServletRequest){
         try {
             var data = patientService.getAllPatients();
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.OK.value(),
-                    "",
-                    HttpStatus.OK,
+            var response = getResponse(httpServletRequest,
+                    Map.of("patients", data),
                     "Success in retrieving the Patient Users",
-                    "",
-                    Map.of("patients", data));
+                    HttpStatus.OK
+                    );
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
+            var response = getErrorResponse(
+                    httpServletRequest,
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("admins")
-    public ResponseEntity<Response> getAdmins(){
+    public ResponseEntity<Response> getAdmins(HttpServletRequest httpServletRequest){
         try {
             var data = adminService.getAllAdmins();
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.OK.value(),
-                    "",
-                    HttpStatus.OK,
-                    "Success in retrieving the Admin Users",
-                    "",
-                    Map.of("admins", data));
+            var response = getResponse(httpServletRequest,
+                    Map.of("admins", data),
+                    "Successfully Retrieved all admin entries",
+                    HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
+            var response = getErrorResponse(
+                    httpServletRequest,
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
+                    e
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }

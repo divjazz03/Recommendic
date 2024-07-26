@@ -22,7 +22,7 @@ public final class Admin extends User{
     private Set<Assignment> assignment;
 
     @OneToOne
-    private AdminCredential adminCredential
+    private AdminCredential adminCredential;
 
     protected Admin(){}
 

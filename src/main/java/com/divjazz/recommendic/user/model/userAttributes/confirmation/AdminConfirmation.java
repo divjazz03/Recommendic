@@ -21,18 +21,18 @@ public class AdminConfirmation extends UserConfirmation{
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
     @NotNull
-    private User user;
+    private User admin;
     protected AdminConfirmation(){}
 
     public AdminConfirmation(Admin admin) {
-        this.user = admin;
+        this.admin = admin;
     }
 
-    public User getUser() {
-        return user;
+    public User getAdmin() {
+        return admin;
     }
 
-    public void setUser(User admin) {
-        this.user = admin;
+    public void setAdmin(User admin) {
+        this.admin = admin;
     }
 }

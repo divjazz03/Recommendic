@@ -34,6 +34,7 @@ public final class Consultant extends User{
     )
     private Set<Patient> patients;
 
+    @Column(columnDefinition = "text")
     private String bio;
     @OneToMany
     private Set<Recommendation> recommendation;
@@ -90,7 +91,7 @@ public final class Consultant extends User{
         return "Consultant{" +
                 "certifications=" + certifications +
                 ", patients=" + patients +
-                ", medicalCategory=" + medicalCategory +
+                ", medicalSpecialization=" + medicalCategory +
                 ", certified=" + certified +
                 '}';
     }

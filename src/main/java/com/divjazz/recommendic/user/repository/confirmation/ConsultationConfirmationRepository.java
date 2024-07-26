@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ConsultationConfirmationRepository extends JpaRepository<ConsultantConfirmation, UUID> {
-    public Optional<ConsultantConfirmation> getConsultantConfirmationByAdmin_Id(UUID id);
+    public Optional<ConsultantConfirmation> getConsultantConfirmationByConsultant_Id(UUID id);
 }

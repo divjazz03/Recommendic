@@ -12,6 +12,7 @@ import java.util.Objects;
 
 
 @MappedSuperclass
+@Table(name = "users")
 public sealed abstract class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
 
     @Column(nullable = false)

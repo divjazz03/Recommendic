@@ -23,18 +23,18 @@ public class PatientConfirmation extends UserConfirmation{
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
     @NotNull
-    private User user;
+    private User patient;
 
     public PatientConfirmation(Patient patient) {
-        this.user = patient;
+        this.patient = patient;
     }
     protected PatientConfirmation(){}
 
     public User getAdmin() {
-        return user;
+        return patient;
     }
 
     public void setAdmin(Patient patient) {
-        this.user = patient;
+        this.patient = patient;
     }
 }
