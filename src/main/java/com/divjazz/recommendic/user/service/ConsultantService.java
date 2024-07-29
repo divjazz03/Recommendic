@@ -9,10 +9,7 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.credential.ConsultantCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.credential.ConsultantCredentialRepository;
-import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import com.google.common.collect.ImmutableSet;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +29,6 @@ public class ConsultantService {
     private final PasswordEncoder passwordEncoder;
 
     private final AppUserDetailsService userService;
-    private final AlternativeJdkIdGenerator idGenerator;
 
     public ConsultantService(
             ConsultantRepository consultantRepository,
@@ -42,12 +38,10 @@ public class ConsultantService {
         this.consultantCredentialRepository = consultantCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
-        this.idGenerator = idGenerator;
     }
 
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
         Consultant user = new Consultant(
-                idGenerator.generateId(),
                 consultantDTO.userName(),
                 consultantDTO.email(),
                 consultantDTO.phoneNumber(),
@@ -57,15 +51,14 @@ public class ConsultantService {
         );
 
         ConsultantCredential consultantCredential = new ConsultantCredential(user,
-                passwordEncoder.encode(consultantDTO.password()),
-                idGenerator.generateId());
+                passwordEncoder.encode(consultantDTO.password()));
         user.setCredential(consultantCredential);
 
-        if (!userService.isUserExists(user.getEmail())) {
+        if (userService.isUserNotExists(user.getEmail())) {
             consultantRepository.save(user);
             consultantCredentialRepository.save(consultantCredential);
 
-           return new ConsultantInfoResponse(user.getReferenceId().toString(),
+           return new ConsultantInfoResponse(user.getId(),
                    user.getUserNameObject().getLastName(),
                    user.getUserNameObject().getFirstName(),
                    user.getGender().toString(),

@@ -1,11 +1,9 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.recommendation.model.Recommendation;
-import com.divjazz.recommendic.search.Search;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.model.userAttributes.*;
-
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -18,27 +16,25 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @Entity
 @JsonInclude(NON_DEFAULT)
+@Table(name = "patient")
 public final class Patient extends User {
 
-    @OneToMany(targetEntity = Recommendation.class, fetch = FetchType.LAZY, mappedBy = "patient")
-    private Set<Recommendation> recommendations;
-    @ManyToMany(mappedBy = "patients")
+
+    @ManyToMany(mappedBy = "patients", fetch = FetchType.LAZY)
     private Set<Consultant> consultants;
 
     @Enumerated(value = EnumType.STRING)
+    @Column(name = "medical_categories")
     private Set<MedicalCategory> medicalCategories;
-    @OneToMany
-    private List<Search> searches;
 
-    private String password;
-    @OneToOne
+    @OneToOne(mappedBy = "patient", fetch = FetchType.EAGER)
     private PatientCredential credential;
 
 
 
     protected Patient(){}
 
-    public Patient(UUID id,
+    public Patient(
                    UserName userName,
                    String email,
                    String phoneNumber,
@@ -46,10 +42,8 @@ public final class Patient extends User {
                    Address address){
 
         super(userName,email,phoneNumber,gender,address);
-        setId(id);
         medicalCategories = new HashSet<>(30);
         consultants = new HashSet<>(30);
-        recommendations = new HashSet<>(30);
     }
 
 
@@ -65,33 +59,15 @@ public final class Patient extends User {
         }
     }
 
-    public Set<Recommendation> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(Set<Recommendation> recommendations){
-        addRecommendations(recommendations);
-    }
-    private void addRecommendations(Set<Recommendation> recommendations){
-        this.recommendations.addAll(recommendations);
-    }
     public void setConsultants(Set<Consultant> consultants){
         this.consultants.addAll(consultants);
     }
     public Set<Consultant> getConsultants(){return consultants;}
 
 
-    public List<Search> getSearches(){
-        return this.searches;
-    }
-
     @Override
     public String toString() {
         return "Patient{" +
-                "recommendations=" + recommendations +
-                ", consultants=" + consultants +
-                ", medicalCategories=" + medicalCategories +
-                ", searches=" + searches +
                 '}';
     }
 
@@ -112,5 +88,7 @@ public final class Patient extends User {
     public PatientCredential getCredential() {
         return credential;
     }
+
+
 }
 

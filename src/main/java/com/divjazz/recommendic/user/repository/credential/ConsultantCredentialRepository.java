@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ConsultantCredentialRepository extends JpaRepository<ConsultantCredential, UUID> {
-    public Optional<ConsultantCredential> getConsultantCredentialByConsultant_Id(UUID id);
+public interface ConsultantCredentialRepository extends JpaRepository<ConsultantCredential, Long> {
+    public Optional<ConsultantCredential> getConsultantCredentialByConsultant_Id(Long id);
 }

@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableSet;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.AlternativeJdkIdGenerator;
 
 import java.util.*;
 
@@ -30,16 +29,13 @@ public class PatientService {
 
     private final PasswordEncoder encoder;
 
-    private final AlternativeJdkIdGenerator idGenerator;
 
 
-
-    public PatientService(AlternativeJdkIdGenerator idGenerator,
+    public PatientService(
                           PatientRepository patientRepository,
                           PatientCredentialRepository patientCredentialRepository, AppUserDetailsService userService,
                           PasswordEncoder encoder
                           ) {
-        this.idGenerator = idGenerator;
         this.patientRepository = patientRepository;
         this.patientCredentialRepository = patientCredentialRepository;
         this.userService = userService;
@@ -51,21 +47,20 @@ public class PatientService {
 
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO){
-        Patient user = new Patient(idGenerator.generateId(),
+        Patient user = new Patient(
                 patientDTO.userName(),
                 patientDTO.email(),
                 patientDTO.phoneNumber(),
                 patientDTO.gender(),
                 patientDTO.address());
         PatientCredential patientCredential = new PatientCredential(user,
-                encoder.encode(patientDTO.password()),
-                idGenerator.generateId());
+                encoder.encode(patientDTO.password()));
         user.setCredential(patientCredential);
 
-        if (!userService.isUserExists(user.getEmail())) {
+        if (userService.isUserNotExists(user.getEmail())) {
             patientRepository.save(user);
             patientCredentialRepository.save(patientCredential);
-            return new PatientInfoResponse(user.getId().toString()
+            return new PatientInfoResponse(user.getId()
                     ,user.getUserNameObject().getLastName()
                     ,user.getUserNameObject().getFirstName()
                     ,user.getPhoneNumber()
@@ -82,17 +77,17 @@ public class PatientService {
                 .copyOf(patientRepository.findAll());
     }
 
-    public FileResponseMessage deletePatientById(String patient_Id){
-        patientRepository.deleteById(UUID.fromString(patient_Id));
-        return new FileResponseMessage("The deletion was successful");
+    public void deletePatientById(long patient_Id){
+        patientRepository.deleteById(patient_Id);
+        new FileResponseMessage("The deletion was successful");
     }
 
     public void modifyPatient(Patient patient){
         patientRepository.save(patient);
     }
 
-    public Patient findPatientById(String id){
-        return patientRepository.findById(UUID.fromString(id))
+    public Patient findPatientById(long id){
+        return patientRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(String.format("Patient with id %s was not found", id)));
     }
 

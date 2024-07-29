@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AdminConfirmationRepository extends JpaRepository<AdminConfirmation, UUID> {
+public interface AdminConfirmationRepository extends JpaRepository<AdminConfirmation, Long> {
     public Optional<AdminConfirmation> findByKey(String key);
-    public Optional<AdminConfirmation> getAdminConfirmationByAdmin_Id(UUID admin);
+    public Optional<AdminConfirmation> getAdminConfirmationByAdmin_Id(Long admin);
 
 }

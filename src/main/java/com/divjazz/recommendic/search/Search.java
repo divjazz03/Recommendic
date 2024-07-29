@@ -1,27 +1,31 @@
 package com.divjazz.recommendic.search;
 
+import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.Patient;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import com.divjazz.recommendic.user.model.User;
+import com.fasterxml.jackson.annotation.*;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
 @Entity
-public class Search {
+@Table(name = "search")
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class Search extends Auditable {
 
-    @Id
-    private UUID searchId;
-
+    @Column(name = "query")
     private String query;
 
-    @ManyToOne
-    private Patient ownerOfSearch;
+    @ManyToOne(targetEntity = Patient.class, fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
+    @JsonProperty("user_id")
+    private User ownerOfSearch;
 
     protected Search(){
     }
-    public Search(UUID searchId, String query){
-        this.searchId = searchId;
+    public Search(String query){
         this.query = query;
     }
 
@@ -33,7 +37,7 @@ public class Search {
         this.ownerOfSearch = ownerOfSearch;
     }
 
-    public Patient getOwnerOfSearch() {
+    public User getOwnerOfSearch() {
         return ownerOfSearch;
     }
 }

@@ -13,6 +13,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 
 @JsonInclude(NON_DEFAULT)
@@ -26,15 +28,16 @@ public class AdminCredential extends UserCredential {
     @JsonProperty("user_id")
     @NotNull
     private User admin;
-    @CreatedDate
-    @NotNull
-    private LocalDateTime expiryDate = getCreatedAt().plusMonths(6L);
+    @Column(name = "expired")
+    private boolean expired;
 
     protected AdminCredential(){}
 
-    public AdminCredential(Admin admin, String password, UUID referenceId) {
-        super(password, referenceId);
+    public AdminCredential(Admin admin, String password) {
+        super(password);
         this.admin = admin;
+        expired = getCreatedAt()
+                .isAfter(getCreatedAt().plusYears(1));
     }
 
     public User getAdmin() {
@@ -43,13 +46,5 @@ public class AdminCredential extends UserCredential {
 
     public void setAdmin(Admin admin) {
         this.admin = admin;
-    }
-
-    public LocalDateTime getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(LocalDateTime expiryDate) {
-        this.expiryDate = expiryDate;
     }
 }

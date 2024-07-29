@@ -11,11 +11,12 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.io.Serializable;
+
 @Entity
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class AdminConfirmation extends UserConfirmation{
+public class AdminConfirmation extends UserConfirmation implements Serializable {
     @OneToOne(targetEntity = Admin.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "admin_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)

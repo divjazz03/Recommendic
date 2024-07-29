@@ -7,11 +7,4 @@ EMAIL_PORT: 587
 EMAIL_ID: "divjazz03@gmail.com"
 EMAIL_PASSWORD: "june12003"
 VERIFY_EMAIL_HOST: ""
-#CLIENT_ID: ""
 
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: update
-  mail:
-    username:

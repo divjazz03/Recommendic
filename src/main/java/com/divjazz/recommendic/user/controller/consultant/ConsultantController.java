@@ -101,7 +101,7 @@ public class ConsultantController {
         try {
             var data = consultantService.getAllConsultants().stream()
                     .map(consultant -> new ConsultantInfoResponse(
-                            consultant.getReferenceId().toString(),
+                            consultant.getId(),
                             consultant.getUserNameObject().getLastName(),
                             consultant.getUserNameObject().getFirstName(),
                             consultant.getGender().toString().toLowerCase(),

@@ -51,8 +51,7 @@ public class AdminController {
             AdminCredentialResponse adminResponse = adminService.createAdmin(adminDTO);
             var data = Map.of(
                     "email",adminResponse.email(),
-                    "password",adminResponse.password(),
-                    "dateOfExpiry",adminResponse.dateOfExpiry().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    "password",adminResponse.password());
 
 
             var response = getResponse(httpServletRequest,

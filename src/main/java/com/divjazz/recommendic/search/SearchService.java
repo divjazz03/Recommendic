@@ -31,10 +31,10 @@ public class SearchService {
      @param userId This represents the user's id who made the search
      @return Returns a Set of Consultant Objects
      */
-    public Set<Consultant> executeQuery(String query, String userId){
+    public Set<Consultant> executeQuery(String query, Long userId){
         Patient patient = patientService.findPatientById(userId);
-        Search search = new Search(UUID.randomUUID(), query);
-        Set<Consultant> consultants = new HashSet<>(20);
+        Search search = new Search( query);
+        Set<Consultant> consultants;
         search.setOwnerOfSearch(patient);
         if (query.trim().split(":")[0].equalsIgnoreCase("category")){
             consultants = consultantService.getConsultantByCategory(MedicalCategory.valueOf(query.trim().split(":")[1]));
@@ -44,5 +44,10 @@ public class SearchService {
             consultants = consultantService.getConsultantsByName(query.trim().split(":")[1]);
         }
         return consultants;
+    }
+
+    public List<Search> retrieveSearchesByUser(Long userId){
+        Patient patient = patientService.findPatientById(userId);
+        return searchRepository.findByOwnerOfSearch(patient).orElse(List.of());
     }
 }

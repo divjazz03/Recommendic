@@ -11,5 +11,5 @@ This app emphasises on ease and great admin experiences for all our users.
 - **Recommendation**: This is unique to potential patients. It recommends consultants or articles according to search patterns, location or recent activities.
 - **Real Time Consultation**: This involves real time consultation/chats with consultants whom the admin has started a consultation with. It utilizes web sockets. The admin can have a real-time conversation with the practitioner of there choosing about topics they are interested in.
 - **Admin Registration**: A admin can be registered as an admin and assigned a password by another admin and an automatically generated password is assigned to that admin.
-- **Consultant Certification**: Admins are assigned the certifications of the consultants that haven't been certified. Once the assigned admin certifies the certificates. The Consultant is automatically verified.
-- **File upload**: The practitioner can upload pdf documents or clear images of their certifications. Everyone practitioners and potential patients need to upload their profile pictures for visual identification.
+- **Consultant Certification**: Admins are assigned the certificates of the consultants that haven't been certified. Once the assigned admin certifies the certificates. The Consultant is automatically verified.
+- **File upload**: The practitioner can upload pdf documents or clear images of their certificates. Everyone practitioners and potential patients need to upload their profile pictures for visual identification.

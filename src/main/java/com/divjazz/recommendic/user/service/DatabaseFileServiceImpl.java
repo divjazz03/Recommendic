@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class DatabaseFileService implements FileService{
+public class DatabaseFileServiceImpl implements FileService{
     @Override
     public void storeProfilePicture(UUID userId, String pictureUrl) {
 

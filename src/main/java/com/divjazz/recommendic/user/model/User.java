@@ -12,7 +12,6 @@ import java.util.Objects;
 
 
 @MappedSuperclass
-@Table(name = "users")
 public sealed abstract class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
 
     @Column(nullable = false)
@@ -32,9 +31,9 @@ public sealed abstract class User extends Auditable implements UserDetails permi
     @Embedded
     @Column(nullable = false)
     private Address address;
-
-
-    private String profilePictureUrl;
+    @Embedded
+    @Column(nullable = false)
+    private ProfilePicture profilePicture;
 
     private boolean accountNonExpired;
     private boolean accountNonLocked;
@@ -117,7 +116,20 @@ public sealed abstract class User extends Auditable implements UserDetails permi
         return true;
     }
 
-    public String getProfilePicture() {
-        return profilePictureUrl;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        return Objects.equals(email, user.email) && Objects.equals(getId(), user.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        var id = getId();
+        var res =  email != null ? email.hashCode() : 0;
+        return (int) (31 * res + id ^ (id >>> 31));
     }
 }

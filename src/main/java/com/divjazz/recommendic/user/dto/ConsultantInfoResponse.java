@@ -4,7 +4,7 @@ import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 
 public record ConsultantInfoResponse(
-        String consultantId,
+        Long consultantId,
         String lastName,
         String firstName,
         String gender,

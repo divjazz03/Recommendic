@@ -13,17 +13,17 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @JsonInclude(NON_DEFAULT)
 @Entity
+@Table(name = "consultant_credential")
 public class ConsultantCredential extends UserCredential {
     @OneToOne(targetEntity = Consultant.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "consultant_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "consultant_id", nullable = false)
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
     private User consultant;
 
-    public ConsultantCredential(Consultant consultant, String password, UUID referenceId) {
-        super(password, referenceId);
+    public ConsultantCredential(Consultant consultant, String password) {
+        super(password);
         this.consultant = consultant;
     }
 

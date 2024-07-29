@@ -1,39 +1,19 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
+import com.divjazz.recommendic.Auditable;
 import jakarta.persistence.*;
 
 
 import java.util.UUID;
 
-@Entity
-public final class ProfilePicture{
-    @Id
-    private UUID id;
 
-    private UUID owner;
-
+public class ProfilePicture{
+    @Column(name = "image_name", nullable = false)
     private String name;
-
+    @Column(name = "image_url", nullable = false)
     private String pictureUrl;
 
-    public ProfilePicture(UUID id, UUID owner, String name, String pictureUrl) {
-        this.id = id;
-        this.name = name;
-        this.pictureUrl = pictureUrl;
-        this.owner = owner;
-    }
-
-    protected ProfilePicture() {
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -51,7 +31,4 @@ public final class ProfilePicture{
         this.pictureUrl = pictureUrl;
     }
 
-    public UUID getOwner() {
-        return owner;
-    }
 }

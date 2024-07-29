@@ -6,7 +6,6 @@ import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import jakarta.persistence.*;
 
 import jakarta.validation.constraints.NotNull;
-import org.slf4j.Logger;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -20,12 +19,17 @@ public abstract class Auditable {
 
     @Id
     @Column(name = "id", updatable = false)
-    private UUID id;
+    @SequenceGenerator(name = "primary_key_seq", sequenceName = "primary_key_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "primary_key_seq")
+    private long id;
+    @Column(name = "reference_id")
     private UUID referenceId;
     @NotNull
-    private UUID createdBy;
+    @Column(name = "created_by", updatable = false, nullable = false)
+    private long createdBy;
     @NotNull
-    private UUID updatedBy;
+    @Column(name = "updated_by", nullable = false)
+    private long updatedBy;
     @Column(name = "created_at",nullable = false, updatable = false)
     @CreatedDate
     @NotNull
@@ -33,20 +37,16 @@ public abstract class Auditable {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    private static final String  CANNOT_PERSIST_BECAUSE_NO_USER_ID_IN_CONTEXT_ERROR = "Cannot persist entity without user id in the context of this thread";
-    private static final String  CANNOT_UPDATE_BECAUSE_NO_USER_ID_IN_CONTEXT_ERROR = "Cannot update entity without user id in the context of this thread";
-
-
     protected Auditable(){}
 
     public Auditable(UUID referenceId){
         this.referenceId = referenceId;
     }
-    public UUID getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -58,19 +58,19 @@ public abstract class Auditable {
         this.referenceId = referenceId;
     }
 
-    public UUID getCreatedBy() {
+    public long getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(UUID createdBy) {
+    public void setCreatedBy(long createdBy) {
         this.createdBy = createdBy;
     }
 
-    public UUID getUpdatedBy() {
+    public long getUpdatedBy() {
         return updatedBy;
     }
 
-    public void setUpdatedBy(UUID updatedBy) {
+    public void setUpdatedBy(long updatedBy) {
         this.updatedBy = updatedBy;
     }
 
@@ -91,25 +91,40 @@ public abstract class Auditable {
     }
     @PrePersist
     public void beforePersist(){
-        UUID userId = RequestContext.getUserId();
-        if (Objects.nonNull(userId)){
-            setCreatedAt(LocalDateTime.now());
-            setCreatedBy(userId);
-            setUpdatedBy(userId);
-            setUpdatedAt(LocalDateTime.now());
-        }
-        throw new UserNotFoundException(CANNOT_PERSIST_BECAUSE_NO_USER_ID_IN_CONTEXT_ERROR);
+        long userId = RequestContext.getUserId();
+        setReferenceId(UUID.randomUUID());
+        setCreatedAt(LocalDateTime.now());
+        setCreatedBy(userId);
+        setUpdatedBy(userId);
+        setUpdatedAt(LocalDateTime.now());
     }
 
     @PreUpdate
     public void beforeUpdate(){
-        UUID userId = RequestContext.getUserId();
-        if (Objects.nonNull(userId)){
-            setCreatedAt(LocalDateTime.now());
-            setCreatedBy(userId);
-            setUpdatedBy(userId);
-            setUpdatedAt(LocalDateTime.now());
-        }
-        throw new UserNotFoundException(CANNOT_UPDATE_BECAUSE_NO_USER_ID_IN_CONTEXT_ERROR);
+        long userId = RequestContext.getUserId();
+        setUpdatedBy(userId);
+        setUpdatedAt(LocalDateTime.now());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Auditable auditable = (Auditable) o;
+
+        if (id != auditable.id) return false;
+        if (createdBy != auditable.createdBy) return false;
+        if (updatedBy != auditable.updatedBy) return false;
+        if (!Objects.equals(referenceId, auditable.referenceId))
+            return false;
+        if (!Objects.equals(createdAt, auditable.createdAt)) return false;
+        return Objects.equals(updatedAt, auditable.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
+
     }
 }

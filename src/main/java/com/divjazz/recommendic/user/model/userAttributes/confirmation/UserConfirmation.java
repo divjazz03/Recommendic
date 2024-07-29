@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
@@ -16,15 +18,40 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @MappedSuperclass
 public abstract class UserConfirmation extends Auditable {
+    @Column(name = "key")
     private String key;
 
+    @Column(name = "expired")
+    private Boolean expired;
 
-    public UserConfirmation(User admin) {
+
+    protected UserConfirmation(){
+        super();
         this.key = UUID.randomUUID().toString();
     }
-    protected UserConfirmation(){}
 
     public String getKey() {
         return key;
+    }
+
+    public Boolean getExpired() {
+        return expired;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UserConfirmation that = (UserConfirmation) o;
+
+        return Objects.equals(key, that.key) && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        var id = getId();
+        int result = key != null ? key.hashCode() : 0;
+        return (int) (31 * result + id ^ (id >>> 31));
     }
 }

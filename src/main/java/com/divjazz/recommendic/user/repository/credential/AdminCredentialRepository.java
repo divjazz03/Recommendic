@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AdminCredentialRepository extends JpaRepository<AdminCredential, UUID> {
-    public Optional<AdminCredential> getAdminCredentialByAdmin_Id(UUID id);
+public interface AdminCredentialRepository extends JpaRepository<AdminCredential, Long> {
+    public Optional<AdminCredential> getAdminCredentialByAdmin_Id(Long id);
 }

@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.recommendation.model.Recommendation;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.certification.Certification;
@@ -13,6 +12,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
@@ -20,13 +20,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 @Entity
 @Table(name = "consultant")
 @JsonInclude(NON_DEFAULT)
-public final class Consultant extends User{
+public final class Consultant extends User implements Serializable {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "ownerOfCertification")
-    private Set<Certification> certifications;
+    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,
+            mappedBy = "ownerOfCertification", orphanRemoval = true)
+    private Set<Certification> certificates;
 
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, targetEntity = Patient.class)
     @JoinTable(
             name = "consultant_patient",
             joinColumns = { @JoinColumn(name = "consultant_id") },
@@ -36,18 +37,17 @@ public final class Consultant extends User{
 
     @Column(columnDefinition = "text")
     private String bio;
-    @OneToMany
-    private Set<Recommendation> recommendation;
     @Enumerated(value = EnumType.STRING)
+    @Column(name = "specialization")
     private MedicalCategory medicalCategory;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "consultant")
     private ConsultantCredential credential;
 
     private boolean certified;
     protected Consultant (){}
 
-    public Consultant (UUID id,
+    public Consultant (
                        UserName userName,
                        String email,
                        String phoneNumber,
@@ -55,9 +55,8 @@ public final class Consultant extends User{
                        Address address,
                        MedicalCategory medicalCategory){
         super(userName,email,phoneNumber,gender,address);
-        setId(id);
         this.medicalCategory = medicalCategory;
-        certifications = new HashSet<>(30);
+        certificates = new HashSet<>(30);
         patients = new HashSet<>(30);
         certified = false;
     }
@@ -69,13 +68,13 @@ public final class Consultant extends User{
      * Checks if both the resume attached to the consultant has been confirmed
      */
     private void setCertified(){
-        if (certifications.stream().allMatch(Certification::isConfirmed)){
+        if (certificates.stream().allMatch(Certification::isConfirmed)){
             certified = true;
         }
     }
 
-    public Set<Certification> getCertifications() {
-        return certifications;
+    public Set<Certification> getCertificates() {
+        return certificates;
     }
 
     public Set<Patient> getPatients() {
@@ -83,13 +82,27 @@ public final class Consultant extends User{
     }
 
     public void setPatients(Set<Patient> patients) {
+        this.patients = patients;
+    }
+
+    public void addPatient(Patient patient) {
+        this.patients.add(patient);
+    }
+
+    public void addPatients(Set<Patient> patients) {
         this.patients.addAll(patients);
+    }
+    public void removePatient(Patient patient) {
+        this.patients.remove(patient);
+    }
+    public void removePatients(Set<Patient> patients) {
+        this.patients.removeAll(patients);
     }
 
     @Override
     public String toString() {
         return "Consultant{" +
-                "certifications=" + certifications +
+                "certificates=" + certificates +
                 ", patients=" + patients +
                 ", medicalSpecialization=" + medicalCategory +
                 ", certified=" + certified +
@@ -114,9 +127,6 @@ public final class Consultant extends User{
         return bio;
     }
 
-    public Set<Recommendation> getRecommendation() {
-        return recommendation;
-    }
 
     public ConsultantCredential getCredential() {
         return credential;
@@ -126,17 +136,14 @@ public final class Consultant extends User{
         this.credential = credential;
     }
 
-    public void setCertifications(Set<Certification> certifications) {
-        this.certifications = certifications;
+    public void setCertificates(Set<Certification> certificates) {
+        this.certificates = certificates;
     }
 
     public void setBio(String bio) {
         this.bio = bio;
     }
 
-    public void setRecommendation(Set<Recommendation> recommendation) {
-        this.recommendation = recommendation;
-    }
 
     public void setMedicalCategory(MedicalCategory medicalCategory) {
         this.medicalCategory = medicalCategory;

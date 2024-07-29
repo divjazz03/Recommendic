@@ -33,7 +33,6 @@ public class DataBaseInitialization implements ApplicationRunner {
 
     private final Faker faker = new Faker();
 
-    private final static UUID ROOT_ADMIN_ID = UUID.randomUUID();
     private final PatientService patientService;
     private final ConsultantService consultantService;
 
@@ -46,18 +45,6 @@ public class DataBaseInitialization implements ApplicationRunner {
         this.adminService = service;
         this.patientService = patientService;
         this.consultantService = consultantService;
-
-    }
-
-    private AdminCredentialResponse generateDefaultAdmin(){
-        AdminDTO adminDTO = new AdminDTO(
-                new UserName("Maduka", "Akachukwu"),
-                "divjazz20@gmail.com",
-                "07058695592",
-                Gender.MALE,
-                new Address("2003940","Ibadan","Oyo","Nigeria")
-        );
-        return adminService.createAdmin(adminDTO, ROOT_ADMIN_ID);
     }
 
     private PatientDTO generatePatient() {
@@ -111,8 +98,7 @@ public class DataBaseInitialization implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
-        RequestContext.setUserId(ROOT_ADMIN_ID);
-        var admin = generateDefaultAdmin();
+        RequestContext.setUserId(0L);
         for (int i = 0; i < 30; i++) {
             PatientDTO patientDTO = generatePatient();
             ConsultantDTO consultantDTO = generateUnverifiedConsultant();
@@ -120,6 +106,5 @@ public class DataBaseInitialization implements ApplicationRunner {
             consultantService.createConsultant(consultantDTO);
 
         }
-
     }
 }

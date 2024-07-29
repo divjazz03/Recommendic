@@ -15,26 +15,24 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Table(name = "admin")
 public final class Admin extends User{
-
-    @OneToMany()
-    @JoinColumn(name = "assignment_id")
+    @OneToMany
     private Set<Assignment> assignment;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "admin")
     private AdminCredential adminCredential;
 
     protected Admin(){}
 
 
-    public Admin(UUID id,
+    public Admin(
                  UserName userName,
                  String email,
                  String phoneNumber,
                  Gender gender,
                  Address address) {
         super(userName,email,phoneNumber,gender,address);
-        setId(id);
     }
 
     public Set<Assignment> getAssignment() {

@@ -99,7 +99,7 @@ public class PatientController {
     }
     @DeleteMapping("delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Response> deletePatient(@RequestParam("patient_id")String patientId){
+    public ResponseEntity<Response> deletePatient(@RequestParam("patient_id")Long patientId){
         try {
             patientService.deletePatientById(patientId);
             var response = new Response(
@@ -130,7 +130,7 @@ public class PatientController {
 
 
     @GetMapping("recommendations")
-    public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String id){
+    public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id){
         try {
             Patient patient = patientService.findPatientById(id);
             var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
@@ -158,7 +158,7 @@ public class PatientController {
         }
     }
     @GetMapping("search")
-    public ResponseEntity<Response> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patients_id") String id){
+    public ResponseEntity<Response> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patients_id") Long id){
         try {
             Set<Consultant> consultantsResults = searchService.executeQuery(query,id);
             var consultantsResultsDTO = consultantsResults.stream().map(consultant -> new ConsultantSearchResult(

@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.AlternativeJdkIdGenerator;
 
 import java.util.Set;
 import java.util.UUID;
@@ -33,18 +32,15 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
 
-    private final AlternativeJdkIdGenerator idGenerator;
 
     public AdminService(
             AdminCredentialRepository adminCredentialRepository, AppUserDetailsService userService,
             PasswordEncoder passwordEncoder,
-            AdminRepository adminRepository, AlternativeJdkIdGenerator idGenerator) {
+            AdminRepository adminRepository) {
         this.adminCredentialRepository = adminCredentialRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
-
-        this.idGenerator = idGenerator;
     }
 
 
@@ -53,7 +49,6 @@ public class AdminService {
         String password = response.encryptedPassword();
 
         Admin admin = new Admin(
-                UUID.randomUUID(),
                 adminDTO.userName(),
                 adminDTO.email(),
                 adminDTO.number(),
@@ -61,46 +56,20 @@ public class AdminService {
                 adminDTO.address()
         );
 
-        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword(),idGenerator.generateId());
+        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword());
 
-        if (!userService.isUserExists(admin.getEmail())) {
+        if (userService.isUserNotExists(admin.getEmail())) {
             adminRepository.save(admin);
             adminCredentialRepository.save(adminCredential);
             return new AdminCredentialResponse(admin.getEmail(),
-                    password,
-                    adminCredential.getExpiryDate());
+                    password);
         } else {
             throw new UserAlreadyExistsException(admin.getEmail());
         }
 
     }
 
-    public AdminCredentialResponse createAdmin(AdminDTO adminDTO, UUID id) {
-        GenerateAdminPasswordResponse response = generateAdminPassword();
-        String password = response.encryptedPassword();
 
-        Admin admin = new Admin(
-                id,
-                adminDTO.userName(),
-                adminDTO.email(),
-                adminDTO.number(),
-                adminDTO.gender(),
-                adminDTO.address()
-        );
-
-        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword(),idGenerator.generateId());
-
-        if (!userService.isUserExists(admin.getEmail())) {
-            adminRepository.save(admin);
-            adminCredentialRepository.save(adminCredential);
-            return new AdminCredentialResponse(admin.getEmail(),
-                    password,
-                    adminCredential.getExpiryDate());
-        } else {
-            throw new UserAlreadyExistsException(admin.getEmail());
-        }
-
-    }
 
     public Admin getAdminByUsername(String email){
         return adminRepository

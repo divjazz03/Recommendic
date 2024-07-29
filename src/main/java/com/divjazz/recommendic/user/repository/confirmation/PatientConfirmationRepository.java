@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PatientConfirmationRepository extends JpaRepository<PatientConfirmation, UUID> {
-    public Optional<PatientConfirmation> getPatientConfirmationByPatient_Id(UUID user);
+public interface PatientConfirmationRepository extends JpaRepository<PatientConfirmation, Long> {
+    public Optional<PatientConfirmation> getPatientConfirmationByPatient_Id(Long user);
     public Optional<PatientConfirmation> findByKey(String key);
 }

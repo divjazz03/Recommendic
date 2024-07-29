@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UniCertRepository extends JpaRepository<Certification, UUID> {
+public interface UniCertRepository extends JpaRepository<Certification, Long> {
 
     Optional<Certification> findByOwnerOfCertification(Consultant consultant);
 }

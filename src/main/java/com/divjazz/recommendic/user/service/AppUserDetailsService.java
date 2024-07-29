@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -8,9 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class AppUserDetailsService implements UserDetailsService {
@@ -45,7 +43,7 @@ public class AppUserDetailsService implements UserDetailsService {
 
         return user;
     }
-    public Optional<User> retrieveUserByID(UUID id){
+    public User retrieveUserByID(long id){
         User user = null;
         if (patientRepository.findById(id).isPresent()){
             user = patientRepository.findById(id).get();
@@ -53,11 +51,13 @@ public class AppUserDetailsService implements UserDetailsService {
             user = consultantRepository.findById(id).get();
         } else if(adminRepository.findById(id).isPresent()){
             user = adminRepository.findById(id).get();
+        } else {
+            throw new UserNotFoundException("no user with that id was found");
         }
 
-        return Optional.ofNullable(user);
+        return user;
     }
-    public boolean isUserExists(String username){
-        return patientRepository.existsByEmail(username) || consultantRepository.existsByEmail(username) || adminRepository.existsByEmail(username);
+    public boolean isUserNotExists(String username){
+        return !patientRepository.existsByEmail(username) && !consultantRepository.existsByEmail(username) && !adminRepository.existsByEmail(username);
     }
 }

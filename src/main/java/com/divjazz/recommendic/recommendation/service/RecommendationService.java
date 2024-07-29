@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.recommendation.service;
 
-import com.divjazz.recommendic.recommendation.dto.RecommendationDTO;
 import com.divjazz.recommendic.recommendation.model.Recommendation;
 import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
 import com.divjazz.recommendic.search.Search;
@@ -14,10 +13,7 @@ import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,19 +31,15 @@ public class RecommendationService {
         this.patientService = patientService;
     }
 
-    public List<RecommendationDTO> retrieveRecommendationByPatient(Patient patient){
+    public Set<Recommendation> retrieveRecommendationByPatient(Patient patient){
         createRecommendationForPatient(patient);
 
-        return patient.getRecommendations().stream()
-                .map(recommendation -> new RecommendationDTO(recommendation.getId(),
-                        toConsultantInfoResponse(recommendation.getConsultant()))
-                )
-                .collect(Collectors.toList());
+        return recommendationRepository.findByPatient(patient).orElse(Set.of());
 
     }
     private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant){
         return new ConsultantInfoResponse(
-                consultant.getId().toString(),
+                consultant.getId(),
                 consultant.getUserNameObject().getLastName(),
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
@@ -57,7 +49,7 @@ public class RecommendationService {
     }
     private PatientInfoResponse toPatientInfoResponse(Patient patient){
         return new PatientInfoResponse(
-                patient.getId().toString(),
+                patient.getId(),
                 patient.getUserNameObject().getLastName(),
                 patient.getUserNameObject().getFirstName(),
                 patient.getPhoneNumber(),
@@ -68,14 +60,13 @@ public class RecommendationService {
 
     public void createRecommendationForPatient(Patient patient){
         Set<Recommendation> recommendations= generateRecommendation(patient);
-        patient.setRecommendations(recommendations);
-        patientService.modifyPatient(patient);
-
+        recommendationRepository.saveAll(recommendations);
     }
 
 
     private Set<Recommendation> generateRecommendation( Patient patient){
-        List<Search> searches = patient.getSearches();
+
+        List<Search> searches = searchService.retrieveSearchesByUser(patient.getId());
         Set<Recommendation> recommendations = new HashSet<>(20);
         int searchForPEDIATRICIAN = (int) searches.stream()
                 .filter(search -> search.getQuery().contains("PEDIATRICIAN"))

@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PatientCredentialRepository extends JpaRepository<PatientCredential, UUID> {
-    public Optional<PatientCredential> getPatientCredentialByPatient_Id(UUID id);
+public interface PatientCredentialRepository extends JpaRepository<PatientCredential, Long> {
+    public Optional<PatientCredential> getPatientCredentialByPatient_Id(Long id);
 }
