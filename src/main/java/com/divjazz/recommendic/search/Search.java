@@ -16,7 +16,7 @@ public class Search extends Auditable {
     @Column(name = "query")
     private String query;
 
-    @ManyToOne(targetEntity = Patient.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)

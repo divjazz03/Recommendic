@@ -3,12 +3,11 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
-import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.*;
 
@@ -27,21 +26,17 @@ public final class Patient extends User {
     @Column(name = "medical_categories")
     private Set<MedicalCategory> medicalCategories;
 
-    @OneToOne(mappedBy = "patient", fetch = FetchType.EAGER)
-    private PatientCredential credential;
-
-
 
     protected Patient(){}
 
     public Patient(
-                   UserName userName,
-                   String email,
-                   String phoneNumber,
-                   Gender gender,
-                   Address address){
+            UserName userName,
+            String email,
+            String phoneNumber,
+            Gender gender,
+            Address address, Role role, UserCredential userCredential){
 
-        super(userName,email,phoneNumber,gender,address);
+        super(userName,email,phoneNumber,gender,address, role, userCredential);
         medicalCategories = new HashSet<>(30);
         consultants = new HashSet<>(30);
     }
@@ -71,23 +66,6 @@ public final class Patient extends User {
                 '}';
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("PATIENT"));
-    }
-
-    @Override
-    public String getPassword() {
-        return this.credential.getPassword();
-    }
-
-    public void setCredential(PatientCredential credential) {
-        this.credential = credential;
-    }
-
-    public PatientCredential getCredential() {
-        return credential;
-    }
 
 
 }

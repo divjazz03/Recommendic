@@ -3,36 +3,32 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
-import com.divjazz.recommendic.user.model.userAttributes.credential.AdminCredential;
-import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "admin")
 public final class Admin extends User{
-    @OneToMany
+    @OneToMany(mappedBy = "adminAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Assignment> assignment;
 
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "admin")
-    private AdminCredential adminCredential;
+
 
     protected Admin(){}
 
 
     public Admin(
-                 UserName userName,
-                 String email,
-                 String phoneNumber,
-                 Gender gender,
-                 Address address) {
-        super(userName,email,phoneNumber,gender,address);
+            UserName userName,
+            String email,
+            String phoneNumber,
+            Gender gender,
+            Address address,
+            Role role, UserCredential userCredential) {
+        super(userName,email,phoneNumber,gender,address, role, userCredential);
+        assignment = new HashSet<>(20);
     }
 
     public Set<Assignment> getAssignment() {
@@ -40,24 +36,17 @@ public final class Admin extends User{
     }
 
     public void setAssignment(Set<Assignment> assignment) {
-        this.assignment = assignment;
+        this.assignment.addAll(assignment);
     }
 
-    public AdminCredential getAdminCredential() {
-        return adminCredential;
+    public void addAssignment(Assignment assignment) {
+        this.assignment.add(assignment);
+        assignment.setAdminAssigned(this);
+    }
+    public void removeAssignment(Assignment assignment) {
+        assignment.setAdminAssigned(null);
+        this.assignment.remove(assignment);
     }
 
-    public void setAdminCredential(AdminCredential adminCredential) {
-        this.adminCredential = adminCredential;
-    }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Set.of(new SimpleGrantedAuthority("ADMIN"));
-    }
-
-    @Override
-    public String getPassword() {
-        return null;
-    }
 }

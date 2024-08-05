@@ -71,3 +71,6 @@ server:
     path: /user/error
 
 
+jwt:
+  expiration: ${JWT_EXPIRATION}
+  secret: ${JWT_SECRET}

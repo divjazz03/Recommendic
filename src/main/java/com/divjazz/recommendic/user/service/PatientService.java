@@ -5,9 +5,10 @@ import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.credential.PatientCredential;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.credential.PatientCredentialRepository;
+import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,43 +24,47 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
 
-    private final PatientCredentialRepository patientCredentialRepository;
+    private final UserCredentialRepository userCredentialRepository;
 
-    private final AppUserDetailsService userService;
+    private final GeneralUserService userService;
 
     private final PasswordEncoder encoder;
 
 
 
+
     public PatientService(
-                          PatientRepository patientRepository,
-                          PatientCredentialRepository patientCredentialRepository, AppUserDetailsService userService,
-                          PasswordEncoder encoder
+            PatientRepository patientRepository,
+            UserCredentialRepository userCredentialRepository,
+            GeneralUserService userService,
+            PasswordEncoder encoder
                           ) {
         this.patientRepository = patientRepository;
-        this.patientCredentialRepository = patientCredentialRepository;
+        this.userCredentialRepository = userCredentialRepository;
         this.userService = userService;
         this.encoder = encoder;
-
     }
 
 
 
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO){
+        Role role = new Role();
+        UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
                 patientDTO.userName(),
                 patientDTO.email(),
                 patientDTO.phoneNumber(),
                 patientDTO.gender(),
-                patientDTO.address());
-        PatientCredential patientCredential = new PatientCredential(user,
-                encoder.encode(patientDTO.password()));
-        user.setCredential(patientCredential);
+                patientDTO.address(),
+                role,
+                userCredential);
 
+        user.setUserCredential(userCredential);
+        userCredential.setUser(user);
         if (userService.isUserNotExists(user.getEmail())) {
             patientRepository.save(user);
-            patientCredentialRepository.save(patientCredential);
+            userCredentialRepository.save(userCredential);
             return new PatientInfoResponse(user.getId()
                     ,user.getUserNameObject().getLastName()
                     ,user.getUserNameObject().getFirstName()

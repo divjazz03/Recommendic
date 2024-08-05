@@ -5,12 +5,9 @@ import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
-import com.divjazz.recommendic.user.model.userAttributes.credential.ConsultantCredential;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.io.Serializable;
 import java.util.*;
@@ -41,20 +38,17 @@ public final class Consultant extends User implements Serializable {
     @Column(name = "specialization")
     private MedicalCategory medicalCategory;
 
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "consultant")
-    private ConsultantCredential credential;
-
     private boolean certified;
     protected Consultant (){}
 
     public Consultant (
-                       UserName userName,
-                       String email,
-                       String phoneNumber,
-                       Gender gender,
-                       Address address,
-                       MedicalCategory medicalCategory){
-        super(userName,email,phoneNumber,gender,address);
+            UserName userName,
+            String email,
+            String phoneNumber,
+            Gender gender,
+            Address address,
+            MedicalCategory medicalCategory, Role role, UserCredential userCredential){
+        super(userName,email,phoneNumber,gender,address, role, userCredential);
         this.medicalCategory = medicalCategory;
         certificates = new HashSet<>(30);
         patients = new HashSet<>(30);
@@ -113,28 +107,13 @@ public final class Consultant extends User implements Serializable {
         return medicalCategory;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("CONSULTANT"));
-    }
-
-    @Override
-    public String getPassword() {
-        return this.credential.getPassword();
-    }
 
     public String getBio() {
         return bio;
     }
 
 
-    public ConsultantCredential getCredential() {
-        return credential;
-    }
 
-    public void setCredential(ConsultantCredential credential) {
-        this.credential = credential;
-    }
 
     public void setCertificates(Set<Certification> certificates) {
         this.certificates = certificates;

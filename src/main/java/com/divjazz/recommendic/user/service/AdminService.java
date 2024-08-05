@@ -6,9 +6,10 @@ import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
-import com.divjazz.recommendic.user.model.userAttributes.credential.AdminCredential;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.divjazz.recommendic.user.repository.credential.AdminCredentialRepository;
+import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpStatus;
@@ -18,15 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @Transactional
 public class AdminService {
 
-    private final AdminCredentialRepository adminCredentialRepository;
+    private final UserCredentialRepository userCredentialRepository;
 
-    private final AppUserDetailsService userService;
+    private final GeneralUserService userService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -34,10 +34,10 @@ public class AdminService {
 
 
     public AdminService(
-            AdminCredentialRepository adminCredentialRepository, AppUserDetailsService userService,
+            UserCredentialRepository userCredentialRepository, GeneralUserService userService,
             PasswordEncoder passwordEncoder,
             AdminRepository adminRepository) {
-        this.adminCredentialRepository = adminCredentialRepository;
+        this.userCredentialRepository = userCredentialRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
@@ -48,19 +48,22 @@ public class AdminService {
         GenerateAdminPasswordResponse response = generateAdminPassword();
         String password = response.encryptedPassword();
 
+        Role role = new Role();
+        UserCredential userCredential = new UserCredential(response.encryptedPassword());
+
         Admin admin = new Admin(
                 adminDTO.userName(),
                 adminDTO.email(),
                 adminDTO.number(),
                 adminDTO.gender(),
-                adminDTO.address()
+                adminDTO.address(),role,userCredential
         );
 
-        AdminCredential adminCredential = new AdminCredential(admin, response.encryptedPassword());
+        userCredential.setUser(admin);
 
         if (userService.isUserNotExists(admin.getEmail())) {
             adminRepository.save(admin);
-            adminCredentialRepository.save(adminCredential);
+            userCredentialRepository.save(userCredential);
             return new AdminCredentialResponse(admin.getEmail(),
                     password);
         } else {

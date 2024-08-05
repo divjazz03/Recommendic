@@ -23,7 +23,7 @@ public class Certification extends Auditable implements Serializable{
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
     @JsonProperty("user_id")
-    private User ownerOfCertification;
+    private Consultant ownerOfCertification;
 
     @ManyToOne( fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id")
@@ -55,7 +55,7 @@ public class Certification extends Auditable implements Serializable{
         return ownerOfCertification;
     }
 
-    public void setOwnerOfCertification(User ownerOfCertification) {
+    public void setOwnerOfCertification(Consultant ownerOfCertification) {
         this.ownerOfCertification = ownerOfCertification;
     }
 

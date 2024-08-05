@@ -3,7 +3,7 @@ package com.divjazz.recommendic.user.model.certification;
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.Admin;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -18,9 +18,11 @@ import java.util.UUID;
 public class Assignment extends Auditable implements Serializable {
 
 
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "admin_id")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
+    @JsonProperty("user_id")
     private Admin adminAssigned ;
 
     protected Assignment(){}

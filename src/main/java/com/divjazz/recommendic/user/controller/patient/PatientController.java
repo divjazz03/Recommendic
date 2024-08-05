@@ -158,7 +158,7 @@ public class PatientController {
         }
     }
     @GetMapping("search")
-    public ResponseEntity<Response> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patients_id") Long id){
+    public ResponseEntity<Response> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patient_id") Long id){
         try {
             Set<Consultant> consultantsResults = searchService.executeQuery(query,id);
             var consultantsResultsDTO = consultantsResults.stream().map(consultant -> new ConsultantSearchResult(

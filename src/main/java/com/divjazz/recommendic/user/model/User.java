@@ -3,16 +3,26 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.*;
+import static com.divjazz.recommendic.security.constant.Constants.PERMISSION_DELIMITER;
 
 
+import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
-@MappedSuperclass
-public sealed abstract class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
+
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "users")
+public sealed class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
 
     @Column(nullable = false)
     @Embedded
@@ -20,6 +30,8 @@ public sealed abstract class User extends Auditable implements UserDetails permi
 
     @Column(nullable = false)
     private String email;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
     @Column(nullable = false)
     private String phoneNumber;
@@ -31,9 +43,29 @@ public sealed abstract class User extends Auditable implements UserDetails permi
     @Embedded
     @Column(nullable = false)
     private Address address;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
+    @Column(name = "login_attempts")
+    private int loginAttempts;
+
     @Embedded
-    @Column(nullable = false)
     private ProfilePicture profilePicture;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+    private Role role;
+
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
+    private UserCredential userCredential;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private UserConfirmation userConfirmation;
 
     private boolean accountNonExpired;
     private boolean accountNonLocked;
@@ -43,17 +75,30 @@ public sealed abstract class User extends Auditable implements UserDetails permi
 
     protected User(){}
 
-    public User(UserName userName,String email, String phoneNumber, Gender gender, Address address){
+    public User(UserName userName,
+                String email,
+                String phoneNumber,
+                Gender gender,
+                Address address,
+                Role role,
+                UserCredential userCredential){
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.address = address;
+        this.role = role;
+        this.userCredential = userCredential;
+        this.userId = UUID.randomUUID().toString();
     }
 
 
     public UserName getUserNameObject() {
         return userName;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getEmail() {
@@ -88,8 +133,51 @@ public sealed abstract class User extends Auditable implements UserDetails permi
         return address;
     }
 
+    public Role getRole() {
+        return role;
+    }
 
+    public UserName getUserName() {
+        return userName;
+    }
 
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public int getLoginAttempts() {
+        return loginAttempts;
+    }
+
+    public void setLoginAttempts(int loginAttempts) {
+        this.loginAttempts = loginAttempts;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+         var permissions = role.getPermissions();
+         var permissionsArray = permissions.getValue().split(PERMISSION_DELIMITER);
+         return Arrays.stream(permissionsArray)
+                 .map(SimpleGrantedAuthority::new)
+                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
 
     @Override
     public String getUsername() {
@@ -114,6 +202,46 @@ public sealed abstract class User extends Auditable implements UserDetails permi
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void setProfilePicture(ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public UserCredential getUserCredential() {
+        return userCredential;
+    }
+
+    public void setUserCredential(UserCredential userCredential) {
+        this.userCredential = userCredential;
+    }
+
+    public void setAccountNonExpired(boolean accountNonExpired) {
+        this.accountNonExpired = accountNonExpired;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public UserConfirmation getUserConfirmation() {
+        return userConfirmation;
+    }
+
+    public void setUserConfirmation(UserConfirmation userConfirmation) {
+        this.userConfirmation = userConfirmation;
     }
 
     @Override

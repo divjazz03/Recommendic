@@ -16,13 +16,18 @@ import java.util.UUID;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 
-@MappedSuperclass
-public abstract class UserConfirmation extends Auditable {
+@Entity
+@Table(name = "users_confirmation")
+public class UserConfirmation extends Auditable {
     @Column(name = "key")
     private String key;
 
     @Column(name = "expired")
     private Boolean expired;
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    private User user;
 
 
     protected UserConfirmation(){
@@ -46,6 +51,22 @@ public abstract class UserConfirmation extends Auditable {
         UserConfirmation that = (UserConfirmation) o;
 
         return Objects.equals(key, that.key) && Objects.equals(getId(), that.getId());
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public void setExpired(Boolean expired) {
+        this.expired = expired;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

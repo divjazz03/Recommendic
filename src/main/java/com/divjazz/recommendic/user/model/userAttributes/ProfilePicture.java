@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 import java.util.UUID;
 
-
+@Embeddable
 public class ProfilePicture{
     @Column(name = "image_name", nullable = false)
     private String name;

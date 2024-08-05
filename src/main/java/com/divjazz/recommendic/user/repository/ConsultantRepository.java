@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
     Optional<Consultant> findByEmail(String email);
+
+    Optional<Consultant> findByUserId(UUID id);
     boolean existsByEmail(String email);
     Optional<List<Consultant>> findByMedicalCategory(MedicalCategory category);
 }

@@ -2,16 +2,23 @@ package com.divjazz.recommendic.user.model.userAttributes.credential;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.User;
-import jakarta.persistence.Entity;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.OneToOne;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import jakarta.persistence.*;
 
 import java.util.Objects;
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Table(name = "users_credential")
 public class UserCredential extends Auditable {
     private String password;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     protected UserCredential(){}
 
@@ -22,6 +29,18 @@ public class UserCredential extends Auditable {
 
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

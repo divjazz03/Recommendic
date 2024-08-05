@@ -1,27 +1,26 @@
 package com.divjazz.recommendic.security;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+
+    private final GeneralUserService userService;
+    public WebSecurityConfig(GeneralUserService userService) {
+        this.userService = userService;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -34,25 +33,19 @@ public class WebSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v*/consultant/create").permitAll()
-                        .requestMatchers("/api/v*/patient/create").permitAll()
-                        .requestMatchers("/api/v*/file/consultant/certification").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,"/api/v*/consultant/**").hasAnyAuthority("ROLE_CONSULTANT","ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v*/patient/**").hasAnyAuthority("ROLE_PATIENT","ROLE_ADMIN")
-                        .requestMatchers("/api/v*/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/v*/file/user/profile_pics").authenticated()
                         .anyRequest().authenticated())
-                .httpBasic(withDefaults())
                 .authenticationManager(authenticationManager)
                 .build();
     }
 
     @Bean
-    AuthenticationManager authenticationManager( UserDetailsService userDetailsService, PasswordEncoder passwordEncoder){
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(passwordEncoder);
-        provider.setUserDetailsService(userDetailsService);
+    AuthenticationManager authenticationManager(GeneralUserService userService, PasswordEncoder passwordEncoder){
+        var provider = new CustomAuthenticationProvider(userService, passwordEncoder);
         return new ProviderManager(provider);
+    }
+    @Bean
+    UserDetailsService userDetailsService (){
+        return new CustomUserDetailsService(userService);
     }
 
 

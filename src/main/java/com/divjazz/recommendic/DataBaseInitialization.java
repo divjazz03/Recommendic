@@ -99,12 +99,12 @@ public class DataBaseInitialization implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
 
         RequestContext.setUserId(0L);
-        for (int i = 0; i < 30; i++) {
+        /*for (int i = 0; i < 30; i++) {
             PatientDTO patientDTO = generatePatient();
             ConsultantDTO consultantDTO = generateUnverifiedConsultant();
             patientService.createPatient(patientDTO);
             consultantService.createConsultant(consultantDTO);
 
-        }
+        }*/
     }
 }

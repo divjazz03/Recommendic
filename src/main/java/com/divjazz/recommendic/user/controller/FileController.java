@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.controller;
 
-import com.divjazz.recommendic.user.service.AppUserDetailsService;
+import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.FileService;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseFile;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
@@ -20,9 +20,9 @@ import java.util.List;
 public class FileController {
 
     private final FileService fileService;
-    private final AppUserDetailsService userService;
+    private final GeneralUserService userService;
 
-    public FileController(FileService fileService, AppUserDetailsService userService) {
+    public FileController(FileService fileService, GeneralUserService userService) {
         this.fileService = fileService;
 
         this.userService = userService;

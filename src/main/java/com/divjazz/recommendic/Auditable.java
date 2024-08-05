@@ -37,11 +37,10 @@ public abstract class Auditable {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Auditable(){}
-
-    public Auditable(UUID referenceId){
-        this.referenceId = referenceId;
+    protected Auditable(){
+        this.referenceId = UUID.randomUUID();
     }
+
     public long getId() {
         return id;
     }

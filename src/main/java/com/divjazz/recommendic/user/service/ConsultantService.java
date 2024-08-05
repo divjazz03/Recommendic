@@ -6,14 +6,15 @@ import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.userAttributes.credential.ConsultantCredential;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.credential.ConsultantCredentialRepository;
+import com.divjazz.recommendic.user.repository.RoleRepository;
+import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.AlternativeJdkIdGenerator;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,39 +25,43 @@ public class ConsultantService {
 
 
     private final ConsultantRepository consultantRepository;
-    private final ConsultantCredentialRepository consultantCredentialRepository;
+    private final UserCredentialRepository userCredentialRepository;
 
     private final PasswordEncoder passwordEncoder;
 
-    private final AppUserDetailsService userService;
+    private final GeneralUserService userService;
+
+    private final RoleRepository roleRepository;
 
     public ConsultantService(
             ConsultantRepository consultantRepository,
-            ConsultantCredentialRepository consultantCredentialRepository, PasswordEncoder passwordEncoder,
-            AppUserDetailsService userService, AlternativeJdkIdGenerator idGenerator) {
+            UserCredentialRepository userCredentialRepository, PasswordEncoder passwordEncoder,
+            GeneralUserService userService, RoleRepository roleRepository) {
         this.consultantRepository = consultantRepository;
-        this.consultantCredentialRepository = consultantCredentialRepository;
+        this.userCredentialRepository = userCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
+        this.roleRepository = roleRepository;
     }
 
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
+        Role role = new Role();
+        UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = new Consultant(
                 consultantDTO.userName(),
                 consultantDTO.email(),
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                consultantDTO.medicalCategory()
+                consultantDTO.medicalCategory(),null, userCredential
         );
 
-        ConsultantCredential consultantCredential = new ConsultantCredential(user,
-                passwordEncoder.encode(consultantDTO.password()));
-        user.setCredential(consultantCredential);
+        user.setUserCredential(userCredential);
+        userCredential.setUser(user);
 
         if (userService.isUserNotExists(user.getEmail())) {
             consultantRepository.save(user);
-            consultantCredentialRepository.save(consultantCredential);
+            userCredentialRepository.save(userCredential);
 
            return new ConsultantInfoResponse(user.getId(),
                    user.getUserNameObject().getLastName(),
