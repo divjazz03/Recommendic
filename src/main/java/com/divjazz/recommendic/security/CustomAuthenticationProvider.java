@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,10 +20,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private final GeneralUserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final UserCredentialRepository userCredentialRepository;
 
-    public CustomAuthenticationProvider(GeneralUserService userService, PasswordEncoder passwordEncoder) {
+    public CustomAuthenticationProvider(GeneralUserService userService, PasswordEncoder passwordEncoder, UserCredentialRepository userCredentialRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.userCredentialRepository = userCredentialRepository;
     }
 
     @Override
@@ -30,12 +33,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         var userAuth = (ApiAuthentication) authentication;
         var user = userService.retrieveUserByUsername(userAuth.getEmail());
         if (Objects.nonNull(user)) {
-            var credential = userService.retrieveCredentialById(user.getId());
+            var credential = userCredentialRepository.getUserCredentialByUser_UserId(user.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Credentials not found"));
             if (credential.getUpdatedAt().minusDays(90).isAfter(LocalDateTime.now())) {
                 throw new LockedException("Credentials are expired, please reset your password");
             }
             validAccount.accept(user);
             if (passwordEncoder.matches(userAuth.getPassword(), credential.getPassword())) {
+                user.setLastLogin(LocalDateTime.now());
                 return ApiAuthentication.authenticated(user, user.getAuthorities());
             } else
                 throw new BadCredentialsException("Unable to login due to invalid credentials. Please try again");

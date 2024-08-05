@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "users")
-public sealed class User extends Auditable implements UserDetails permits Admin, Consultant, Patient {
+public class User extends Auditable implements UserDetails {
 
     @Column(nullable = false)
     @Embedded
@@ -55,7 +55,7 @@ public sealed class User extends Auditable implements UserDetails permits Admin,
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_roles",
+            name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
@@ -90,6 +90,9 @@ public sealed class User extends Auditable implements UserDetails permits Admin,
         this.role = role;
         this.userCredential = userCredential;
         this.userId = UUID.randomUUID().toString();
+        this.accountNonLocked = true;
+        this.accountNonExpired = true;
+        this.enabled = false;
     }
 
 
@@ -168,7 +171,7 @@ public sealed class User extends Auditable implements UserDetails permits Admin,
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
          var permissions = role.getPermissions();
-         var permissionsArray = permissions.getValue().split(PERMISSION_DELIMITER);
+         var permissionsArray = permissions.split(PERMISSION_DELIMITER);
          return Arrays.stream(permissionsArray)
                  .map(SimpleGrantedAuthority::new)
                  .collect(Collectors.toSet());
@@ -196,7 +199,7 @@ public sealed class User extends Auditable implements UserDetails permits Admin,
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return accountNonExpired;
+        return userCredential.isExpired();
     }
 
     @Override

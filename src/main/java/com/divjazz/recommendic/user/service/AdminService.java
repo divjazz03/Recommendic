@@ -9,6 +9,7 @@ import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
+import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +27,8 @@ public class AdminService {
 
     private final UserCredentialRepository userCredentialRepository;
 
+    private final RoleRepository roleRepository;
+
     private final GeneralUserService userService;
 
     private final PasswordEncoder passwordEncoder;
@@ -34,10 +37,11 @@ public class AdminService {
 
 
     public AdminService(
-            UserCredentialRepository userCredentialRepository, GeneralUserService userService,
+            UserCredentialRepository userCredentialRepository, RoleRepository roleRepository, GeneralUserService userService,
             PasswordEncoder passwordEncoder,
             AdminRepository adminRepository) {
         this.userCredentialRepository = userCredentialRepository;
+        this.roleRepository = roleRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
@@ -47,8 +51,7 @@ public class AdminService {
     public AdminCredentialResponse createAdmin(AdminDTO adminDTO) {
         GenerateAdminPasswordResponse response = generateAdminPassword();
         String password = response.encryptedPassword();
-
-        Role role = new Role();
+        Role role = roleRepository.getRoleByName("ADMIN").orElseThrow(() -> new RuntimeException("No such roles found"));
         UserCredential userCredential = new UserCredential(response.encryptedPassword());
 
         Admin admin = new Admin(

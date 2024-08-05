@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.service;
 import com.divjazz.recommendic.cache.CacheStore;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
+import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
@@ -58,17 +59,8 @@ public class GeneralUserService {
     }
 
     public User retrieveUserByUserId(String id){
-        User user = null;
-        if (patientRepository.findByUserId(UUID.fromString(id)).isPresent()){
-            user = patientRepository.findByUserId(UUID.fromString(id)).get();
-        } else if(consultantRepository.findByUserId(UUID.fromString(id)).isPresent()){
-            user = consultantRepository.findByUserId(UUID.fromString(id)).get();
-        } else if(adminRepository.findByUserId(UUID.fromString(id)).isPresent()){
-            user = adminRepository.findByUserId(UUID.fromString(id)).get();
-        } else
-            throw new UsernameNotFoundException("User not found");
 
-        return user;
+        return userRepository.findByUserId(id).orElseThrow(() -> new UserNotFoundException("User was not found"));
     }
 
     public UserCredential retrieveCredentialById(Long id) {

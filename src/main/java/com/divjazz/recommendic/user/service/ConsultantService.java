@@ -45,7 +45,7 @@ public class ConsultantService {
     }
 
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
-        Role role = new Role();
+        Role role = roleRepository.getRoleByName("CONSULTANT").orElseThrow(() -> new RuntimeException("No such role exists"));
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = new Consultant(
                 consultantDTO.userName(),
@@ -53,7 +53,7 @@ public class ConsultantService {
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                consultantDTO.medicalCategory(),null, userCredential
+                consultantDTO.medicalCategory(),role, userCredential
         );
 
         user.setUserCredential(userCredential);

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -20,11 +21,14 @@ public class UserCredential extends Auditable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    private boolean expired;
+
     protected UserCredential(){}
 
     public UserCredential(String password) {
         super();
         this.password = password;
+        expired = LocalDateTime.now().isBefore(getCreatedAt().plusMonths(9));
     }
 
     public String getPassword() {
@@ -41,6 +45,10 @@ public class UserCredential extends Auditable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isExpired() {
+        return expired;
     }
 
     @Override

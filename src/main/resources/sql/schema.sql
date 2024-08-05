@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users(
     account_non_expired BOOLEAN                NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN                NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(10)  NOT NULL,
-    role_id             BIGINT                 NOT NULL,
+    role_id             BIGINT               ,
     last_login          TIMESTAMP                       DEFAULT NULL,
     login_attempts      INTEGER                         DEFAULT 0,
     updated_at          TIMESTAMP(6) WITH TIME ZONE     DEFAULT CURRENT_TIMESTAMP,
@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS users_credential
     user_id   BIGINT                 NOT NULL,
     reference_id CHARACTER VARYING(255),
     password     CHARACTER VARYING(255) NOT NULL,
+    expired      BOOLEAN DEFAULT FALSE,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by   BIGINT                 NOT NULL,
@@ -78,6 +79,7 @@ CREATE TABLE IF NOT EXISTS consultant
 (
     id                  BIGINT PRIMARY KEY,
     specialization      CHARACTER VARYING(30)  NOT NULL,
+    bio                 TEXT                   DEFAULT NULL,
     certified           BOOLEAN                NOT NULL DEFAULT FALSE,
     certificate_id      BIGINT
 );

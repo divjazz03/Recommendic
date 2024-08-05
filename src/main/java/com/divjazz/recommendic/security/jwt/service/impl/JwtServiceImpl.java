@@ -7,6 +7,7 @@ import com.divjazz.recommendic.security.jwt.config.JwtConfiguration;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+
 import static com.divjazz.recommendic.security.constant.Constants.*;
 import static com.divjazz.recommendic.security.TokenType.*;
 
@@ -27,6 +28,8 @@ import org.springframework.security.core.GrantedAuthority;
 import static java.util.Optional.empty;
 import static org.springframework.boot.web.server.Cookie.SameSite.NONE;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
+
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -58,14 +61,14 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
 
     private final BiFunction<HttpServletRequest, String, Optional<String>> extractToken = (request, cookieName) ->
             Optional.of(Arrays.stream(
-                    request.getCookies() == null ? new Cookie[] {new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
-                            request.getCookies())
+                            request.getCookies() == null ? new Cookie[]{new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
+                                    request.getCookies())
                     .filter(cookie -> Objects.equals(cookieName, cookie.getName()))
                     .map(Cookie::getValue)
                     .findAny()).orElse(empty());
-    private final BiFunction<HttpServletRequest, String, Optional<Cookie>> extractCookie =   (request, cookieName) ->
+    private final BiFunction<HttpServletRequest, String, Optional<Cookie>> extractCookie = (request, cookieName) ->
             Optional.of(Arrays.stream(
-                            request.getCookies() == null ? new Cookie[] {new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
+                            request.getCookies() == null ? new Cookie[]{new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
                                     request.getCookies())
                     .filter(cookie -> Objects.equals(cookieName, cookie.getName()))
                     .findAny()).orElse(empty());
@@ -82,13 +85,13 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .signWith(keySupplier.get(), Jwts.SIG.HS512);
 
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
-            Objects.equals(type,ACCESS) ? builder.get()
-                    .subject(user.getUserId().toString())
+            Objects.equals(type, ACCESS) ? builder.get()
+                    .subject(user.getUserId())
                     .claim(PERMISSIONS, user.getAuthorities())
                     .claim(ROLE, user.getRole())
                     .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
                     .compact() : builder.get()
-                    .subject(user.getUserId().toString())
+                    .subject(user.getUserId())
                     .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
                     .compact();
 
@@ -128,7 +131,6 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .add(claimsFunction.apply(token).get(ROLE, String.class)).toString());
 
 
-
     public JwtServiceImpl(GeneralUserService userService) {
         this.userService = userService;
     }
@@ -156,7 +158,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
     public <T> T getTokenData(String token, Function<TokenData, T> tokenFunction) {
         return tokenFunction.apply(
                 TokenData.builder()
-                        .valid(Objects.equals(userService.retrieveUserByUserId(subject.apply(token)).getUserId().toString(), claimsFunction.apply(token).getSubject()))
+                        .valid(Objects.equals(userService.retrieveUserByUserId(subject.apply(token)).getUserId(), claimsFunction.apply(token).getSubject()))
                         .authorities(authorities.apply(token))
                         .claims(claimsFunction.apply(token))
                         .user(userService.retrieveUserByUserId(subject.apply(token)))
@@ -166,7 +168,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
 
     @Override
     public void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
-        var optionalCookie = extractCookie.apply(request,cookieName);
+        var optionalCookie = extractCookie.apply(request, cookieName);
         if (optionalCookie.isPresent()) {
             var cookie = optionalCookie.get();
             cookie.setMaxAge(0);
@@ -174,15 +176,14 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         }
     }
 
-
-
-
-
-
-
-
-
-
+    @Override
+    public boolean validateToken(HttpServletRequest request) {
+        var token = extractToken(request , ACCESS.getValue());
+        if (token.isPresent()) {
+            return getTokenData(token.get(), TokenData::isValid);
+        }
+        return false;
+    }
 
 
 }

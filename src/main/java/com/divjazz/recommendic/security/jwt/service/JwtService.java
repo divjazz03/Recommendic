@@ -6,6 +6,7 @@ import com.divjazz.recommendic.security.domain.TokenData;
 import com.divjazz.recommendic.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -17,4 +18,5 @@ public interface JwtService {
     <T> T getTokenData(String token, Function<TokenData, T> tokenFunction);
 
     void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName);
+    boolean validateToken(HttpServletRequest request);
 }

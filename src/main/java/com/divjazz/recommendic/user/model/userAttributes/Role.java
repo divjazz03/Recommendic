@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
-import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.enums.Authority;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 
@@ -15,10 +14,12 @@ public class Role{
     @Column(name = "name")
     private String name;
     @Column(name = "permissions")
-    private Authority permissions;
+    private String permissions;
 
     @Id
     private Long id;
+
+
 
     public String getName() {
         return name;
@@ -28,11 +29,11 @@ public class Role{
         this.name = name;
     }
 
-    public Authority getPermissions() {
+    public String getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Authority permissions) {
+    public void setPermissions(String permissions) {
         this.permissions = permissions;
     }
 

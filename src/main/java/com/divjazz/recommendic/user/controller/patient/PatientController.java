@@ -4,6 +4,7 @@ import com.divjazz.recommendic.recommendation.dto.RecommendationDTO;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.search.ConsultantSearchResult;
 import com.divjazz.recommendic.search.SearchService;
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
@@ -15,6 +16,8 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,9 +33,13 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/patient")
 public class PatientController {
+
+    Logger logger = LoggerFactory.getLogger(PatientController.class);
     private final PatientService patientService;
     private final RecommendationService recommendationService;
     private final SearchService searchService;
+
+
 
 
     public PatientController(PatientService patientService, RecommendationService recommendationService, SearchService searchService) {
@@ -45,6 +52,7 @@ public class PatientController {
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Response> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams){
+        RequestContext.setUserId(0);
         try {
             PatientDTO patient = new PatientDTO(
                     new UserName(requestParams.firstName(), requestParams.lastName()),
@@ -76,6 +84,7 @@ public class PatientController {
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
+
             var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     HttpStatus.EXPECTATION_FAILED.value(),
                     "",
@@ -86,6 +95,7 @@ public class PatientController {
             );
             return new ResponseEntity<>(response,HttpStatus.EXPECTATION_FAILED);
         } catch (Exception e) {
+            logger.error("Some thing happened",e);
             var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     "",

@@ -1,13 +1,17 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import com.google.common.collect.ImmutableSet;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -23,6 +28,8 @@ public class PatientService {
 
 
     private final PatientRepository patientRepository;
+
+    private final RoleRepository roleRepository;
 
     private final UserCredentialRepository userCredentialRepository;
 
@@ -35,11 +42,12 @@ public class PatientService {
 
     public PatientService(
             PatientRepository patientRepository,
-            UserCredentialRepository userCredentialRepository,
+            RoleRepository roleRepository, UserCredentialRepository userCredentialRepository,
             GeneralUserService userService,
             PasswordEncoder encoder
                           ) {
         this.patientRepository = patientRepository;
+        this.roleRepository = roleRepository;
         this.userCredentialRepository = userCredentialRepository;
         this.userService = userService;
         this.encoder = encoder;
@@ -49,7 +57,7 @@ public class PatientService {
 
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO){
-        Role role = new Role();
+        Role role = roleRepository.getRoleByName("PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
                 patientDTO.userName(),
@@ -59,11 +67,21 @@ public class PatientService {
                 patientDTO.address(),
                 role,
                 userCredential);
+        Set<MedicalCategory> medicalCategories = Arrays.stream(patientDTO.categoryOfInterest())
+                .map(MedicalCategory::valueOf)
+                .collect(Collectors.toSet());
 
+        var profilePicture = new ProfilePicture();
+
+        profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        profilePicture.setName("149071.png");
+        user.setProfilePicture(profilePicture);
+        user.setMedicalCategories(medicalCategories);
         user.setUserCredential(userCredential);
         userCredential.setUser(user);
         if (userService.isUserNotExists(user.getEmail())) {
             patientRepository.save(user);
+            RequestContext.setUserId(user.getId());
             userCredentialRepository.save(userCredential);
             return new PatientInfoResponse(user.getId()
                     ,user.getUserNameObject().getLastName()

@@ -73,9 +73,6 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             mapper.writeValue(out, httpResponse);
         }
 
-
-
-
     }
 
     private Response sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
@@ -84,7 +81,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         var userDTO = new UserDTO(
                 user.getCreatedBy(),
                 user.getUpdatedBy(),
-                user.getUserId().toString(),
+                user.getUserId(),
                 user.getUserNameObject().getFirstName(),
                 user.getUserNameObject().getLastName(),
                 user.getProfilePicture().getPictureUrl(),

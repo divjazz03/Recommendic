@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public abstract class Auditable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "primary_key_seq")
     private long id;
     @Column(name = "reference_id")
-    private UUID referenceId;
+    private String referenceId;
     @NotNull
     @Column(name = "created_by", updatable = false, nullable = false)
     private long createdBy;
@@ -38,7 +39,9 @@ public abstract class Auditable {
     private LocalDateTime updatedAt;
 
     protected Auditable(){
-        this.referenceId = UUID.randomUUID();
+        this.referenceId = UUID.randomUUID().toString();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public long getId() {
@@ -49,11 +52,11 @@ public abstract class Auditable {
         this.id = id;
     }
 
-    public UUID getReferenceId() {
+    public String  getReferenceId() {
         return referenceId;
     }
 
-    public void setReferenceId(UUID referenceId) {
+    public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
     }
 
@@ -91,7 +94,7 @@ public abstract class Auditable {
     @PrePersist
     public void beforePersist(){
         long userId = RequestContext.getUserId();
-        setReferenceId(UUID.randomUUID());
+        setReferenceId(UUID.randomUUID().toString());
         setCreatedAt(LocalDateTime.now());
         setCreatedBy(userId);
         setUpdatedBy(userId);
