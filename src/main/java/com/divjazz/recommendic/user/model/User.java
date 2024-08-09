@@ -57,10 +57,13 @@ public class User extends Auditable implements UserDetails {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.EAGER,
+            mappedBy = "user",
+            cascade = CascadeType.REMOVE)
     private UserCredential userCredential;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "user",
+            cascade = CascadeType.REMOVE)
     private UserConfirmation userConfirmation;
 
     private boolean accountNonExpired;
@@ -168,11 +171,8 @@ public class User extends Auditable implements UserDetails {
 
     @Override
     public Set<? extends GrantedAuthority> getAuthorities() {
-         var permissions = role.getPermissions();
-         var permissionsArray = permissions.split(PERMISSION_DELIMITER);
-         return Arrays.stream(permissionsArray)
-                 .map(SimpleGrantedAuthority::new)
-                 .collect(Collectors.toSet());
+
+         return Set.of(new SimpleGrantedAuthority(role.getPermissions()));
     }
 
     @Override

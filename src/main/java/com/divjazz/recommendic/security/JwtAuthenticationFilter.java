@@ -5,9 +5,9 @@ import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.TokenNotFoundException;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
-import com.divjazz.recommendic.user.service.GeneralUserService;
+
 import static com.divjazz.recommendic.security.TokenType.*;
-import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -62,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (jwtService.validateToken(request)) {
                         var userPermissions = jwtService.getTokenData(jwtToken, TokenData::getGrantedAuthorities);
+                        logger.debug("granted authority for current user is {}", userPermissions);
                         var authentication = ApiAuthentication.authenticated(userDetails, userPermissions);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -75,7 +76,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } else {
                 filterChain.doFilter(request,response);
             }
-        } catch (UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
+        } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
+            filterChain.doFilter(request,response);
             var errorResponse = getErrorResponse(
                     request,
                     response,

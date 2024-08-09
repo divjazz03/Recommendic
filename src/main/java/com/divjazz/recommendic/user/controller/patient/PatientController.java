@@ -1,13 +1,11 @@
 package com.divjazz.recommendic.user.controller.patient;
 
-import com.divjazz.recommendic.recommendation.dto.RecommendationDTO;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.search.ConsultantSearchResult;
 import com.divjazz.recommendic.search.SearchService;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -15,26 +13,23 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
-import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
 
 
 @RestController
@@ -153,21 +148,22 @@ public class PatientController {
         }
     }
     @DeleteMapping("delete")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Response> deletePatient(@RequestParam("patient_id")Long patientId){
         try {
             patientService.deletePatientById(patientId);
             var response = new Response(
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.NO_CONTENT.value(),
+                    HttpStatus.OK.value(),
                     "",
-                    HttpStatus.NO_CONTENT,
+                    HttpStatus.OK,
                     "Successfully deleted patient",
                     "",
                     null
 
             );
-            return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+            RequestContext.setUserId(0L);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),

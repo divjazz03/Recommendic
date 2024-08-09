@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.certification.Certification;
@@ -24,13 +25,16 @@ public final class Consultant extends User implements Serializable {
     private Set<Certification> certificates;
 
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, targetEntity = Patient.class)
-    @JoinTable(
-            name = "consultant_patient",
-            joinColumns = { @JoinColumn(name = "consultant_id") },
-            inverseJoinColumns = { @JoinColumn(name = "patient_id") }
-    )
-    private Set<Patient> patients;
+    @OneToMany (cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Consultation> consultations;
+
+    public List<Consultation> getConsultations() {
+        return consultations;
+    }
+
+    public void setConsultations(List<Consultation> consultations) {
+        this.consultations = consultations;
+    }
 
     @Column(columnDefinition = "text")
     private String bio;
@@ -51,7 +55,7 @@ public final class Consultant extends User implements Serializable {
         super(userName,email,phoneNumber,gender,address, role, userCredential);
         this.medicalCategory = medicalCategory;
         certificates = new HashSet<>(30);
-        patients = new HashSet<>(30);
+        consultations = new ArrayList<>(20);
         certified = false;
     }
     public boolean isCertified() {
@@ -71,33 +75,12 @@ public final class Consultant extends User implements Serializable {
         return certificates;
     }
 
-    public Set<Patient> getPatients() {
-        return patients;
-    }
-
-    public void setPatients(Set<Patient> patients) {
-        this.patients = patients;
-    }
-
-    public void addPatient(Patient patient) {
-        this.patients.add(patient);
-    }
-
-    public void addPatients(Set<Patient> patients) {
-        this.patients.addAll(patients);
-    }
-    public void removePatient(Patient patient) {
-        this.patients.remove(patient);
-    }
-    public void removePatients(Set<Patient> patients) {
-        this.patients.removeAll(patients);
-    }
 
     @Override
     public String toString() {
         return "Consultant{" +
+                "name" + getUsername()+
                 "certificates=" + certificates +
-                ", patients=" + patients +
                 ", medicalSpecialization=" + medicalCategory +
                 ", certified=" + certified +
                 '}';

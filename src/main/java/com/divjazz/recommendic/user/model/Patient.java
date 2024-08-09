@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
@@ -26,6 +27,16 @@ public final class Patient extends User {
     @Column(name = "medical_categories")
     private Set<MedicalCategory> medicalCategories;
 
+    @OneToMany (cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Consultation> consultations;
+
+    public List<Consultation> getConsultations() {
+        return consultations;
+    }
+
+    public void setConsultations(List<Consultation> consultations) {
+        this.consultations = consultations;
+    }
 
     protected Patient(){}
 

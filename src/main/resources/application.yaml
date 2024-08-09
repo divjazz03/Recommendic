@@ -74,3 +74,7 @@ server:
 jwt:
   expiration: ${JWT_EXPIRATION}
   secret: ${JWT_SECRET}
+
+file:
+  upload:
+    implementation: ${FILE_UPLOAD_IMPL}

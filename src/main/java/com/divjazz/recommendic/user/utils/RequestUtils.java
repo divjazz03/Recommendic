@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.utils;
+package com.divjazz.recommendic.user.utils;
 
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;

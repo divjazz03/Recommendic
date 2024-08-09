@@ -5,30 +5,24 @@ import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.dto.AdminInfoResponse;
-import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.AdminService;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.divjazz.recommendic.user.service.PatientService;
-import com.divjazz.recommendic.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -69,7 +63,7 @@ public class AdminController {
                             HttpStatus.CREATED);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | UserAlreadyExistsException e) {
             var response = getErrorResponse(httpServletRequest,
                     HttpStatus.EXPECTATION_FAILED,
                     e

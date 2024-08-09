@@ -31,8 +31,12 @@ public class UserConfirmation extends Auditable {
 
 
     protected UserConfirmation(){
+    }
+
+    public UserConfirmation(User user){
         super();
         this.key = UUID.randomUUID().toString();
+        this.user = user;
     }
 
     public String getKey() {

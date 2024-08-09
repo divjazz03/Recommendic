@@ -29,6 +29,7 @@ import static java.util.Optional.empty;
 import static org.springframework.boot.web.server.Cookie.SameSite.NONE;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -59,10 +60,6 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .parseSignedClaims(token)
                     .getPayload();
 
-    public Function<Set<? extends GrantedAuthority>, String> authoritiesToString = authorities -> authorities.stream()
-            .parallel()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.joining(","));
     private final Function<String, String> subject = token -> getClaimsValue(token, Claims::getSubject);
 
     private final BiFunction<HttpServletRequest, String, Optional<String>> extractToken = (request, cookieName) ->
@@ -93,8 +90,8 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
             Objects.equals(type, ACCESS) ? builder.get()
                     .subject(user.getEmail())
-                    .claim(PERMISSIONS, authoritiesToString.apply(user.getAuthorities()))
-                    .claim(ROLE, user.getRole())
+                    .claim(PERMISSIONS, user.getRole().getPermissions())
+                    .claim(ROLE, user.getRole().getName())
                     .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
                     .compact() : builder.get()
                     .subject(user.getEmail())
@@ -178,7 +175,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                                 Objects.equals(userService.retrieveUserByUsername(subject.apply(token)).getEmail(), claimsFunction.apply(token).getSubject())
                         )
                         .expired(Instant.now().isAfter(getClaimsValue(token, Claims::getExpiration).toInstant()))
-                        .authorities(stringToAuthorities.apply(token))
+                        .authorities(List.of(new SimpleGrantedAuthority((String) claimsFunction.apply(token).get("permissions"))))
                         .claims(claimsFunction.apply(token))
                         .user(userService.retrieveUserByUsername(subject.apply(token)))
                         .build()

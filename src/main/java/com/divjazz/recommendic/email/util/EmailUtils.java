@@ -26,6 +26,20 @@ public class EmailUtils {
     The Support Team""", name, getResetPasswordUrl(host,key));
     }
 
+    public static String  getAdminRegistrationEmailMessage(String name,String host, String key,String password) {
+        return String.format("""
+                
+    Hello %s,
+    
+    Your new admin account has been create. Please click the link below to verify your account.\s
+    
+    %s\s
+    
+    Your password is %s\s
+    
+    The Support Team""", name, password, getVerificationUrl(host,key));
+    }
+
     private static String getVerificationUrl(String host, String key) {
         return host + "/verify/account?token=" + key;
     }

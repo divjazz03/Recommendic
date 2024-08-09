@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.utils.fileUpload;
+package com.divjazz.recommendic.fileupload.utils;
 
 public class FileResponseFile {
     private String name;

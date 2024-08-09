@@ -1,9 +1,11 @@
-package com.divjazz.recommendic.user.controller;
+package com.divjazz.recommendic.fileupload.controller;
 
 import com.divjazz.recommendic.user.service.GeneralUserService;
-import com.divjazz.recommendic.user.service.FileService;
-import com.divjazz.recommendic.utils.fileUpload.FileResponseFile;
-import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
+import com.divjazz.recommendic.fileupload.service.FileService;
+import com.divjazz.recommendic.fileupload.utils.FileResponseFile;
+import com.divjazz.recommendic.fileupload.utils.FileResponseMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ import java.util.List;
 @RequestMapping("api/v1/file/")
 public class FileController {
 
+    @Value("${file.upload.implementation}")
+    static String file_service_impl;
     private final FileService fileService;
     private final GeneralUserService userService;
 
@@ -31,7 +35,9 @@ public class FileController {
     @PutMapping(value = "user/profile_pics",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
     )
-    public ResponseEntity<FileResponseMessage> uploadProfilePics(@RequestParam(value = "user_id") String userid, @RequestParam(value = "file") MultipartFile multipartFile){
+    public ResponseEntity<FileResponseMessage> uploadProfilePics(@RequestParam(value = "user_id") String userid,
+                                                                 @RequestParam(value = "file") MultipartFile multipartFile){
+
         return null;
     }
     @PutMapping(value = "consultant/certification",

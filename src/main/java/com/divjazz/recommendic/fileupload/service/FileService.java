@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.service;
+package com.divjazz.recommendic.fileupload.service;
 
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Consultant;

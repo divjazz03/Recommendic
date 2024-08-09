@@ -8,8 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import static com.divjazz.recommendic.email.util.EmailUtils.getEmailMessage;
-import static com.divjazz.recommendic.email.util.EmailUtils.getResetPasswordMessage;
+import static com.divjazz.recommendic.email.util.EmailUtils.*;
 
 
 @Service
@@ -54,6 +53,19 @@ public class EmailServiceImpl implements EmailService{
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setText(getResetPasswordMessage(name, host, key));
+            sender.send(message);
+        } catch (Exception e){
+            logger.error(e.getMessage());
+        }
+    }
+    @Async
+    @Override
+    public void sendNewAdminAccountEmail(String name, String toEmail, String key, String password) {
+        try {
+            var message = new SimpleMailMessage();
+            message.setSubject(fromEmail);
+            message.setTo(toEmail);
+            message.setText(getAdminRegistrationEmailMessage(name, toEmail, key, password));
             sender.send(message);
         } catch (Exception e){
             logger.error(e.getMessage());

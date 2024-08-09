@@ -1,16 +1,15 @@
-package com.divjazz.recommendic.user.service;
+package com.divjazz.recommendic.fileupload.service;
 
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.UUID;
 
-@Service
-public class DatabaseFileServiceImpl implements FileService{
+
+public class DatabaseFileUploadService implements FileService {
     @Override
     public void storeProfilePicture(UUID userId, String pictureUrl) {
 

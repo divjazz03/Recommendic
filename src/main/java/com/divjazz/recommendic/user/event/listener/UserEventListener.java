@@ -25,7 +25,11 @@ public class UserEventListener {
                     .sendPasswordResetEmail(userEvent.getUser().getUserNameObject().getFirstName(),
                             userEvent.getUser().getEmail(),
                             (String) userEvent.getData().get("key"));
-            default -> {}
+            case ADMIN_REGISTRATION -> emailService
+                    .sendNewAdminAccountEmail(userEvent.getUser().getUserNameObject().getFirstName(),
+                            userEvent.getUser().getEmail(),
+                            (String) userEvent.getData().get("key"),
+                            (String) userEvent.getData().get("password"));
 
         }
     }
