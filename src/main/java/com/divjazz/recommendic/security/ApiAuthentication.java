@@ -20,11 +20,10 @@ public class ApiAuthentication extends AbstractAuthenticationToken {
 
     private ApiAuthentication(User user, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
-
         this.user = user;
         this.email = EMAIL_PROTECTED;
         this.password = PASSWORD_PROTECTED;
-
+        super.setAuthenticated(true);
     }
 
     private ApiAuthentication(String email, String password) {
@@ -36,8 +35,8 @@ public class ApiAuthentication extends AbstractAuthenticationToken {
     public static ApiAuthentication unAuthenticated(String email, String password) {
         return new ApiAuthentication(email, password);
     }
-    public static ApiAuthentication authenticated(User user, Collection<? extends GrantedAuthority> authorities) {
-        return new ApiAuthentication(user, authorities);
+    public static ApiAuthentication authenticated(UserDetails user, Collection<? extends GrantedAuthority> authorities) {
+        return new ApiAuthentication((User) user, authorities);
     }
     @Override
     public Object getCredentials() {

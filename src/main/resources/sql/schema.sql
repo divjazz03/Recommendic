@@ -96,10 +96,6 @@ CREATE TABLE IF NOT EXISTS roles(
     permissions     CHARACTER VARYING(255)  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS users_roles(
-    user_id          BIGINT                 NOT NULL ,
-    role_id          BIGINT                 NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS certification
 (
@@ -195,7 +191,8 @@ CREATE TABLE IF NOT EXISTS consultation(
 
 ALTER TABLE IF EXISTS users
     ADD FOREIGN KEY (created_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
+    ADD FOREIGN KEY (role_id) REFERENCES  roles (id) MATCH SIMPLE ;
 
 ALTER TABLE IF EXISTS users_confirmation
     ADD FOREIGN KEY (user_id) REFERENCES users (id),

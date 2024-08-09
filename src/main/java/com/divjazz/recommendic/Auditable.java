@@ -95,10 +95,10 @@ public abstract class Auditable {
     public void beforePersist(){
         long userId = RequestContext.getUserId();
         setReferenceId(UUID.randomUUID().toString());
-        setCreatedAt(LocalDateTime.now());
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         setCreatedBy(userId);
         setUpdatedBy(userId);
-        setUpdatedAt(LocalDateTime.now());
     }
 
     @PreUpdate

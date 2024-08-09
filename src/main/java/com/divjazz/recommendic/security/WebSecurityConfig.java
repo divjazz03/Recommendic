@@ -3,10 +3,12 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,10 +26,8 @@ public class WebSecurityConfig {
 
     private final GeneralUserService userService;
 
-    private final JwtService jwtService;
-    public WebSecurityConfig(GeneralUserService userService, JwtService service) {
+    public WebSecurityConfig(GeneralUserService userService) {
         this.userService = userService;
-        this.jwtService = service;
     }
 
     @Bean
@@ -36,18 +36,27 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain webSecurity(HttpSecurity http,AuthenticationManager authenticationManager, AuthenticationFilter authenticationFilter,JwtAuthenticationFilter filter) throws Exception {
+    public SecurityFilterChain webSecurity(HttpSecurity http,
+                                           LoginAuthenticationFilter loginAuthenticationFilter,
+                                           JwtAuthenticationFilter filter) throws Exception {
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("api/v1/patient/create",
-                                "api/v1/consultant/consultant", "/user/login").permitAll()
+                        "api/v1/consultant/create").permitAll()
+                        .requestMatchers("api/patient/delete").hasAnyRole("PATIENT","ADMIN","SUPER_ADMIN")
+                        .requestMatchers("api/patient/patients").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("api/patient/search").hasRole("PATIENT")
+                        .requestMatchers("api/patient/recommendations").hasRole("PATIENT")
+                        .requestMatchers("api/v1/consultant/consultants").hasAnyRole("CONSULTANT","ADMIN","SUPER_ADMIN")
+                        .requestMatchers("api/v1/admin/create/").hasRole("SUPER_ADMIN")
+                        .requestMatchers("api/v1/admin/admins").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated())
-                .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(filter, AuthenticationFilter.class)
+                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -62,13 +71,13 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    AuthenticationFilter authenticationFilter(JwtService service, AuthenticationManager authenticationManager, GeneralUserService userService) {
-        return new AuthenticationFilter(authenticationManager, service,userService);
+    LoginAuthenticationFilter authenticationFilter(JwtService service, AuthenticationManager authenticationManager, GeneralUserService userService) {
+        return new LoginAuthenticationFilter(authenticationManager, service,userService);
     }
 
     @Bean()
-    JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, GeneralUserService userService) {
-        return new JwtAuthenticationFilter(jwtService,userService);
+    JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+        return new JwtAuthenticationFilter(jwtService, userDetailsService);
     }
 
 

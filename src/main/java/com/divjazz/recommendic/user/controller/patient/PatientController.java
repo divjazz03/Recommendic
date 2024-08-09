@@ -8,6 +8,7 @@ import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
@@ -15,11 +16,13 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -27,7 +30,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 
 @RestController
@@ -52,7 +59,8 @@ public class PatientController {
     @PostMapping("create")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Response> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams){
-        RequestContext.setUserId(0);
+        RequestContext.reset();
+        RequestContext.setUserId(0L);
         try {
             PatientDTO patient = new PatientDTO(
                     new UserName(requestParams.firstName(), requestParams.lastName()),
@@ -107,6 +115,43 @@ public class PatientController {
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("patients")
+    public ResponseEntity<Response> patients(HttpServletRequest httpServletRequest){
+        try {
+            var patients = patientService.getAllPatients();
+            Function<Set<MedicalCategory>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategory> medicalCategories) -> {
+                return medicalCategories
+                        .stream()
+                        .map(Enum::name)
+                        .toArray(String[]::new);
+            };
+            var patientDTOSet = patients.stream()
+                    .map(patient -> new PatientDTO(
+                            patient.getUserNameObject(),
+                            patient.getEmail(),
+                            patient.getPhoneNumber(),
+                            patient.getGender(),
+                            patient.getAddress(),
+                            null,
+                            medicalCategoriesToStringArrayFunction.apply(patient.getMedicalCategories())
+
+                    ));
+            var response = getResponse(httpServletRequest,
+                    Map.of("patients", patientDTOSet),
+                    "Success in retrieving the Patient Users",
+                    HttpStatus.OK
+            );
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            var response = getErrorResponse(
+                    httpServletRequest,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    e
+            );
+            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     @DeleteMapping("delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Response> deletePatient(@RequestParam("patient_id")Long patientId){
@@ -122,7 +167,7 @@ public class PatientController {
                     null
 
             );
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+            return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -136,7 +181,6 @@ public class PatientController {
 
         }
     }
-
 
 
     @GetMapping("recommendations")

@@ -6,6 +6,7 @@ import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
+import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
@@ -54,7 +55,7 @@ public class AdminService {
         Role role = roleRepository.getRoleByName("ADMIN").orElseThrow(() -> new RuntimeException("No such roles found"));
         UserCredential userCredential = new UserCredential(response.encryptedPassword());
 
-        Admin admin = new Admin(
+        Admin user = new Admin(
                 adminDTO.userName(),
                 adminDTO.email(),
                 adminDTO.number(),
@@ -62,24 +63,28 @@ public class AdminService {
                 adminDTO.address(),role,userCredential
         );
 
-        userCredential.setUser(admin);
+        userCredential.setUser(user);
+        var profilePicture = new ProfilePicture();
+        profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        profilePicture.setName("149071.png");
+        user.setProfilePicture(profilePicture);
 
-        if (userService.isUserNotExists(admin.getEmail())) {
-            adminRepository.save(admin);
+        if (userService.isUserNotExists(user.getEmail())) {
+            adminRepository.save(user);
             userCredentialRepository.save(userCredential);
-            return new AdminCredentialResponse(admin.getEmail(),
+            return new AdminCredentialResponse(user.getEmail(),
                     password);
         } else {
-            throw new UserAlreadyExistsException(admin.getEmail());
+            throw new UserAlreadyExistsException(user.getEmail());
         }
 
     }
 
 
 
-    public Admin getAdminByUsername(String email){
+    public Admin getAdminByEmail(String email){
         return adminRepository
-                .findByEmail(email).orElseThrow(() -> new UserNotFoundException("This Admin was not found"));
+                .findByEmail(email).orElseThrow(UserNotFoundException::new);
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword(){
@@ -89,11 +94,9 @@ public class AdminService {
 
     }
 
-    public ResponseEntity<Set<Admin>> getAllAdmins(){
-        ImmutableSet<Admin> admins = ImmutableSet
+    public Set<Admin> getAllAdmins(){
+        return ImmutableSet
                 .copyOf(adminRepository.findAll());
-
-        return new ResponseEntity<>(admins, HttpStatus.OK);
     }
 
 }

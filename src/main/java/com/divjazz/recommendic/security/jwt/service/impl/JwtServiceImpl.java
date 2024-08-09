@@ -29,15 +29,16 @@ import static java.util.Optional.empty;
 import static org.springframework.boot.web.server.Cookie.SameSite.NONE;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -57,6 +58,11 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+
+    public Function<Set<? extends GrantedAuthority>, String> authoritiesToString = authorities -> authorities.stream()
+            .parallel()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
     private final Function<String, String> subject = token -> getClaimsValue(token, Claims::getSubject);
 
     private final BiFunction<HttpServletRequest, String, Optional<String>> extractToken = (request, cookieName) ->
@@ -86,13 +92,12 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
 
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
             Objects.equals(type, ACCESS) ? builder.get()
-                    .subject(user.getUserId())
-                    .claim(PERMISSIONS, user.getAuthorities())
+                    .subject(user.getEmail())
+                    .claim(PERMISSIONS, authoritiesToString.apply(user.getAuthorities()))
                     .claim(ROLE, user.getRole())
                     .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
                     .compact() : builder.get()
-                    .subject(user.getUserId())
-                    .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
+                    .subject(user.getEmail())
                     .compact();
 
     private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = (response, user, type) -> {
@@ -102,7 +107,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                 var cookie = new Cookie(type.getValue(), accessToken);
                 cookie.setHttpOnly(true);
                 // cookie.setSecure(true);
-                cookie.setMaxAge(2 * 60);
+                cookie.setMaxAge(2 * 60 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());
                 response.addCookie(cookie);
@@ -112,7 +117,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                 var cookie = new Cookie(type.getValue(), refreshToken);
                 cookie.setHttpOnly(true);
                 // cookie.setSecure(true);
-                cookie.setMaxAge(2 * 60 * 60);
+                cookie.setMaxAge(60 * 60 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());
                 response.addCookie(cookie);
@@ -120,15 +125,21 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         }
     };
 
+    private final BiConsumer<HttpServletResponse, User> addHeader = (response, user) -> {
+        var accessToken = createToken(user,Token::getAccess);
+        response.addHeader("Authorization", String.format("Bearer %s", accessToken));
+    };
+
     public <T> T getClaimsValue(String token, Function<Claims, T> claims) {
         return claimsFunction.andThen(claims).apply(token);
     }
 
 
-    public Function<String, List<? extends GrantedAuthority>> authorities = token ->
-            commaSeparatedStringToAuthorityList(new StringJoiner(PERMISSIONS)
-                    .add(claimsFunction.apply(token).get(PERMISSIONS, String.class))
-                    .add(claimsFunction.apply(token).get(ROLE, String.class)).toString());
+    public Function<String, List<? extends GrantedAuthority>> stringToAuthorities = token ->
+            commaSeparatedStringToAuthorityList(new StringJoiner(PERMISSION_DELIMITER)
+                    .add(claimsFunction.apply(token).get(PERMISSIONS, String.class)).toString());
+
+
 
 
     public JwtServiceImpl(GeneralUserService userService) {
@@ -155,13 +166,21 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
     }
 
     @Override
+    public void addHeader(HttpServletResponse response, User user, TokenType type) {
+        addHeader.accept(response,user);
+    }
+
+    @Override
     public <T> T getTokenData(String token, Function<TokenData, T> tokenFunction) {
         return tokenFunction.apply(
                 TokenData.builder()
-                        .valid(Objects.equals(userService.retrieveUserByUserId(subject.apply(token)).getUserId(), claimsFunction.apply(token).getSubject()))
-                        .authorities(authorities.apply(token))
+                        .valid(
+                                Objects.equals(userService.retrieveUserByUsername(subject.apply(token)).getEmail(), claimsFunction.apply(token).getSubject())
+                        )
+                        .expired(Instant.now().isAfter(getClaimsValue(token, Claims::getExpiration).toInstant()))
+                        .authorities(stringToAuthorities.apply(token))
                         .claims(claimsFunction.apply(token))
-                        .user(userService.retrieveUserByUserId(subject.apply(token)))
+                        .user(userService.retrieveUserByUsername(subject.apply(token)))
                         .build()
         );
     }
@@ -180,7 +199,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
     public boolean validateToken(HttpServletRequest request) {
         var token = extractToken(request , ACCESS.getValue());
         if (token.isPresent()) {
-            return getTokenData(token.get(), TokenData::isValid);
+            return getTokenData(token.get(), TokenData::isValid) ;
         }
         return false;
     }

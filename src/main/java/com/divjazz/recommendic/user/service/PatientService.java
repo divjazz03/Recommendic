@@ -15,6 +15,8 @@ import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.utils.fileUpload.FileResponseMessage;
 import com.google.common.collect.ImmutableSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class PatientService {
+
+    private Logger log = LoggerFactory.getLogger(PatientService.class);
 
 
     private final PatientRepository patientRepository;
@@ -58,6 +62,7 @@ public class PatientService {
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO){
         Role role = roleRepository.getRoleByName("PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
+        log.info("The patient role is {}", role);
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
                 patientDTO.userName(),
@@ -71,6 +76,7 @@ public class PatientService {
                 .map(MedicalCategory::valueOf)
                 .collect(Collectors.toSet());
 
+
         var profilePicture = new ProfilePicture();
 
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
@@ -80,8 +86,8 @@ public class PatientService {
         user.setUserCredential(userCredential);
         userCredential.setUser(user);
         if (userService.isUserNotExists(user.getEmail())) {
-            patientRepository.save(user);
             RequestContext.setUserId(user.getId());
+            patientRepository.save(user);
             userCredentialRepository.save(userCredential);
             return new PatientInfoResponse(user.getId()
                     ,user.getUserNameObject().getLastName()
@@ -102,7 +108,6 @@ public class PatientService {
 
     public void deletePatientById(long patient_Id){
         patientRepository.deleteById(patient_Id);
-        new FileResponseMessage("The deletion was successful");
     }
 
     public void modifyPatient(Patient patient){
@@ -111,7 +116,7 @@ public class PatientService {
 
     public Patient findPatientById(long id){
         return patientRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(String.format("Patient with id %s was not found", id)));
+                .orElseThrow(UserNotFoundException::new);
     }
 
 }

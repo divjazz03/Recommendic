@@ -3,16 +3,19 @@ package com.divjazz.recommendic.security.domain;
 import com.divjazz.recommendic.user.model.User;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
 public class TokenData {
-    private User user;
+    private UserDetails user;
     private Claims claims;
     private boolean valid;
+
+    private boolean expired;
     private List<? extends GrantedAuthority> grantedAuthorities;
 
-    public User getUser() {
+    public UserDetails getUser() {
         return user;
     }
 
@@ -20,29 +23,19 @@ public class TokenData {
         this.user = user;
     }
 
-    public Claims getClaims() {
-        return claims;
-    }
-
-    public void setClaims(Claims claims) {
-        this.claims = claims;
+    public boolean isExpired() {
+        return expired;
     }
 
     public boolean isValid() {
         return valid;
     }
 
-    public void setValid(boolean valid) {
-        this.valid = valid;
-    }
 
     public List<? extends GrantedAuthority> getGrantedAuthorities() {
         return grantedAuthorities;
     }
 
-    public void setGrantedAuthorities(List<? extends GrantedAuthority> grantedAuthorities) {
-        this.grantedAuthorities = grantedAuthorities;
-    }
 
     public static Builder builder() {
         return new Builder();
@@ -54,7 +47,7 @@ public class TokenData {
         private Builder() {
             this.tokenData = new TokenData();
         }
-        public Builder user(User user) {
+        public Builder user(UserDetails user) {
             this.tokenData.user = user;
             return this;
         }
@@ -69,6 +62,11 @@ public class TokenData {
 
         public Builder valid(boolean isValid) {
             this.tokenData.valid = isValid;
+            return this;
+        }
+
+        public Builder expired(boolean isExpired) {
+            this.tokenData.expired = isExpired;
             return this;
         }
         public TokenData build() {

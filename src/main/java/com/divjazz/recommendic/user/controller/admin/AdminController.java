@@ -1,8 +1,12 @@
 package com.divjazz.recommendic.user.controller.admin;
 
 
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.AdminDTO;
+import com.divjazz.recommendic.user.dto.AdminInfoResponse;
+import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -11,6 +15,9 @@ import com.divjazz.recommendic.user.service.AdminService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.utils.RequestUtils;
@@ -38,6 +45,8 @@ public class AdminController {
 
     @PostMapping("create")
     public ResponseEntity<Response> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest){
+        RequestContext.reset();
+        RequestContext.setUserId(0L);
         try {
             AdminDTO adminDTO = new AdminDTO(
                     new UserName(requestParams.firstName(), requestParams.lastName()), requestParams.email(), requestParams.phoneNumber(),
@@ -75,30 +84,22 @@ public class AdminController {
         }
     }
 
-    @GetMapping("patients")
-    public ResponseEntity<Response> patients(HttpServletRequest httpServletRequest){
-        try {
-            var data = patientService.getAllPatients();
-            var response = getResponse(httpServletRequest,
-                    Map.of("patients", data),
-                    "Success in retrieving the Patient Users",
-                    HttpStatus.OK
-                    );
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            var response = getErrorResponse(
-                    httpServletRequest,
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    e
-            );
-            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+
 
     @GetMapping("admins")
     public ResponseEntity<Response> getAdmins(HttpServletRequest httpServletRequest){
         try {
-            var data = adminService.getAllAdmins();
+            var admins = adminService.getAllAdmins();
+
+            var data = admins.stream()
+                    .map(admin -> new AdminInfoResponse(
+                            admin.getUserId(),
+                            admin.getUserNameObject().getLastName(),
+                            admin.getUserNameObject().getFirstName(),
+                            admin.getEmail(),
+                            admin.getGender().name(),
+                            admin.getAddress()
+                    ));
             var response = getResponse(httpServletRequest,
                     Map.of("admins", data),
                     "Successfully Retrieved all admin entries",

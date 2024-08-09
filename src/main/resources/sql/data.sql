@@ -4,30 +4,36 @@ DELETE FROM roles WHERE id = 0;
 DELETE FROM roles WHERE id = 1;
 DELETE FROM roles WHERE id = 2;
 DELETE FROM roles WHERE id = 3;
+DELETE FROM roles WHERE id = 4;
 
 INSERT INTO roles (id, name, permissions)
 VALUES (0,
-        'PATIENT',
-        'patient:create,patient:update,patient:delete'
+        'ROLE_PATIENT',
+        'PATIENT'
 );
 
 INSERT INTO roles (id, name, permissions)
 VALUES (1,
-        'CONSULTANT',
-        'consultant:create,consultant:update,consultant:delete'
+        'ROLE_CONSULTANT',
+        'CONSULTANT'
        );
 
 INSERT INTO roles (id, name, permissions)
 VALUES (2,
-        'ADMIN',
-        'admin:update,admin:delete'
-       );
+        'ROLE_ADMIN',
+        'ADMIN');
 
 INSERT INTO roles (id, name, permissions)
 VALUES (3,
-        'SUPER_ADMIN',
-        'admin:create,admin:update,admin:delete'
+        'ROLE_SUPER_ADMIN',
+        'SUPER_ADMIN'
        );
+INSERT INTO roles (id, name, permissions)
+VALUES (4,
+        'ROLE_SYSTEM',
+        'SYSTEM'
+       );
+
 
 
 
@@ -48,6 +54,7 @@ VALUES (0,
         0,
         0
 );
+
 
 INSERT INTO users_credential (id, reference_id, user_id, password, created_by, updated_by)
 VALUES (

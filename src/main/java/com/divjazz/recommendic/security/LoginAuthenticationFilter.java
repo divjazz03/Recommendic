@@ -32,14 +32,14 @@ import static com.divjazz.recommendic.utils.RequestUtils.handleErrorResponse;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
 
 
-public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
+    Logger log = LoggerFactory.getLogger(LoginAuthenticationFilter.class);
     private final GeneralUserService userService;
     private final JwtService jwtService;
-    public AuthenticationFilter(AuthenticationManager authenticationManager,
-                                JwtService jwtService,
-                                GeneralUserService userService) {
+    public LoginAuthenticationFilter(AuthenticationManager authenticationManager,
+                                     JwtService jwtService,
+                                     GeneralUserService userService) {
         super(new AntPathRequestMatcher(LOGIN_PATH, HttpMethod.POST.name()), authenticationManager);
         this.userService = userService;
         this.jwtService = jwtService;
@@ -72,12 +72,10 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             var mapper = new ObjectMapper();
             mapper.writeValue(out, httpResponse);
         }
-
     }
 
     private Response sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
         jwtService.addCookie(response,user,TokenType.ACCESS);
-        jwtService.addCookie(response,user,TokenType.REFRESH);
         var userDTO = new UserDTO(
                 user.getCreatedBy(),
                 user.getUpdatedBy(),

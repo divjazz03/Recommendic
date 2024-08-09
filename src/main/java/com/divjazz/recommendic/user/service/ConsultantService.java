@@ -1,11 +1,13 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -59,7 +61,14 @@ public class ConsultantService {
         user.setUserCredential(userCredential);
         userCredential.setUser(user);
 
+        var profilePicture = new ProfilePicture();
+
+        profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        profilePicture.setName("149071.png");
+        user.setProfilePicture(profilePicture);
+
         if (userService.isUserNotExists(user.getEmail())) {
+            RequestContext.setUserId(user.getId());
             consultantRepository.save(user);
             userCredentialRepository.save(userCredential);
 
@@ -83,7 +92,7 @@ public class ConsultantService {
         return ImmutableSet.
                 copyOf(
                         consultantRepository.findByMedicalCategory(category)
-                                .orElseThrow(() -> new UserNotFoundException("Consultant with that Category does not exist"))
+                                .orElseThrow(UserNotFoundException::new)
                 );
     }
 

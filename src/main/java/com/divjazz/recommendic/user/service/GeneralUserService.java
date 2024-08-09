@@ -20,23 +20,15 @@ import java.util.UUID;
 @Service
 public class GeneralUserService {
 
-    private final PatientRepository patientRepository;
-    private final ConsultantRepository consultantRepository;
-    private final AdminRepository adminRepository;
-
     private final UserRepository userRepository;
 
     private final UserCredentialRepository userCredentialRepository;
 
     private final CacheStore<String, Integer> loginCache;
 
-    public GeneralUserService(PatientRepository patientRepository,
-                              ConsultantRepository consultantRepository,
-                              AdminRepository adminRepository,
+    public GeneralUserService(
                               UserRepository userRepository, UserCredentialRepository userCredentialRepository, CacheStore<String, Integer> loginCache) {
-        this.patientRepository = patientRepository;
-        this.consultantRepository = consultantRepository;
-        this.adminRepository = adminRepository;
+
         this.userRepository = userRepository;
         this.userCredentialRepository = userCredentialRepository;
         this.loginCache = loginCache;
@@ -46,21 +38,16 @@ public class GeneralUserService {
 
     public User retrieveUserByUsername(String username){
         User user = null;
-        if (patientRepository.findByEmail(username).isPresent()){
-            user = patientRepository.findByEmail(username).get();
-        } else if(consultantRepository.findByEmail(username).isPresent()){
-            user = consultantRepository.findByEmail(username).get();
-        } else if(adminRepository.findByEmail(username).isPresent()){
-            user = adminRepository.findByEmail(username).get();
+        if (userRepository.findByEmail(username).isPresent()){
+            user = userRepository.findByEmail(username).get();
         } else
             throw new UsernameNotFoundException("User not found");
-
         return user;
     }
 
     public User retrieveUserByUserId(String id){
 
-        return userRepository.findByUserId(id).orElseThrow(() -> new UserNotFoundException("User was not found"));
+        return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
     public UserCredential retrieveCredentialById(Long id) {
@@ -91,8 +78,8 @@ public class GeneralUserService {
         userRepository.save(user);
     }
 
-    public boolean isUserNotExists(String username){
-        return !patientRepository.existsByEmail(username) && !consultantRepository.existsByEmail(username) && !adminRepository.existsByEmail(username);
+    public boolean isUserNotExists(String email){
+        return !userRepository.existsByEmail(email);
     }
 }
 

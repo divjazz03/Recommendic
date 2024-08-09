@@ -54,11 +54,7 @@ public class User extends Auditable implements UserDetails {
     private ProfilePicture profilePicture;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
-    )
+    @JoinColumn(name = "role_id")
     private Role role;
 
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
@@ -140,6 +136,8 @@ public class User extends Auditable implements UserDetails {
         return role;
     }
 
+
+
     public UserName getUserName() {
         return userName;
     }
@@ -169,7 +167,7 @@ public class User extends Auditable implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Set<? extends GrantedAuthority> getAuthorities() {
          var permissions = role.getPermissions();
          var permissionsArray = permissions.split(PERMISSION_DELIMITER);
          return Arrays.stream(permissionsArray)
