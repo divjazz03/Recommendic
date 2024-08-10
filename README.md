@@ -1,7 +1,15 @@
 
+ <div>
+    <img src="https://img.shields.io/badge/-Spring-black?style=for-the-badge&logoColor=white&logo=spring&color=6FB33F" alt="spring" />
+    <img src="https://img.shields.io/badge/-SPRING_SECURITY-black?style=for-the-badge&logoColor=white&logo=springsecurity&color=6DB33F" alt="spring security" />
+    <img src="https://img.shields.io/badge/-JAVA-black?style=for-the-badge&logoColor=white&logo=openjdk&color=000000" alt="openjdk" />
+    <img src="https://img.shields.io/badge/-POSTMAN-black?style=for-the-badge&logoColor=white&logo=postman&color=FF4154" alt="postman" />
+    <img src="https://img.shields.io/badge/-PostgreSQL-black?style=for-the-badge&logoColor=white&logo=postgresql&color=4169E1" alt="postgresql" />
+    <img src="https://img.shields.io/badge/-Docker-black?style=for-the-badge&logoColor=white&logo=docker&color=2496ED" alt="docker" />
+    <img src="https://img.shields.io/badge/-Hibernate-black?style=for-the-badge&logoColor=white&logo=hibernate&color=59666C" alt="hibernate" />
+  </div>
 
 <h2 align="center">A Medical Consultation and Recommendation Application </h2>
-
 ## 📑 Table of Contents
 
 1. 🤖 [Introduction](#-introduction)
