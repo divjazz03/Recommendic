@@ -21,8 +21,6 @@ import java.util.List;
 @RequestMapping("api/v1/file/")
 public class FileController {
 
-    @Value("${file.upload.implementation}")
-    static String file_service_impl;
     private final FileService fileService;
     private final GeneralUserService userService;
 

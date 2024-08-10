@@ -61,16 +61,6 @@ spring:
             required: true
     verify:
       host: ${VERIFY_EMAIL_HOST}
-server:
-  http2:
-    enabled: true
-  port: ${CONTAINER_PORT:8080}
-  error:
-    whitelabel:
-      enabled: false
-    path: /user/error
-
-
 jwt:
   expiration: ${JWT_EXPIRATION}
   secret: ${JWT_SECRET}

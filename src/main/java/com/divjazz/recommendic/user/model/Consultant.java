@@ -25,7 +25,7 @@ public final class Consultant extends User implements Serializable {
     private Set<Certification> certificates;
 
 
-    @OneToMany (cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "consultant")
     private List<Consultation> consultations;
 
     public List<Consultation> getConsultations() {

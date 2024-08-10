@@ -19,7 +19,7 @@ public class Consultation extends Auditable {
     private LocalDateTime consultationTime;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "patient_id")
     private Patient patient;
     @ManyToOne(optional = false)
     @JoinColumn(name = "consultant_id")

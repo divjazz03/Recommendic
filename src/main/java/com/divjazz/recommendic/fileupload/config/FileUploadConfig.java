@@ -13,7 +13,16 @@ import java.util.Objects;
 public class FileUploadConfig {
 
     @Value("${file.upload.implementation}")
-    private static String fileUploadImplementation;
+    private String fileUploadImplementation;
+
+    public String getFileUploadImplementation() {
+        return fileUploadImplementation;
+    }
+
+    public void setFileUploadImplementation(String fileUploadImplementation) {
+        this.fileUploadImplementation = fileUploadImplementation;
+    }
+
     @Bean
     FileService fileService() {
         if (Objects.isNull(fileUploadImplementation))

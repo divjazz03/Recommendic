@@ -1,16 +1,27 @@
 version: '3.9'
 
 services:
+
+  app:
+    image: recommendic
+    build:
+      context: .
+    container_name: app
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_started
+
+
   postgres:
-    container_name: 'recommendic_db'
-    build: .
-    image: 'postgres:latest'
+    container_name: recommendic_db
+    image: postgres:16-alpine3.20
     env_file: .env
-    expose:
-      - "5432"
     ports:
       - "5432:5432"
-    restart: always
     volumes:
       - postgresvolume:/var/lib/postgresql/data
 

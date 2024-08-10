@@ -19,15 +19,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 @Table(name = "patient")
 public final class Patient extends User {
 
-
-    @ManyToMany(mappedBy = "patients", fetch = FetchType.LAZY)
-    private Set<Consultant> consultants;
-
     @Enumerated(value = EnumType.STRING)
     @Column(name = "medical_categories")
     private Set<MedicalCategory> medicalCategories;
 
-    @OneToMany (cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "patient")
     private List<Consultation> consultations;
 
     public List<Consultation> getConsultations() {
@@ -49,7 +45,6 @@ public final class Patient extends User {
 
         super(userName,email,phoneNumber,gender,address, role, userCredential);
         medicalCategories = new HashSet<>(30);
-        consultants = new HashSet<>(30);
     }
 
 
@@ -64,11 +59,6 @@ public final class Patient extends User {
             this.medicalCategories.addAll(Objects.requireNonNull(medicalCategories));
         }
     }
-
-    public void setConsultants(Set<Consultant> consultants){
-        this.consultants.addAll(consultants);
-    }
-    public Set<Consultant> getConsultants(){return consultants;}
 
 
     @Override
