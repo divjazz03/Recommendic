@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Objects;
+import java.util.Optional;
 
 @Configuration
 public class FileUploadConfig {
@@ -15,24 +15,11 @@ public class FileUploadConfig {
     @Value("${file.upload.implementation}")
     private String fileUploadImplementation;
 
-    public String getFileUploadImplementation() {
-        return fileUploadImplementation;
-    }
-
-    public void setFileUploadImplementation(String fileUploadImplementation) {
-        this.fileUploadImplementation = fileUploadImplementation;
-    }
-
     @Bean
     FileService fileService() {
-        if (Objects.isNull(fileUploadImplementation))
-            return new DatabaseFileUploadService();
-       if (fileUploadImplementation.equals("databaseFileUploadService")) {
-           return new DatabaseFileUploadService();
-       } else if (fileUploadImplementation.equals("cloudFileUploadService")) {
-           return new CloudFileUploadService();
-       } else {
-           return new DatabaseFileUploadService();
-       }
+        var fileUploadImpl = Optional.ofNullable(fileUploadImplementation);
+        return fileUploadImpl.filter(s -> (!s.equals("databaseFileUploadService")))
+                .<FileService>map(_ -> new CloudFileUploadService())
+                .orElseGet(DatabaseFileUploadService::new);
     }
 }
