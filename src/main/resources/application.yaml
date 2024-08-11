@@ -39,7 +39,6 @@ spring:
     properties:
       hibernate:
         globally_quoted_identifiers: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   mail:
     host: ${EMAIL_HOST}
@@ -52,13 +51,12 @@ spring:
         mime:
           charset: UTF
         smtp:
-          writetimeout: 10000
-          connectiontimeout: 10000
-          timeout: 10000
+          writetimeout: 20000
+          connectiontimeout: 20000
+          timeout: 20000
           auth: true
-          starttls:
+          ssl:
             enable: true
-            required: true
     verify:
       host: ${VERIFY_EMAIL_HOST}
 jwt:
