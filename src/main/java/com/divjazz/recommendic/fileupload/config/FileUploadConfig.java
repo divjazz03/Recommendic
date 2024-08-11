@@ -19,7 +19,7 @@ public class FileUploadConfig {
     FileService fileService() {
         var fileUploadImpl = Optional.ofNullable(fileUploadImplementation);
         return fileUploadImpl.filter(s -> (!s.equals("databaseFileUploadService")))
-                .<FileService>map(_ -> new CloudFileUploadService())
+                .<FileService>map(s -> new CloudFileUploadService())
                 .orElseGet(DatabaseFileUploadService::new);
     }
 }

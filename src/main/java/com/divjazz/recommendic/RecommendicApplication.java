@@ -46,11 +46,7 @@ public class RecommendicApplication implements CommandLineRunner {
 		log.info("Current Context Id {} ", RequestContext.getUserId());
 		User user = userService.retrieveUserByUserId("f779d895-001b-4109-a02e-bd5b6ddd0535");
 		Role role = user.getRole();
-		Set<? extends GrantedAuthority> authorities = Arrays.stream(role
-				.getPermissions()
-				.split(PERMISSION_DELIMITER))
-				.map(SimpleGrantedAuthority::new)
-				.collect(Collectors.toSet());
+		Set<? extends GrantedAuthority> authorities = Set.of(new SimpleGrantedAuthority(role.getPermissions()));
 		var apiAuthentication = ApiAuthentication.authenticated(user, authorities);
 		SecurityContextHolder.createEmptyContext().setAuthentication(apiAuthentication);
 	}
