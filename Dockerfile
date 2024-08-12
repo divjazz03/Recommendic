@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21.0.1_12-jdk-alpine as builder
+FROM eclipse-temurin:21.0.1_12-jdk-alpine AS builder
 # speed up Maven JVM a bit
 # set working directory
 WORKDIR /opt/recommendic
@@ -13,7 +13,7 @@ COPY src ./src
 RUN ./mvnw package -Dmaven.test.skip=true
 #Stage 2
 #set base image for second stage
-FROM eclipse-temurin:21.0.1_12-jre-alpine as final
+FROM eclipse-temurin:21.0.1_12-jre-alpine AS final
 WORKDIR /opt/recommendic
 EXPOSE 8080
 COPY --from=builder /opt/recommendic/target/*.jar /opt/recommendic/*.jar

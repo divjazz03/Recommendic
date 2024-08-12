@@ -4,7 +4,6 @@ import com.divjazz.recommendic.security.ApiAuthentication;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.divjazz.recommendic.security.constant.Constants.PERMISSION_DELIMITER;
 
 
 @SpringBootApplication
