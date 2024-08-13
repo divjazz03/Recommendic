@@ -55,6 +55,7 @@ spring:
           connectiontimeout: 20000
           timeout: 20000
           auth: true
+          starttls: true
     verify:
       host: ${VERIFY_EMAIL_HOST}
 jwt:
