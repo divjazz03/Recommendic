@@ -2,11 +2,10 @@ package com.divjazz.recommendic.user.controller.admin;
 
 
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.dto.AdminInfoResponse;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;

@@ -123,4 +123,19 @@ public class ConsultantService {
                 .stream().filter(user -> user.getUsername().contains(name))
                 .collect(Collectors.toSet()));
     }
+
+    public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query){
+        return consultantRepository.searchConsultant(query)
+                .stream()
+                .limit(5)
+                .map(consultant -> new ConsultantInfoResponse(
+                        consultant.getId(),
+                        consultant.getUserNameObject().getLastName(),
+                        consultant.getUserNameObject().getFirstName(),
+                        consultant.getGender().toString(),
+                        consultant.getAddress(),
+                        consultant.getMedicalCategory().toString()
+                ))
+                .collect(Collectors.toSet());
+    }
 }

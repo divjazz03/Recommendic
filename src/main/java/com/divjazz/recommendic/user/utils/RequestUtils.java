@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.utils;
 
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

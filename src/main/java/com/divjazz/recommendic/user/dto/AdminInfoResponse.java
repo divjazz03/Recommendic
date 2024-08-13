@@ -13,5 +13,5 @@ public record AdminInfoResponse(
         String email,
         String gender,
         Address address
-) {
+)  implements UserInfoResponse{
 }

@@ -50,6 +50,10 @@ public class GeneralUserService {
         return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
+    public User retrieveUserById(Long id){
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    }
+
     public UserCredential retrieveCredentialById(Long id) {
         return userCredentialRepository.findById(id).orElseThrow(() -> new RuntimeException("Credentials not Found"));
     }

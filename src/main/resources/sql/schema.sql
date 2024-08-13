@@ -1,4 +1,5 @@
 BEGIN;
+
 DROP TABLE IF EXISTS users, patient,
     users_credential,
     users_confirmation,
@@ -252,6 +253,8 @@ ALTER TABLE IF EXISTS consultation
     ADD FOREIGN KEY (consultant_id) REFERENCES consultant (id);
 
 CREATE SEQUENCE IF NOT EXISTS primary_key_seq;
+CREATE INDEX idx_consultant_user_name ON users USING gin (to_tsvector('english',first_name));
+CREATE INDEX idx_consultant_specialization ON consultant USING gin (to_tsvector('english',specialization));
 
 END;
 

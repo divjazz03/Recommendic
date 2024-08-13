@@ -14,5 +14,5 @@ public record ConsultantInfoResponse(
         String gender,
         Address address,
         String medicalSpecialization
-) {
+) implements UserInfoResponse{
 }

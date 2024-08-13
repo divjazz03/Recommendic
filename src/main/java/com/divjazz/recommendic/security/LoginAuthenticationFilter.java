@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.security.jwt.service.JwtService;
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.LoginType;

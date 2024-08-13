@@ -2,7 +2,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
