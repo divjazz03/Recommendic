@@ -1,16 +1,13 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.search.ConsultantSearchResult;
-import com.divjazz.recommendic.search.SearchService;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.domain.Response;
 import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
 import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
@@ -39,16 +35,14 @@ public class PatientController {
     Logger logger = LoggerFactory.getLogger(PatientController.class);
     private final PatientService patientService;
     private final RecommendationService recommendationService;
-    private final SearchService searchService;
 
 
 
 
-    public PatientController(PatientService patientService, RecommendationService recommendationService, SearchService searchService) {
+    public PatientController(PatientService patientService, RecommendationService recommendationService) {
         this.patientService = patientService;
 
         this.recommendationService = recommendationService;
-        this.searchService = searchService;
     }
 
     @PostMapping("create")
@@ -205,41 +199,6 @@ public class PatientController {
             );
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 
-        }
-    }
-    @GetMapping("search")
-    public ResponseEntity<Response> retrieveConsultantsAccordingToQuery(@RequestParam("query") String query, @RequestParam("patient_id") Long id){
-        try {
-            Set<Consultant> consultantsResults = searchService.executeQuery(query,id);
-            var consultantsResultsDTO = consultantsResults.stream().map(consultant -> new ConsultantSearchResult(
-                    consultant.getUsername(),
-                    consultant.getEmail(),
-                    consultant.getPhoneNumber(),
-                    consultant.getGender().toString().toLowerCase(),
-                    consultant.getAddress(),
-                    consultant.getMedicalCategory().name().toLowerCase()
-            )).collect(Collectors.toSet());
-            var response = new Response(
-                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.OK.value(),
-                    "",
-                    HttpStatus.OK,
-                    "Successfully executed Search",
-                    "",
-                    Map.of("search_result", consultantsResultsDTO)
-            );
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    e.getMessage(),
-                    e.getClass().getName(),
-                    null
-            );
-            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
