@@ -45,17 +45,14 @@ spring:
     port: ${EMAIL_PORT}
     username: ${EMAIL_ID}
     password: ${EMAIL_PASSWORD}
-    default-encoding: UTF-8
     properties:
       mail:
         mime:
           charset: UTF
         smtp:
-          writetimeout: 20000
-          connectiontimeout: 20000
-          timeout: 20000
           auth: true
-          starttls: true
+          ssl:
+            enable: true
     verify:
       host: ${VERIFY_EMAIL_HOST}
 jwt:

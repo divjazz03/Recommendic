@@ -27,10 +27,5 @@ public class BeanConfig {
     public AlternativeJdkIdGenerator randomIdGenerator(){
         return new AlternativeJdkIdGenerator();
     }
-
-    @Bean
-    public JavaMailSender mailSender(){
-        return new JavaMailSenderImpl();
-    }
 }
 
