@@ -6,10 +6,12 @@ import com.divjazz.recommendic.fileupload.service.FileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Optional;
 
 @Configuration
+@Lazy
 public class FileUploadConfig {
 
     @Value("${file.upload.implementation}")
