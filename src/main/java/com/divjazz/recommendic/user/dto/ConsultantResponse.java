@@ -8,7 +8,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @JsonInclude(NON_DEFAULT)
 public record ConsultantInfoResponse(
-        Long consultantId,
+        String consultantId,
         String lastName,
         String firstName,
         String gender,

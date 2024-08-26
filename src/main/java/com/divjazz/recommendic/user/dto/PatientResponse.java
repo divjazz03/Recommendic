@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record PatientInfoResponse(
-        Long patientId,
+        String patientId,
         String lastName,
         String firstName,
         String phoneNumber,
