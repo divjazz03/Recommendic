@@ -62,3 +62,9 @@ jwt:
 file:
   upload:
     implementation: ${FILE_UPLOAD_IMPL}
+
+api:
+  drug:
+    base_url: ${OPEN_FDA_API_BASE_URL}
+    adverse_effect_endpoint:  ${ADVERSE_EFFECT_END_POINT}
+    drugs_endpoint: ${}

@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.consultation.model;
 
 import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.consultation.enums.Status;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import jakarta.persistence.*;
@@ -24,6 +25,9 @@ public class Consultation extends Auditable {
     @ManyToOne(optional = false)
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
+
+    private boolean accepted;
+    private Status status;
 
     protected Consultation(){}
     public Consultation(String diagnosis, LocalDateTime consultationTime, Patient patient, Consultant consultant) {
@@ -63,6 +67,23 @@ public class Consultation extends Auditable {
 
     public void setConsultant(Consultant consultant) {
         this.consultant = consultant;
+    }
+
+
+    public boolean isAccepted() {
+        return accepted;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setAccepted(boolean accepted) {
+        this.accepted = accepted;
     }
 
     @Override

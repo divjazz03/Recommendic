@@ -26,13 +26,7 @@ public final class Patient extends User {
     @OneToMany(mappedBy = "patient")
     private List<Consultation> consultations;
 
-    public List<Consultation> getConsultations() {
-        return consultations;
-    }
 
-    public void setConsultations(List<Consultation> consultations) {
-        this.consultations = consultations;
-    }
 
     protected Patient(){}
 
@@ -60,7 +54,13 @@ public final class Patient extends User {
         }
     }
 
+    public List<Consultation> getConsultations() {
+        return consultations;
+    }
 
+    public void setConsultations(List<Consultation> consultations) {
+        this.consultations = consultations;
+    }
     @Override
     public String toString() {
         return "Patient{" +

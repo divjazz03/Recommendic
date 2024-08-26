@@ -7,9 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface SearchRepository extends JpaRepository<Search, UUID> {
-    Optional<List<Search>> findByOwnerOfSearch(User patient);
+    Set<Search> findByOwnerOfSearch(User patient);
+
+
 }

@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @JsonInclude(NON_DEFAULT)
-public record AdminInfoResponse(
+public record AdminResponse(
         String userId,
         String lastName,
         String firstName,
         String email,
         String gender,
         Address address
-)  implements UserInfoResponse{
+)  implements UserResponse {
 }

@@ -1,10 +1,12 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.dto.ConsultantResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +43,7 @@ public class ConsultantService {
     private final RoleRepository roleRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ConsultantRepository consultantRepository;
+    private final AssignmentService assignmentService;
 
 
     public ConsultantService(
@@ -50,7 +54,8 @@ public class ConsultantService {
             PasswordEncoder passwordEncoder,
             GeneralUserService userService,
             RoleRepository roleRepository,
-            ApplicationEventPublisher applicationEventPublisher) {
+            ApplicationEventPublisher applicationEventPublisher,
+            AssignmentService assignmentService) {
         this.userRepository = userRepository;
         this.consultantRepository = consultantRepository;
         this.userConfirmationRepository = userConfirmationRepository;
@@ -59,10 +64,11 @@ public class ConsultantService {
         this.userService = userService;
         this.roleRepository = roleRepository;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.assignmentService = assignmentService;
     }
 
     @Transactional
-    public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
+    public ConsultantResponse createConsultant(ConsultantDTO consultantDTO) {
         Role role = roleRepository.getRoleByName("ROLE_CONSULTANT").orElseThrow(() -> new RuntimeException("No such role exists"));
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = new Consultant(
@@ -81,6 +87,7 @@ public class ConsultantService {
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
         profilePicture.setName("149071.png");
         user.setProfilePicture(profilePicture);
+        user.setUserType(UserType.CONSULTANT);
 
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
@@ -90,7 +97,7 @@ public class ConsultantService {
             userCredentialRepository.save(userCredential);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key",userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
-           return new ConsultantInfoResponse(user.getId(),
+           return new ConsultantResponse(user.getUserId(),
                    user.getUserNameObject().getLastName(),
                    user.getUserNameObject().getFirstName(),
                    user.getGender().toString(),
@@ -119,17 +126,15 @@ public class ConsultantService {
     @Transactional(readOnly = true)
     public Set<Consultant> getConsultantsByName(String name){
 
-        return Set.copyOf(consultantRepository.findAll()
-                .stream().filter(user -> user.getUsername().contains(name))
-                .collect(Collectors.toSet()));
+        return consultantRepository.findConsultantByName(name);
     }
 
-    public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query){
+    public Set<ConsultantResponse> searchSomeConsultantsByQuery(String query){
         return consultantRepository.searchConsultant(query)
                 .stream()
                 .limit(5)
-                .map(consultant -> new ConsultantInfoResponse(
-                        consultant.getId(),
+                .map(consultant -> new ConsultantResponse(
+                        consultant.getUserId(),
                         consultant.getUserNameObject().getLastName(),
                         consultant.getUserNameObject().getFirstName(),
                         consultant.getGender().toString(),
@@ -138,4 +143,17 @@ public class ConsultantService {
                 ))
                 .collect(Collectors.toSet());
     }
+
+    public Set<Consultation> getAllConsultations(String consultantId){
+        return consultantRepository.findAllConsultationsByConsultantId(consultantId);
+    }
+
+    public Optional<Consultant> retrieveConsultantByUserId(String userId){
+        return consultantRepository.findByUserId(userId);
+    }
+
+    public Set<Consultant> getAllUnCertifiedConsultants(){
+        return consultantRepository.findUnCertifiedConsultant();
+    }
+
 }

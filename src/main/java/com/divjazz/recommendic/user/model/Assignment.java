@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.model.certification;
+package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.Admin;

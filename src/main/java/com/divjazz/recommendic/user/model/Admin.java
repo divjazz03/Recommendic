@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.certification.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;

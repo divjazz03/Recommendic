@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import static com.divjazz.recommendic.security.constant.Constants.PERMISSION_DELIMITER;
 
@@ -62,6 +63,11 @@ public class User extends Auditable implements UserDetails {
             cascade = CascadeType.REMOVE)
     private UserCredential userCredential;
 
+    @Column(name = "user_type", nullable = false)
+    private UserType userType;
+
+
+
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.REMOVE)
     private UserConfirmation userConfirmation;
@@ -105,6 +111,14 @@ public class User extends Auditable implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
     }
 
     public String getPhoneNumber() {

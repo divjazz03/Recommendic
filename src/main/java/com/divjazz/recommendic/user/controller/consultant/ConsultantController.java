@@ -4,7 +4,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.dto.ConsultantResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
@@ -107,8 +107,8 @@ public class ConsultantController {
     public ResponseEntity<Response> getConsultants(HttpServletRequest httpServletRequest ){
         try {
             var data = consultantService.getAllConsultants().stream()
-                    .map(consultant -> new ConsultantInfoResponse(
-                            consultant.getId(),
+                    .map(consultant -> new ConsultantResponse(
+                            consultant.getUserId(),
                             consultant.getUserNameObject().getLastName(),
                             consultant.getUserNameObject().getFirstName(),
                             consultant.getGender().toString().toLowerCase(),

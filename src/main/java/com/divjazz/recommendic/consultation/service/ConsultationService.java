@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.consultation;
+package com.divjazz.recommendic.consultation.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
@@ -17,13 +17,13 @@ public class ConsultationService {
     private final ConsultationRepository consultationRepository;
     private final ConsultantService consultantService;
     private final PatientService patientService;
-    private final GeneralUserService userService;
 
-    public ConsultationService(ConsultationRepository consultationRepository, ConsultantService consultantService, PatientService patientService, GeneralUserService userService) {
+    public ConsultationService(ConsultationRepository consultationRepository,
+                               ConsultantService consultantService,
+                               PatientService patientService) {
         this.consultationRepository = consultationRepository;
         this.consultantService = consultantService;
         this.patientService = patientService;
-        this.userService = userService;
     }
 
     public Optional<Consultation> retrieveConsultationByPatientAndConsultant(String patientId, String consultantId) throws UserNotFoundException {
@@ -36,8 +36,7 @@ public class ConsultationService {
         }
     }
 
-    public Set<Consultation> retrieveConsultationByUserId(String userId){
-        var user = userService.retrieveUserByUserId(userId);
-
+    public Set<Consultation> retrieveConsultationsByUserId(String userId){
+        return consultationRepository.getAllConsultationsWhichContainsTheUserId(userId);
     }
 }

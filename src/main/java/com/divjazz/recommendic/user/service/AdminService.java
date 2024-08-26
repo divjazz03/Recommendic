@@ -4,10 +4,12 @@ import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.enums.EventType;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
+import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
@@ -30,28 +32,27 @@ import java.util.Set;
 public class AdminService {
 
     private final UserCredentialRepository userCredentialRepository;
-
     private final RoleRepository roleRepository;
-
     private final GeneralUserService userService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AdminRepository adminRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    private final AssignmentService assignmentService;
 
 
     public AdminService(
             UserCredentialRepository userCredentialRepository, RoleRepository roleRepository, GeneralUserService userService,
             PasswordEncoder passwordEncoder,
             AdminRepository adminRepository,
-            ApplicationEventPublisher applicationEventPublisher) {
+            ApplicationEventPublisher applicationEventPublisher, AssignmentService assignmentService) {
         this.userCredentialRepository = userCredentialRepository;
         this.roleRepository = roleRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.assignmentService = assignmentService;
     }
 
     @Transactional
@@ -74,6 +75,7 @@ public class AdminService {
             profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
             profilePicture.setName("149071.png");
             user.setProfilePicture(profilePicture);
+            user.setUserType(UserType.ADMIN);
             if (userService.isUserNotExists(user.getEmail())) {
                 adminRepository.save(user);
                 userCredentialRepository.save(userCredential);
@@ -106,6 +108,10 @@ public class AdminService {
     public Set<Admin> getAllAdmins(){
         return ImmutableSet
                 .copyOf(adminRepository.findAll());
+    }
+
+    public Set<Assignment> getAllAssignmentsAssigned(String adminId){
+        return assignmentService.retrieveAllAssignmentByAdminId(adminId);
     }
 
 }

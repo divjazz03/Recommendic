@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users(
     state               CHARACTER VARYING(100) NOT NULL, CONSTRAINT uq_admin_email UNIQUE (email),
     city                CHARACTER VARYING(100) NOT NULL,
     zip_code            CHARACTER VARYING(10)  NOT NULL,
+    user_type           CHARACTER VARYING(10)  NOT NULL,
     enabled             BOOLEAN                NOT NULL DEFAULT FALSE,
     account_non_expired BOOLEAN                NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN                NOT NULL DEFAULT TRUE,
@@ -253,8 +254,9 @@ ALTER TABLE IF EXISTS consultation
     ADD FOREIGN KEY (consultant_id) REFERENCES consultant (id);
 
 CREATE SEQUENCE IF NOT EXISTS primary_key_seq;
-CREATE INDEX idx_consultant_user_name ON users USING gin (to_tsvector('english',first_name));
+CREATE INDEX idx_consultant_user_name ON users USING gin (to_tsvector('english',first_name), to_tsvector('english', last_name));
 CREATE INDEX idx_consultant_specialization ON consultant USING gin (to_tsvector('english',specialization));
+
 
 END;
 
