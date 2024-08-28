@@ -37,7 +37,7 @@ VALUES (4,
 
 
 
-INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code, gender,role_id, created_by, updated_by)
+INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code,user_type,gender,role_id, created_by, updated_by)
 VALUES (0,
          uuid_generate_v4(),
          uuid_generate_v1(),
@@ -49,6 +49,7 @@ VALUES (0,
         'Anambra',
         'Awka',
         '2020202',
+        'ADMIN',
         'MALE',
         2,
         0,

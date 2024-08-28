@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${ACTIVE_PROFILE:dev}
+    active: ${ACTIVE_PROFILE:test}
   jackson:
     default-property-inclusion: non_null
     serialization:
@@ -67,4 +67,4 @@ api:
   drug:
     base_url: ${OPEN_FDA_API_BASE_URL}
     adverse_effect_endpoint:  ${ADVERSE_EFFECT_END_POINT}
-    drugs_endpoint: ${}
+    drugs_endpoint: ${DRUGS_END_POINT}

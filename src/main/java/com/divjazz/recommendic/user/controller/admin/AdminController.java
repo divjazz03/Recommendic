@@ -19,8 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")

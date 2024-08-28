@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 
@@ -53,6 +54,7 @@ public final class Consultant extends User implements Serializable {
             Address address,
             MedicalCategory medicalCategory, Role role, UserCredential userCredential){
         super(userName,email,phoneNumber,gender,address, role, userCredential);
+        super.setUserType(UserType.CONSULTANT);
         this.medicalCategory = medicalCategory;
         certificates = new HashSet<>(30);
         consultations = new ArrayList<>(20);

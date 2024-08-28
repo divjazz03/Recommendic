@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.divjazz.recommendic.security.constant.Constants.LOGIN_PATH;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.handleErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.handleErrorResponse;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
 
 

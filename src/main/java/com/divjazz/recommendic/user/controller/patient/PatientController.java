@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.search.service.SearchService;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.PatientDTO;
@@ -17,18 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 
 @RestController

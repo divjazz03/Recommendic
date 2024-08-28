@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
@@ -27,6 +28,7 @@ public final class Admin extends User{
             Address address,
             Role role, UserCredential userCredential) {
         super(userName,email,phoneNumber,gender,address, role, userCredential);
+        super.setUserType(UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
 

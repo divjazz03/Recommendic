@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/consultant")

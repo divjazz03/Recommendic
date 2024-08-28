@@ -6,10 +6,8 @@ public class CertificateNotFoundException extends RuntimeException{
 
     private static final String  ERROR_MESSAGE = "The Consultant %s does not have a certificate attached";
 
-    public CertificateNotFoundException(Consultant consultant) {
+    public CertificateNotFoundException(String consultantName) {
         super(String.
-                format(ERROR_MESSAGE, consultant
-                        .getUserNameObject()
-                        .getFullName()));
+                format(ERROR_MESSAGE, consultantName));
     }
 }

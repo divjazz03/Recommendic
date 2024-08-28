@@ -64,6 +64,7 @@ public class User extends Auditable implements UserDetails {
     private UserCredential userCredential;
 
     @Column(name = "user_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private UserType userType;
 
 

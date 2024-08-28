@@ -1,6 +1,9 @@
-package com.divjazz.recommendic.user.utils;
+package com.divjazz.recommendic.utils;
 
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.user.exceptions.CertificateNotFoundException;
+import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
+import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +17,7 @@ import org.springframework.security.authentication.LockedException;
 import java.nio.file.AccessDeniedException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -44,7 +48,10 @@ public class RequestUtils {
                 exception instanceof LockedException ||
                 exception instanceof BadCredentialsException ||
                 exception instanceof CredentialsExpiredException ||
-                exception instanceof UserNotFoundException)
+                exception instanceof UserNotFoundException ||
+                exception instanceof CertificateNotFoundException ||
+                exception instanceof NoSuchMedicalCategory ||
+                exception instanceof UserAlreadyExistsException)
             return exception.getMessage();
         if (httpStatus.is5xxServerError())
             return "An Internal server error occured";
@@ -62,7 +69,7 @@ public class RequestUtils {
                 HttpStatus.valueOf(status.value()),
                 message,
                 EMPTY,
-                data
+                (Objects.isNull(data))? Collections.EMPTY_MAP : data
         );
     }
     public static Response getErrorResponse(HttpServletRequest httpServletRequest,
@@ -73,8 +80,8 @@ public class RequestUtils {
                 status.value(),
                 httpServletRequest.getRequestURI(),
                 HttpStatus.valueOf(status.value()),
-                exception.getMessage(),
-                exception.getClass().getName(),
+                errorReason.apply(exception,status),
+                getRootCauseMessage(exception),
                 Collections.emptyMap()
         );
     }
@@ -95,7 +102,7 @@ public class RequestUtils {
     }
 
     public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response,Exception e) {
-        if (e instanceof AccessDeniedException _ ) {
+        if (e instanceof AccessDeniedException ) {
             Response apiREsponse = getErrorResponse(request,response,e,HttpStatus.FORBIDDEN);
             writeResponse.accept(response,apiREsponse);
         }

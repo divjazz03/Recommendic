@@ -14,8 +14,8 @@ public class ApiAuthentication extends AbstractAuthenticationToken {
     private static final String PASSWORD_PROTECTED = "[PASSWORD_PROTECTED]";
     private static final String EMAIL_PROTECTED = "[EMAIL_PROTECTED]";
     private UserDetails user;
-    private String email;
-    private String password;
+    private final String email;
+    private final String password;
 
 
     private ApiAuthentication(User user, Collection<? extends GrantedAuthority> authorities) {

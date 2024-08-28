@@ -27,6 +27,8 @@ public class Consultation extends Auditable {
     private Consultant consultant;
 
     private boolean accepted;
+
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     protected Consultation(){}
