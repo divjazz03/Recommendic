@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.search;
+package com.divjazz.recommendic.search.model;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.Patient;
@@ -16,7 +16,7 @@ public class Search extends Auditable {
     @Column(name = "query")
     private String query;
 
-    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
@@ -33,7 +33,7 @@ public class Search extends Auditable {
         return query;
     }
 
-    public void setOwnerOfSearch(Patient ownerOfSearch) {
+    public void setOwnerOfSearch(User ownerOfSearch) {
         this.ownerOfSearch = ownerOfSearch;
     }
 

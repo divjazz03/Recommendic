@@ -37,10 +37,10 @@ VALUES (4,
 
 
 
-INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code, gender,role_id, created_by, updated_by)
+INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code,user_type,gender,role_id, created_by, updated_by)
 VALUES (0,
-        '805b80b4-2b31-4322-8ddc-3533ab44d5b7',
-        'f779d895-001b-4109-a02e-bd5b6ddd0535',
+         uuid_generate_v4(),
+         uuid_generate_v1(),
         'System',
         'System',
         'system@gmail.com',
@@ -49,6 +49,7 @@ VALUES (0,
         'Anambra',
         'Awka',
         '2020202',
+        'ADMIN',
         'MALE',
         2,
         0,

@@ -2,8 +2,8 @@ package com.divjazz.recommendic.recommendation.service;
 
 import com.divjazz.recommendic.recommendation.model.Recommendation;
 import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.dto.ConsultantResponse;
+import com.divjazz.recommendic.user.dto.PatientResponse;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -31,9 +31,9 @@ public class RecommendationService {
         return recommendationRepository.findByPatient(patient).orElse(Set.of());
 
     }
-    private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant){
-        return new ConsultantInfoResponse(
-                consultant.getId(),
+    private ConsultantResponse toConsultantInfoResponse(Consultant consultant){
+        return new ConsultantResponse(
+                consultant.getUserId(),
                 consultant.getUserNameObject().getLastName(),
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
@@ -41,9 +41,9 @@ public class RecommendationService {
                 consultant.getMedicalCategory().toString()
         );
     }
-    private PatientInfoResponse toPatientInfoResponse(Patient patient){
-        return new PatientInfoResponse(
-                patient.getId(),
+    private PatientResponse toPatientInfoResponse(Patient patient){
+        return new PatientResponse(
+                patient.getUserId(),
                 patient.getUserNameObject().getLastName(),
                 patient.getUserNameObject().getFirstName(),
                 patient.getPhoneNumber(),

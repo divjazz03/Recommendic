@@ -2,11 +2,10 @@ package com.divjazz.recommendic.user.controller.admin;
 
 
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.AdminDTO;
-import com.divjazz.recommendic.user.dto.AdminInfoResponse;
+import com.divjazz.recommendic.user.dto.AdminResponse;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -14,15 +13,14 @@ import com.divjazz.recommendic.user.service.AdminService;
 
 import java.util.Map;
 
-import com.divjazz.recommendic.user.service.PatientService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -30,11 +28,9 @@ import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
 public class AdminController {
 
     private final AdminService adminService;
-    private final PatientService patientService;
 
-    public AdminController(AdminService adminService, PatientService patientService) {
+    public AdminController(AdminService adminService) {
         this.adminService = adminService;
-        this.patientService = patientService;
     }
 
     @PostMapping("create")
@@ -86,7 +82,7 @@ public class AdminController {
             var admins = adminService.getAllAdmins();
 
             var data = admins.stream()
-                    .map(admin -> new AdminInfoResponse(
+                    .map(admin -> new AdminResponse(
                             admin.getUserId(),
                             admin.getUserNameObject().getLastName(),
                             admin.getUserNameObject().getFirstName(),

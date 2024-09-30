@@ -7,7 +7,7 @@ import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;

@@ -1,6 +1,6 @@
-package com.divjazz.recommendic.search;
+package com.divjazz.recommendic.search.repository;
 
-import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,5 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface SearchRepository extends JpaRepository<Search, UUID> {
-    Optional<List<Search>> findByOwnerOfSearch(User patient);
+    Set<Search> findByOwnerOfSearch(User patient);
+
+
 }

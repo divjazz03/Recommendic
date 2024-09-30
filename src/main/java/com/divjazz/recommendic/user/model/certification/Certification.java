@@ -2,17 +2,14 @@ package com.divjazz.recommendic.user.model.certification;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.CertificateType;
+import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Table(name = "certification")
@@ -89,6 +86,14 @@ public class Certification extends Auditable implements Serializable{
 
     public void setConfirmed(boolean confirmed) {
         this.confirmed = confirmed;
+    }
+
+    public Assignment getAssignment() {
+        return assignment;
+    }
+
+    public void setAssignment(Assignment assignment) {
+        this.assignment = assignment;
     }
 
     @Override

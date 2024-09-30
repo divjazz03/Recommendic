@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.domain;
+package com.divjazz.recommendic;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;

@@ -1,10 +1,12 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.dto.PatientResponse;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
@@ -66,7 +68,7 @@ public class PatientService {
 
 
     @Transactional
-    public PatientInfoResponse createPatient(PatientDTO patientDTO){
+    public PatientResponse createPatient(PatientDTO patientDTO){
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         log.info("The patient role is {}", role);
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
@@ -88,6 +90,7 @@ public class PatientService {
         user.setProfilePicture(profilePicture);
         user.setMedicalCategories(medicalCategories);
         user.setUserCredential(userCredential);
+        user.setUserType(UserType.PATIENT);
         userCredential.setUser(user);
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
@@ -97,7 +100,7 @@ public class PatientService {
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION,Map.of("key",userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
-            return new PatientInfoResponse(user.getId()
+            return new PatientResponse(user.getUserId()
                     ,user.getUserNameObject().getLastName()
                     ,user.getUserNameObject().getFirstName()
                     ,user.getPhoneNumber()
@@ -113,8 +116,8 @@ public class PatientService {
                 .copyOf(patientRepository.findAll());
     }
 
-    public void deletePatientById(long patient_Id){
-        patientRepository.deleteById(patient_Id);
+    public void deletePatientByUserId(String patient_Id){
+        patientRepository.deleteByUserId(patient_Id);
     }
 
     public void modifyPatient(Patient patient){
@@ -124,6 +127,15 @@ public class PatientService {
     public Patient findPatientById(long id){
         return patientRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Patient> findPatientByUserId(String id){
+        return patientRepository.findByUserId(id);
+    }
+
+    public Set<Consultation> getConsultations(String patient_id){
+        return patientRepository.findAllConsultationsByPatientId(patient_id);
     }
 
 }

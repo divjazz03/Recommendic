@@ -3,15 +3,13 @@ package com.divjazz.recommendic.user.dto;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
-
-@JsonInclude(NON_DEFAULT)
-public record AdminInfoResponse(
-        String userId,
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public record PatientResponse(
+        String patientId,
         String lastName,
         String firstName,
-        String email,
+        String phoneNumber,
         String gender,
         Address address
-) {
+) implements UserResponse {
 }

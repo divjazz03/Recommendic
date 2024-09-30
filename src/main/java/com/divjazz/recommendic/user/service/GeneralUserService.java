@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,9 +46,13 @@ public class GeneralUserService {
         return user;
     }
 
-    public User retrieveUserByUserId(String id){
+    public Optional<User> retrieveUserByUserId(String id){
 
-        return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
+        return userRepository.findByUserId(id);
+    }
+
+    public User retrieveUserById(Long id){
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 
     public UserCredential retrieveCredentialById(Long id) {

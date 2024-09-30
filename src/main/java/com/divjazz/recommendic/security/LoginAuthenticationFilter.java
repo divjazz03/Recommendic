@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.security.jwt.service.JwtService;
-import com.divjazz.recommendic.user.domain.Response;
+import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.LoginType;
@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.divjazz.recommendic.security.constant.Constants.LOGIN_PATH;
-import static com.divjazz.recommendic.user.utils.RequestUtils.getResponse;
-import static com.divjazz.recommendic.user.utils.RequestUtils.handleErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.handleErrorResponse;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
 
 

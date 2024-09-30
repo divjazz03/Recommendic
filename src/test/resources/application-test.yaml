@@ -1,0 +1,18 @@
+ACTIVE_PROFILE: dev
+POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_ENV}
+POSTGRES_USER: recommendation
+POSTGRES_URL: jdbc:postgresql://localhost:5432/recommend_test_db
+
+EMAIL_HOST: smtp.gmail.com
+EMAIL_PORT: 476
+EMAIL_ID: divjazz9@gmail.com
+EMAIL_PASSWORD: ${EMAIL_PASSWORD_ENV}
+VERIFY_EMAIL_HOST: localhost
+
+JWT_EXPIRATION: 400000000
+JWT_SECRET: ${JWT_SECRET_ENV}
+
+FILE_UPLOAD_IMPL: ${FILE_UPLOAD_IMPL_ENV}
+OPEN_FDA_API_BASE_URL: https://api.fda.gov
+ADVERSE_EFFECT_END_POINT: /drug/event.json?api_key=${OPEN_FDA_API_KEY}
+DRUGS_END_POINT: /drug/drugsfda.json?api_key=${OPEN_FDA_API_KEY}

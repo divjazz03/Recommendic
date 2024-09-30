@@ -22,6 +22,14 @@ public class Role{
     @Id
     private Long id;
 
+    protected Role(){}
+
+    public Role(String name, String permissions, Long id) {
+        this.name = name;
+        this.permissions = permissions;
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }

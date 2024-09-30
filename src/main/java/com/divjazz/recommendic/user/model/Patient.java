@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -26,13 +27,7 @@ public final class Patient extends User {
     @OneToMany(mappedBy = "patient")
     private List<Consultation> consultations;
 
-    public List<Consultation> getConsultations() {
-        return consultations;
-    }
 
-    public void setConsultations(List<Consultation> consultations) {
-        this.consultations = consultations;
-    }
 
     protected Patient(){}
 
@@ -44,6 +39,7 @@ public final class Patient extends User {
             Address address, Role role, UserCredential userCredential){
 
         super(userName,email,phoneNumber,gender,address, role, userCredential);
+        super.setUserType(UserType.PATIENT);
         medicalCategories = new HashSet<>(30);
     }
 
@@ -60,7 +56,13 @@ public final class Patient extends User {
         }
     }
 
+    public List<Consultation> getConsultations() {
+        return consultations;
+    }
 
+    public void setConsultations(List<Consultation> consultations) {
+        this.consultations = consultations;
+    }
     @Override
     public String toString() {
         return "Patient{" +
