@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${ACTIVE_PROFILE:test}
+    active: ${ACTIVE_PROFILE}
   jackson:
     default-property-inclusion: non_null
     serialization:

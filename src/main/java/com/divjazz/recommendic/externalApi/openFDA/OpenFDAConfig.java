@@ -16,10 +16,6 @@ public class OpenFDAConfig {
     @Value("${api.drug.drugs_endpoint}")
     String openFDADrugsEndPoint;
 
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.build();
-    }
 
     public String getOpenFDABaseUrl() {
         return openFDABaseUrl;
