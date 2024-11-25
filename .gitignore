@@ -22,6 +22,7 @@ src/main/resources/application-dev.yaml
 src/main/resources/application-prod.yaml
 src/test/resources/application-test.yaml
 .env
+.sdkmanrc
 
 ### NetBeans ###
 /nbproject/private/

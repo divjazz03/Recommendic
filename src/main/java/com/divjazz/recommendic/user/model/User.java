@@ -4,7 +4,6 @@ import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.*;
-import static com.divjazz.recommendic.security.constant.Constants.PERMISSION_DELIMITER;
 
 
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
@@ -16,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 

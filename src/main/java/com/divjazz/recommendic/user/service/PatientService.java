@@ -8,8 +8,8 @@ import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
-import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
+import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
@@ -132,6 +132,10 @@ public class PatientService {
     @Transactional(readOnly = true)
     public Optional<Patient> findPatientByUserId(String id){
         return patientRepository.findByUserId(id);
+    }
+
+    public Set<Patient> findPatientsByMedicalCategories(Set<MedicalCategory> medicalCategories) {
+        return patientRepository.findPatientByMedicalCategories(medicalCategories);
     }
 
     public Set<Consultation> getConsultations(String patient_id){

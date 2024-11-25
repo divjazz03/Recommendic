@@ -3,12 +3,9 @@ package com.divjazz.recommendic.user.service;
 import com.divjazz.recommendic.cache.CacheStore;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
-import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
+import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class GeneralUserService {

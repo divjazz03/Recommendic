@@ -18,7 +18,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @Entity
 @Table(name = "consultant")
-@JsonInclude(NON_DEFAULT)
 public final class Consultant extends User implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,

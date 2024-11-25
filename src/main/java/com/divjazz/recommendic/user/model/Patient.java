@@ -8,15 +8,15 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 
-import java.util.*;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@JsonInclude(NON_DEFAULT)
+
 @Table(name = "patient")
 public final class Patient extends User {
 

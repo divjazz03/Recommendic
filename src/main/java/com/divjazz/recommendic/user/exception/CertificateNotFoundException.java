@@ -1,6 +1,4 @@
-package com.divjazz.recommendic.user.exceptions;
-
-import com.divjazz.recommendic.user.model.Consultant;
+package com.divjazz.recommendic.user.exception;
 
 public class CertificateNotFoundException extends RuntimeException{
 

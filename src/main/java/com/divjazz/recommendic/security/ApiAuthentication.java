@@ -1,8 +1,6 @@
 package com.divjazz.recommendic.security;
 
-import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.User;
-import org.springframework.security.access.method.P;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;

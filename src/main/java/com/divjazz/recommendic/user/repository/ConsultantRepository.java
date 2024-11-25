@@ -3,7 +3,6 @@ package com.divjazz.recommendic.user.repository;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.Assignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,7 +24,7 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
     Set<Consultant> findConsultantByName(@Param("name") String name);
 
     @Query(value = """
-            select c from Consultant c inner join users u on u.id = c.id where certified = true and to_tsvector('english', specialization) @@ to_tsquery('english', :query)\s
+            select c from Consultant c inner join users u on u.id = c.id where certified = true and to_tsvector('english', specialization) @@ to_tsquery('english', :query)
             or to_tsvector('english', first_name) or to_tsvector('english', last_name) @@ to_tsquery('english',:query)
             """, nativeQuery = true)
     Set<Consultant> searchConsultant(@Param("query") String query);
@@ -33,7 +32,7 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
     @Query(value = "select c from Consultation c where c.consultant_id = :consultantId", nativeQuery = true)
     Set<Consultation> findAllConsultationsByConsultantId(@Param("consultantId") String consultantId);
 
-    @Query(value = "select c from Consultant c where c.certified = false")
+    @Query(value = "select c from Consultant c where c.certified = false", nativeQuery = true)
     Set<Consultant> findUnCertifiedConsultant();
 
 }

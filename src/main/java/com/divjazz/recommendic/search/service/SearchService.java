@@ -6,6 +6,7 @@ import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
+import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -46,18 +47,14 @@ public class SearchService {
      */
     public Set<SearchResult> executeQuery(String query, String userId, String category){
         var currentUser = userService.retrieveUserByUserId(userId);
-        if (currentUser.isPresent()) {
-            return handleSearchForAuthorizedUsers(query, currentUser.get(), category);
-        } else {
-            return handleSearchForUnauthorizedUsers(query, category);
-        }
+        return currentUser.map(user -> handleSearchForAuthorizedUsers(query, user, category))
+                .orElseGet(() -> handleSearchForUnauthorizedUsers(query, category));
     }
 
     private Set<Search> retrieveSearchesByUserId(String userId){
-        var user = userService.retrieveUserByUserId(userId);
-        if (user.isPresent())
-            return searchRepository.findByOwnerOfSearch(user.get());
-        else return Collections.emptySet();
+        var currentUser = userService.retrieveUserByUserId(userId);
+
+        return currentUser.map(searchRepository::findByOwnerOfSearch).orElse(Collections.emptySet());
     }
 
     private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category){
@@ -112,10 +109,6 @@ public class SearchService {
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
                 }
 
-
-
-
-
             }
 
             case CONSULTANT -> {
@@ -134,8 +127,11 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
+                        var consultant = consultantService.retrieveConsultantByUserId(currentUser.getUserId()).orElseThrow(UserNotFoundException::new);
+                        var patients = patientService.findPatientsByMedicalCategories(Collections.singleton(consultant.getMedicalCategory()));
                         results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult)
+                                Map.of("consultations", consultationsResult ,
+                                        "patients", patients)
                         ));
                     }
                     case CONSULTATION -> {
@@ -151,6 +147,7 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
+
                         results.add(new SearchResult(
                                 Map.of("consultations", consultationsResult)
                         ));

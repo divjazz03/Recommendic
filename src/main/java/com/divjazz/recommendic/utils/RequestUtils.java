@@ -1,10 +1,10 @@
 package com.divjazz.recommendic.utils;
 
 import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.user.exceptions.CertificateNotFoundException;
-import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
-import com.divjazz.recommendic.user.exceptions.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
+import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
+import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
+import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

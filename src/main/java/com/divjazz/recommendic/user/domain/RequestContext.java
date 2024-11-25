@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.domain;
 
-import java.util.UUID;
 
 public class RequestContext {
     private static final ThreadLocal<Long> USER_ID = new ThreadLocal<>();

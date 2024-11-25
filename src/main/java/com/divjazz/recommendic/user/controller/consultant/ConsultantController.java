@@ -7,7 +7,7 @@ import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.exceptions.NoSuchMedicalCategory;
+import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import jakarta.servlet.http.HttpServletRequest;

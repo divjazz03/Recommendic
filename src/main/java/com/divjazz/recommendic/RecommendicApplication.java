@@ -29,9 +29,7 @@ import java.util.Set;
 public class RecommendicApplication implements CommandLineRunner {
 	public final Logger log = LoggerFactory.getLogger(RecommendicApplication.class);
 
-	private final OpenFDAQuery openFDAQuery;
-	public RecommendicApplication(OpenFDAQuery openFDAQuery) {
-		this.openFDAQuery = openFDAQuery;
+	public RecommendicApplication() {
 	}
 
 	public static void main(String[] args) {
@@ -41,7 +39,5 @@ public class RecommendicApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		RequestContext.setUserId(0);
-		var output = openFDAQuery.queryDrugs(List.of("products.marketing_status:\"Discontinued\""));
-		log.info("result = {}" , output);
 	}
 }

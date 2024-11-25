@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.Patient;
 
 
@@ -19,5 +20,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     @Query(value = "select * from consultation where patient_id=:patientId", nativeQuery = true)
     Set<Consultation> findAllConsultationsByPatientId(String patientId);
+
+    Set<Patient> findPatientByMedicalCategories(Set<MedicalCategory> category);
 
 }

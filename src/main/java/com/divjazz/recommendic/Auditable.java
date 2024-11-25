@@ -2,14 +2,12 @@ package com.divjazz.recommendic;
 
 
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
 import jakarta.persistence.*;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;

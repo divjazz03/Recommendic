@@ -22,7 +22,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
     }
 
     public OpenFDAResult queryDrugs(@NotNull List<String> searchFields) {
-        StringBuilder url = new StringBuilder(getOpenFDABaseUrl()+getOpenFDADrugsEndPoint());
+        StringBuilder url = new StringBuilder(getOpenFDABaseUrl() + getOpenFDADrugsEndPoint());
         url.append("search=");
         for (String searchField : searchFields) {
             url.append(searchField).append("AND");
@@ -32,7 +32,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         return restTemplate.getForObject(url.toString(),OpenFDAApplicationResult.class);
     }
     public OpenFDAResult queryDrugs(String countField, @NotNull List<String> searchFields) {
-        StringBuilder url = new StringBuilder(getOpenFDABaseUrl()+getOpenFDADrugsEndPoint());
+        StringBuilder url = new StringBuilder(getOpenFDABaseUrl() + getOpenFDADrugsEndPoint());
         url.append("search=");
         for (String searchField : searchFields) {
             url.append(searchField).append("AND");
@@ -43,7 +43,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         return restTemplate.getForObject(url.toString(),OpenFDACountResult.class);
     }
     public OpenFDAResult queryDrugs(Sort sort, String sortTerm, @NotNull List<String> searchFields) {
-        StringBuilder url = new StringBuilder(getOpenFDABaseUrl()+getOpenFDADrugsEndPoint());
+        StringBuilder url = new StringBuilder(getOpenFDABaseUrl() + getOpenFDADrugsEndPoint());
         url.append("search=");
         for (String searchField : searchFields) {
             url.append(searchField).append("AND");
@@ -54,16 +54,17 @@ public class OpenFDAQuery extends OpenFDAConfig{
         return restTemplate.getForObject(url.toString(),OpenFDAApplicationResult.class);
     }
     public OpenFDAResult queryDrugs(String countField, Sort sort, String sortTerm, @NotNull List<String> searchFields) {
-        StringBuilder url = new StringBuilder(getOpenFDABaseUrl()+getOpenFDADrugsEndPoint());
+        StringBuilder url = new StringBuilder(getOpenFDABaseUrl() + getOpenFDADrugsEndPoint());
         url.append("search=");
         for (String searchField : searchFields) {
             url.append(searchField).append("AND");
         }
         url.delete(url.length()-4, url.length());
-        url.append("&").append("sort=").append(sortTerm).append(":").append(sort);
+        url.append("&").append("sort=").append(sortTerm).append(":").append(sort.toString());
         url.append("&").append("count=").append(countField);
         url.append("&").append("limit=").append(5);
         return restTemplate.getForObject(url.toString(),OpenFDACountResult.class);
     }
+  //  public OpenFDAResult queryAdverseEffect(){}
 
 }

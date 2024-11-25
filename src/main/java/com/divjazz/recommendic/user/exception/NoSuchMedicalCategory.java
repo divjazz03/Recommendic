@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.exceptions;
+package com.divjazz.recommendic.user.exception;
 
 public class NoSuchMedicalCategory extends RuntimeException{
 

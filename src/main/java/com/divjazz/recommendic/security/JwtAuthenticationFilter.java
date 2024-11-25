@@ -4,7 +4,7 @@ import com.divjazz.recommendic.security.domain.TokenData;
 import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.TokenNotFoundException;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
-import com.divjazz.recommendic.user.exceptions.UserNotFoundException;
+import com.divjazz.recommendic.user.exception.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
 import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;

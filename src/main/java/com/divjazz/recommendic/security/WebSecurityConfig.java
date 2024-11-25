@@ -3,12 +3,10 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +43,8 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("api/v1/patient/create",
-                        "api/v1/consultant/create").permitAll()
+                        "api/v1/consultant/create",
+                                "api/v1/search").permitAll()
                         .requestMatchers("api/patient/delete").hasAnyRole("PATIENT","ADMIN","SUPER_ADMIN")
                         .requestMatchers("api/patient/patients").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("api/patient/search").hasRole("PATIENT")
