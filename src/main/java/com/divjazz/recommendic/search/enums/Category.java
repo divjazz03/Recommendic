@@ -4,5 +4,6 @@ public enum Category {
 
     ALL,
     CONSULTATION,
-    ASSIGNMENT
+    ASSIGNMENT,
+    SEARCH_HISTORY
 }

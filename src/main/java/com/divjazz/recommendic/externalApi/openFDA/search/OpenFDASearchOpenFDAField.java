@@ -12,15 +12,6 @@ public record OpenFDASearchOpenFDAField(
         List<String> product_ndc,
         List<String> product_type,
         List<String> route,
-        List<String> substance_name,
-        List<String> rxcui,
-        List<String> spl_id,
-        List<String> spl_set_id,
-        List<String> package_ndc,
-        List<String> nui,
-        List<String> pharm_class_mao,
-        List<String> pharm_class_cs,
-        List<String> pharm_class_epc,
-        List<String> unii
+        List<String> substance_name
 ) {
 }

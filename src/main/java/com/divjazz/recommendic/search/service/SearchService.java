@@ -46,9 +46,11 @@ public class SearchService {
      @return Returns a Set of Consultant Objects
      */
     public Set<SearchResult> executeQuery(String query, String userId, String category){
-        var currentUser = userService.retrieveUserByUserId(userId);
-        return currentUser.map(user -> handleSearchForAuthorizedUsers(query, user, category))
-                .orElseGet(() -> handleSearchForUnauthorizedUsers(query, category));
+        var currentUser = userService.retrieveUserByUserId(userId).orElseThrow(UserNotFoundException::new);
+        return handleSearchForAuthorizedUsers(query, currentUser, category);
+    }
+    public Set<SearchResult> executeQuery(String query, String category) {
+        return handleSearchForUnauthorizedUsers(query, category);
     }
 
     private Set<Search> retrieveSearchesByUserId(String userId){
@@ -98,12 +100,14 @@ public class SearchService {
                             )).collect(Collectors.toSet());
                         }
                         var consultants = consultantService.searchSomeConsultantsByQuery(query);
-                        results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+
                         results.add( new SearchResult(
                                 Map.of("consultations", consultationsResult,
                                         "consultantsByQuery", consultants)
                         ));
                     }
+
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
                     default -> results.add(new SearchResult(Collections.emptyMap()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
@@ -153,6 +157,8 @@ public class SearchService {
                         ));
                     }
 
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+
                     default -> results.add(new SearchResult(Collections.emptyMap()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
 
@@ -192,6 +198,7 @@ public class SearchService {
                             ));
                         }
                     }
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
                     default -> results.add(new SearchResult(Collections.emptyMap()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
@@ -200,8 +207,6 @@ public class SearchService {
 
             }
         }
-
-        results.addAll(handleSearchForUnauthorizedUsers(query, category));
         return results;
     }
 
