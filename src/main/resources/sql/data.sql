@@ -1,4 +1,4 @@
-DELETE FROM users WHERE id = 0;
+DELETE FROM users;
 DELETE FROM admin WHERE id = 0;
 DELETE FROM roles WHERE id = 0;
 DELETE FROM roles WHERE id = 1;

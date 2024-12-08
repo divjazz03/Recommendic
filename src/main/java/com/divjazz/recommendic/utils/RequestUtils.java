@@ -105,6 +105,12 @@ public class RequestUtils {
         if (e instanceof AccessDeniedException ) {
             Response apiREsponse = getErrorResponse(request,response,e,HttpStatus.FORBIDDEN);
             writeResponse.accept(response,apiREsponse);
+        } else if (e instanceof UserNotFoundException) {
+            Response apiResponse = getErrorResponse(request,response,e,HttpStatus.NOT_FOUND);
+            writeResponse.accept(response,apiResponse);
+        } else {
+            Response apiResponse = getErrorResponse(request,response,e,HttpStatus.EXPECTATION_FAILED);
+            writeResponse.accept(response,apiResponse);
         }
     }
 }

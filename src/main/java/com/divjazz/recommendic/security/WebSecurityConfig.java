@@ -5,6 +5,7 @@ import com.divjazz.recommendic.user.repository.credential.UserCredentialReposito
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -42,16 +45,16 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("api/v1/patient/create",
-                        "api/v1/consultant/create",
-                                "api/v1/search").permitAll()
-                        .requestMatchers("api/patient/delete").hasAnyRole("PATIENT","ADMIN","SUPER_ADMIN")
-                        .requestMatchers("api/patient/patients").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("api/patient/search").hasRole("PATIENT")
-                        .requestMatchers("api/patient/recommendations").hasRole("PATIENT")
-                        .requestMatchers("api/v1/consultant/consultants").hasAnyRole("CONSULTANT","ADMIN","SUPER_ADMIN")
-                        .requestMatchers("api/v1/admin/create/").hasRole("SUPER_ADMIN")
-                        .requestMatchers("api/v1/admin/admins").hasRole("SUPER_ADMIN")
+                       .requestMatchers("/api/v1/patient/create",
+                        "/api/v1/consultant/create").permitAll()
+                        .requestMatchers("/api/v1/search/drug/**").permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                        .requestMatchers("/api/v1/patient/delete").hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN, SYSTEM")
+                        .requestMatchers("/api/v1/patient/patients").hasAnyAuthority("PATIENT", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/v1/patient/recommendations").hasAuthority("PATIENT")
+                        .requestMatchers("/api/v1/consultant/consultants").hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN")
+                        .requestMatchers("/api/v1/admin/create").hasAuthority("SUPER_ADMIN")
+                        .requestMatchers("/api/v1/admin/admins").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)

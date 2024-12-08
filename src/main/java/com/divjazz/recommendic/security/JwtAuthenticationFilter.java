@@ -8,6 +8,7 @@ import com.divjazz.recommendic.user.exception.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
 import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -27,6 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -42,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         try {
-            if (!request.getRequestURI().equals("/user/login") && !request.getRequestURI().matches("/api/v1/(patient|consultant|admin)/create")) {
+            if ((!request.getRequestURI().equals("/user/login")) && (!request.getRequestURI().matches("/api/v1/(patient|consultant|admin)/create")) && (!request.getRequestURI().matches("/api/v1/search/drug/\\w*"))) {
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
                 String username = null;
@@ -66,15 +68,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         var authentication = ApiAuthentication.authenticated(userDetails, userPermissions);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        filterChain.doFilter(request,response);
+                        logger.info("authenticated user with email :{}", username);
+
                     } else {
                         throw new InvalidTokenException();
                     }
+
                 } else {
                     throw new AuthenticationException("No user found in authentication context");
                 }
+                filterChain.doFilter(request,response);
             } else {
                 filterChain.doFilter(request,response);
+                try (var out = response.getOutputStream()){
+                    var mapper = new ObjectMapper();
+                    var responseOut = getResponse(request, Map.of(),HttpStatus.valueOf(response.getStatus()).toString(), HttpStatus.valueOf(response.getStatus()));
+                    mapper.writeValue(out, responseOut);
+                }
+
             }
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
             filterChain.doFilter(request,response);

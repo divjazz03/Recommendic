@@ -35,7 +35,6 @@ public class ConsultantController {
     }
 
     @PostMapping("create")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Response> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams, HttpServletRequest httpServletRequest){
         RequestContext.reset();
         RequestContext.setUserId(0L);
@@ -70,8 +69,8 @@ public class ConsultantController {
 
     }
 
-    @NotNull
-    private static ConsultantDTO getConsultantDTO(ConsultantRegistrationParams requestParams) {
+
+    private static ConsultantDTO getConsultantDTO(@NotNull ConsultantRegistrationParams requestParams) {
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
         String userEmail = requestParams.email();
         String phoneNumber = requestParams.phoneNumber();
@@ -103,7 +102,6 @@ public class ConsultantController {
     }
 
     @GetMapping("consultants")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Response> getConsultants(HttpServletRequest httpServletRequest ){
         try {
             var data = consultantService.getAllConsultants().stream()

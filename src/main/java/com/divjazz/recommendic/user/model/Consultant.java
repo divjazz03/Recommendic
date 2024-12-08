@@ -20,12 +20,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 @Table(name = "consultant")
 public final class Consultant extends User implements Serializable {
 
-    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL,
             mappedBy = "ownerOfCertification", orphanRemoval = true)
     private Set<Certification> certificates;
 
 
-    @OneToMany(mappedBy = "consultant")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "consultant")
     private List<Consultation> consultations;
 
     public List<Consultation> getConsultations() {

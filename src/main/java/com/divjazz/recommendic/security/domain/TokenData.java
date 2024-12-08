@@ -31,6 +31,9 @@ public class TokenData {
         return valid;
     }
 
+    public Claims getClaims() {
+        return claims;
+    }
 
     public List<? extends GrantedAuthority> getGrantedAuthorities() {
         return grantedAuthorities;
