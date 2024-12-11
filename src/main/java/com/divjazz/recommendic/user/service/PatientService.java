@@ -32,10 +32,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class PatientService {
 
-    private Logger log = LoggerFactory.getLogger(PatientService.class);
+    private final Logger log = LoggerFactory.getLogger(PatientService.class);
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
