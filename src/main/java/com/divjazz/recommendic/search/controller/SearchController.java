@@ -1,10 +1,14 @@
 package com.divjazz.recommendic.search.controller;
 
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.externalApi.openFDA.OpenFDAQuery;
 import com.divjazz.recommendic.search.service.SearchService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -15,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,13 +36,15 @@ public class SearchController {
     private final SearchService searchService;
     private final GeneralUserService userService;
     private final OpenFDAQuery openFDAQuery;
+    private final ArticleService articleService;
 
     public SearchController(SearchService searchService,
                             GeneralUserService userService,
-                            OpenFDAQuery openFDAQuery) {
+                            OpenFDAQuery openFDAQuery, ArticleService articleService) {
         this.searchService = searchService;
         this.userService = userService;
         this.openFDAQuery = openFDAQuery;
+        this.articleService = articleService;
     }
 
     @GetMapping("auth/")
@@ -72,6 +77,7 @@ public class SearchController {
             boolean sortIsNullButLimitIsNot = Objects.isNull(sort) && Objects.nonNull(limit);
             boolean sortAndLimitAreNotNull = Objects.nonNull(sort) && Objects.nonNull(limit);
             if (Objects.isNull(count)) {
+
                 if (sortAndLimitAreNotNull) {
                     var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
                                     splitSearchTerms(searchTerm))),
@@ -129,9 +135,22 @@ public class SearchController {
                                                               HttpServletRequest request) {
         var results = searchService.executeQuery(query, category);
         var response = getResponse(request, Map.of("data", results), "Search Successful", HttpStatus.OK);
-        return CompletableFuture.completedFuture(new ResponseEntity<>(response, HttpStatus.OK));
+        return CompletableFuture.completedFuture(new ResponseEntity<>(response, response.status()));
     }
 
+    // Should be pageable
+    @GetMapping("/article")
+    public ResponseEntity<Response> searchArticle(@RequestParam(name = "query",defaultValue = "") String query,
+                                                  @RequestParam(name = "offset", defaultValue = "0") Integer offset,
+                                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                  @RequestParam(name = "sortBy", defaultValue = "title") String sortBy,
+                                                  HttpServletRequest httpServletRequest) {
+        var results = articleService.searchArticle(query,
+                PageRequest.of(offset,pageSize, Sort.by(sortBy)),
+                httpServletRequest);
+        return new ResponseEntity<>(results, results.status());
+
+    }
     private boolean isValidUser(String userId, Authentication authentication) {
         var authUserId = userService.retrieveUserByUsername(((UserDetails) authentication.getPrincipal()).getUsername()).getUserId();
         return (userId.equals(authUserId) && authentication.isAuthenticated());

@@ -2,7 +2,7 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.ConsultantResponse;
+import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class ConsultantService {
     }
 
     @Transactional
-    public ConsultantResponse createConsultant(ConsultantDTO consultantDTO) {
+    public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
         Role role = roleRepository.getRoleByName("ROLE_CONSULTANT").orElseThrow(() -> new RuntimeException("No such role exists"));
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = new Consultant(
@@ -97,7 +98,7 @@ public class ConsultantService {
             userCredentialRepository.save(userCredential);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key",userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
-           return new ConsultantResponse(user.getUserId(),
+           return new ConsultantInfoResponse(user.getUserId(),
                    user.getUserNameObject().getLastName(),
                    user.getUserNameObject().getFirstName(),
                    user.getGender().toString(),
@@ -129,11 +130,20 @@ public class ConsultantService {
         return consultantRepository.findConsultantByName(name);
     }
 
-    public Set<ConsultantResponse> searchSomeConsultantsByQuery(String query){
+    public static ConsultantInfoResponse consultantToConsultantInfoResponse(Consultant consultant) {
+        return new ConsultantInfoResponse(consultant.getUserId(),
+                consultant.getUserNameObject().getLastName(),
+                consultant.getUserNameObject().getFirstName(),
+                consultant.getGender().toString(),
+                consultant.getAddress(),
+                consultant.getMedicalCategory().toString());
+    }
+
+    public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query){
         return consultantRepository.searchConsultant(query)
                 .stream()
                 .limit(5)
-                .map(consultant -> new ConsultantResponse(
+                .map(consultant -> new ConsultantInfoResponse(
                         consultant.getUserId(),
                         consultant.getUserNameObject().getLastName(),
                         consultant.getUserNameObject().getFirstName(),
@@ -150,6 +160,9 @@ public class ConsultantService {
 
     public Optional<Consultant> retrieveConsultantByUserId(String userId){
         return consultantRepository.findByUserId(userId);
+    }
+    public Optional<Consultant> retrieveConsultantByEmail(String email){
+        return consultantRepository.findByEmail(email);
     }
 
     public Set<Consultant> getAllUnCertifiedConsultants(){

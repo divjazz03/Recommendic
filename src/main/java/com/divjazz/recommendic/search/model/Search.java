@@ -25,7 +25,7 @@ public class Search extends Auditable {
 
     protected Search(){
     }
-    public Search(String query){
+    public Search(String query, User ownerOfSearch){
         this.query = query;
     }
 

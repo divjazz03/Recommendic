@@ -14,9 +14,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@Table(name = "recommendation")
-public class Recommendation extends Auditable implements Serializable {
+@Table(name = "consultant_recommendation")
+public class ConsultantRecommendation extends Auditable {
     @ManyToOne()
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "patient_id")
@@ -26,14 +25,13 @@ public class Recommendation extends Auditable implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
-    //Todo: Create a recommendation system for Articles
 
 
-    public Recommendation(UUID id, Consultant consultant, Patient patient) {
+    public ConsultantRecommendation(UUID id, Consultant consultant, Patient patient) {
         this.consultant = consultant;
         this.patient = patient;
     }
-    protected Recommendation(){}
+    protected ConsultantRecommendation(){}
 
     public Patient getPatient() {
         return patient;
@@ -57,7 +55,7 @@ public class Recommendation extends Auditable implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        Recommendation that = (Recommendation) o;
+        ConsultantRecommendation that = (ConsultantRecommendation) o;
 
         if (!Objects.equals(patient, that.patient)) return false;
         return Objects.equals(consultant, that.consultant);

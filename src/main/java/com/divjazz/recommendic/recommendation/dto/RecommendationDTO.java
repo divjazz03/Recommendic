@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.recommendation.dto;
 
 
-import com.divjazz.recommendic.user.dto.ConsultantResponse;
+import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 
 import java.util.UUID;
 
-public record RecommendationDTO(UUID id, ConsultantResponse consultant) {
+public record RecommendationDTO(UUID id, ConsultantInfoResponse consultant) {
 }

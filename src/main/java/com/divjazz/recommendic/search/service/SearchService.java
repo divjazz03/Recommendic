@@ -53,7 +53,7 @@ public class SearchService {
         return handleSearchForUnauthorizedUsers(query, category);
     }
 
-    private Set<Search> retrieveSearchesByUserId(String userId){
+    public Set<Search> retrieveSearchesByUserId(String userId){
         var currentUser = userService.retrieveUserByUserId(userId);
 
         return currentUser.map(searchRepository::findByOwnerOfSearch).orElse(Collections.emptySet());
@@ -207,6 +207,7 @@ public class SearchService {
 
             }
         }
+        searchRepository.save(new Search(query, currentUser));
         return results;
     }
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @JsonInclude(NON_DEFAULT)
-public record ConsultantResponse(
+public record ConsultantInfoResponse(
         String consultantId,
         String lastName,
         String firstName,

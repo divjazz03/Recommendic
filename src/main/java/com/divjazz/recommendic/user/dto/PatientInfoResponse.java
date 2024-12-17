@@ -4,7 +4,7 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public record PatientResponse(
+public record PatientInfoResponse(
         String patientId,
         String lastName,
         String firstName,

@@ -2,7 +2,7 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.PatientResponse;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
@@ -67,7 +67,7 @@ public class PatientService {
 
 
     @Transactional
-    public PatientResponse createPatient(PatientDTO patientDTO){
+    public PatientInfoResponse createPatient(PatientDTO patientDTO){
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         log.info("The patient role is {}", role);
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
@@ -99,7 +99,7 @@ public class PatientService {
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION,Map.of("key",userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
-            return new PatientResponse(user.getUserId()
+            return new PatientInfoResponse(user.getUserId()
                     ,user.getUserNameObject().getLastName()
                     ,user.getUserNameObject().getFirstName()
                     ,user.getPhoneNumber()

@@ -1,6 +1,6 @@
 ACTIVE_PROFILE: dev
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_ENV}
-POSTGRES_USER: recommendation
+POSTGRES_USER: consultant_recommendation
 POSTGRES_URL: jdbc:postgresql://localhost:5432/recommend_test_db
 
 EMAIL_HOST: smtp.gmail.com

@@ -1,12 +1,21 @@
 BEGIN;
 
-DROP TABLE IF EXISTS users, patient,
+DROP TABLE IF EXISTS users,
     users_credential,
     users_confirmation,
-    consultant, consultant_recommendation,consultant_patient,
+    consultant,
+    consultant_patient,
     admin,
     admin_assignment,
-    assignment, recommendation, certification, search, roles, consultation;
+    assignment,
+    consultant_recommendation,
+    article,
+    article_recommendation,
+    patient,
+    certification,
+    search,
+    roles,
+    consultation CASCADE ;
 
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS users(
@@ -35,10 +44,10 @@ CREATE TABLE IF NOT EXISTS users(
     updated_at          TIMESTAMP(6) WITH TIME ZONE     DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP(6) WITH TIME ZONE     DEFAULT CURRENT_TIMESTAMP,
     created_by          BIGINT                 NOT NULL,
-    updated_by          BIGINT                 NOT NULL,
-    CONSTRAINT uq_user_email UNIQUE (email),
-    CONSTRAINT uq_user_id UNIQUE (id),
-    CONSTRAINT uq_user_reference_id UNIQUE (reference_id)
+    updated_by          BIGINT                 NOT NULL
+--     CONSTRAINT uq_user_email UNIQUE (email),
+--     CONSTRAINT uq_user_id UNIQUE (id),
+--     CONSTRAINT uq_user_reference_id UNIQUE (reference_id)
 );
 
 
@@ -66,8 +75,8 @@ CREATE TABLE IF NOT EXISTS users_confirmation
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by   BIGINT                 NOT NULL,
-    updated_by   BIGINT                 NOT NULL,
-    CONSTRAINT uq_patient_confirmation_key UNIQUE (key)
+    updated_by   BIGINT                 NOT NULL
+    -- CONSTRAINT uq_patient_confirmation_key UNIQUE (key)
 );
 
 CREATE TABLE IF NOT EXISTS patient
@@ -86,11 +95,6 @@ CREATE TABLE IF NOT EXISTS consultant
     certificate_id      BIGINT
 );
 
-CREATE TABLE IF NOT EXISTS consultant_recommendation
-(
-    consultant_id     BIGINT NOT NULL,
-    recommendation_id BIGINT NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS roles(
     id              BIGINT PRIMARY KEY ,
@@ -137,7 +141,6 @@ CREATE TABLE IF NOT EXISTS assignment
     updated_by   BIGINT NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS admin_assignment
 (
     admin_id      BIGINT NOT NULL,
@@ -157,8 +160,22 @@ CREATE TABLE IF NOT EXISTS search
     updated_by   BIGINT                 NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS article
+(
+    id              BIGINT PRIMARY KEY ,
+    title           CHARACTER VARYING(255)  NOT NULL ,
+    content         TEXT                    NOT NULL ,
+    consultant_id   BIGINT                  NOT NULL ,
+    reference_id CHARACTER VARYING(255),
+    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by   BIGINT                 NOT NULL,
+    updated_by   BIGINT                 NOT NULL
 
-CREATE TABLE IF NOT EXISTS recommendation
+);
+
+
+CREATE TABLE IF NOT EXISTS consultant_recommendation
 (
     id            BIGINT PRIMARY KEY,
     reference_id  CHARACTER VARYING(255),
@@ -167,8 +184,21 @@ CREATE TABLE IF NOT EXISTS recommendation
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    BIGINT NOT NULL,
-    updated_by    BIGINT NOT NULL,
-    CONSTRAINT uq_recommendation_id UNIQUE (id)
+    updated_by    BIGINT NOT NULL
+    -- CONSTRAINT uq_recommendation_id UNIQUE (id)
+);
+
+CREATE TABLE IF NOT EXISTS article_recommendation
+(
+    id              BIGINT PRIMARY KEY,
+    reference_id    CHARACTER VARYING(255),
+    patient_id      BIGINT NOT NULL ,
+    article_id      BIGINT NOT NULL ,
+    updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by    BIGINT NOT NULL,
+    updated_by    BIGINT NOT NULL
+    -- CONSTRAINT uq_recommendation_id UNIQUE (id)
 );
 
 CREATE TABLE IF NOT EXISTS consultant_patient
@@ -189,8 +219,8 @@ CREATE TABLE IF NOT EXISTS consultation(
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    BIGINT NOT NULL,
-    updated_by    BIGINT NOT NULL,
-    CONSTRAINT uq_consultation_id UNIQUE (id)
+    updated_by    BIGINT NOT NULL
+   -- CONSTRAINT uq_consultation_id UNIQUE (id)
 );
 
 ALTER TABLE IF EXISTS users
@@ -210,15 +240,12 @@ ALTER TABLE IF EXISTS users_credential
 
 ALTER TABLE IF EXISTS patient
     ADD FOREIGN KEY (id) REFERENCES users (id) MATCH SIMPLE,
-    ADD FOREIGN KEY (recommendation_id) REFERENCES recommendation (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS consultant
     ADD FOREIGN KEY (id) REFERENCES users (id),
     ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE IF EXISTS consultant_recommendation
-    ADD FOREIGN KEY (recommendation_id) REFERENCES recommendation (id),
-    ADD FOREIGN KEY (consultant_id) REFERENCES consultant (id);
 
 ALTER TABLE IF EXISTS certification
     ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id),
@@ -240,9 +267,19 @@ ALTER TABLE IF EXISTS search
     ADD FOREIGN KEY (created_by) REFERENCES users (id),
     ADD FOREIGN KEY (updated_by) REFERENCES users (id);
 
+ALTER TABLE IF EXISTS article
+    ADD FOREIGN KEY (consultant_id) references consultant (id),
+    ADD FOREIGN KEY (created_by) references consultant (id),
+    ADD FOREIGN KEY (updated_by) references consultant (id);
 
-ALTER TABLE IF EXISTS recommendation
+ALTER TABLE IF EXISTS consultant_recommendation
     ADD FOREIGN KEY (consultant_id) REFERENCES consultant (id),
+    ADD FOREIGN KEY (patient_id) REFERENCES patient (id),
+    ADD FOREIGN KEY (created_by) REFERENCES patient (id),
+    ADD FOREIGN KEY (updated_by) REFERENCES patient (id);
+
+ALTER TABLE IF EXISTS article_recommendation
+    ADD FOREIGN KEY (article_id) REFERENCES consultant (id),
     ADD FOREIGN KEY (patient_id) REFERENCES patient (id),
     ADD FOREIGN KEY (created_by) REFERENCES patient (id),
     ADD FOREIGN KEY (updated_by) REFERENCES patient (id);
@@ -258,6 +295,7 @@ ALTER TABLE IF EXISTS consultation
 CREATE SEQUENCE IF NOT EXISTS primary_key_seq;
 CREATE INDEX idx_consultant_user_name ON users USING gin (to_tsvector('english',first_name), to_tsvector('english', last_name));
 CREATE INDEX idx_consultant_specialization ON consultant USING gin (to_tsvector('english',specialization));
+CREATE INDEX idx_article ON article USING gin (to_tsvector('english', title), to_tsvector('english', content));
 
 
 END;

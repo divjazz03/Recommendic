@@ -48,7 +48,7 @@ public class FileController {
     }
 
     @GetMapping(value = "consultant/certification",
-        params = "consultant_id")
+        params = "article_id")
     public ResponseEntity<List<FileResponseFile>> getCertificationByConsultantId(@RequestParam("consultant_id") String id){
         //TODO: Implement retrieval of certification from S3 Bucket
         return null;
