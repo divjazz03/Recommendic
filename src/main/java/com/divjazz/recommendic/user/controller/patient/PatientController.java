@@ -105,15 +105,18 @@ public class PatientController {
     }
 
     @GetMapping("patients")
-    public ResponseEntity<Response> patients(HttpServletRequest httpServletRequest){
+    public ResponseEntity<Response> patients(@RequestParam(name = "offset", defaultValue = "0") int offset,
+                                             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
+                                             @RequestParam(name = "sortBy", defaultValue = "firstName") String sortBy,
+                                             HttpServletRequest httpServletRequest){
         try {
             var patients = patientService.getAllPatients();
-            Function<Set<MedicalCategory>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategory> medicalCategories) -> {
-                return medicalCategories
+            Function<Set<MedicalCategory>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategory> medicalCategories) ->
+                medicalCategories
                         .stream()
                         .map(Enum::name)
                         .toArray(String[]::new);
-            };
+
             var patientDTOSet = patients.stream()
                     .map(patient -> new PatientDTO(
                             patient.getUserNameObject(),
@@ -200,33 +203,5 @@ public class PatientController {
 
         }
     }
-
-//    @GetMapping("/search")
-//    @Async
-//    public CompletableFuture<ResponseEntity<Response>> search(@RequestParam("user_id") Long user_id ,@RequestParam("query") String searchText) {
-//        try {
-//            var searchResult = searchService.executeQuery(searchText,user_id);
-//            var response = new Response(
-//                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-//                    HttpStatus.OK.value(),
-//                    "",
-//                    HttpStatus.OK,
-//                    "Results have been retrieved",
-//                    null,
-//                    Map.of("results", searchResult.results())
-//            );
-//            return CompletableFuture.completedFuture(new ResponseEntity<>(response, HttpStatus.OK));
-//        } catch (Exception e) {
-//            var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-//                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//                    "",
-//                    HttpStatus.INTERNAL_SERVER_ERROR,
-//                    e.getMessage(),
-//                    e.getClass().getName(),
-//                    null
-//            );
-//            return CompletableFuture.completedFuture(new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR));
-//        }
-//    }
 
 }

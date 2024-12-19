@@ -4,8 +4,6 @@ import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "article")
 public class Article extends Auditable {

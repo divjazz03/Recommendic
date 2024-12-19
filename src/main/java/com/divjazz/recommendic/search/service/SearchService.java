@@ -131,7 +131,7 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
-                        var consultant = consultantService.retrieveConsultantByUserId(currentUser.getUserId()).orElseThrow(UserNotFoundException::new);
+                        var consultant = consultantService.retrieveConsultantByUserId(currentUser.getUserId());
                         var patients = patientService.findPatientsByMedicalCategories(Collections.singleton(consultant.getMedicalCategory()));
                         results.add(new SearchResult(
                                 Map.of("consultations", consultationsResult ,

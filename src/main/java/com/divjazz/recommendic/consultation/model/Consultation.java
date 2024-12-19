@@ -16,6 +16,8 @@ public class Consultation extends Auditable {
     @Column(name = "diagnosis")
     private String diagnosis;
 
+    private String consultationId;
+
     @Column(name = "consultation_time")
     private LocalDateTime consultationTime;
 
@@ -32,8 +34,9 @@ public class Consultation extends Auditable {
     private Status status;
 
     protected Consultation(){}
-    public Consultation(String diagnosis, LocalDateTime consultationTime, Patient patient, Consultant consultant) {
+    public Consultation(String diagnosis, String consultationId, LocalDateTime consultationTime, Patient patient, Consultant consultant) {
         this.diagnosis = diagnosis;
+        this.consultationId = consultationId;
         this.consultationTime = consultationTime;
         this.patient = patient;
         this.consultant = consultant;

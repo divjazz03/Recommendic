@@ -3,7 +3,7 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.dto.LoginRequest;
-import com.divjazz.recommendic.user.dto.UserDTO;
+import com.divjazz.recommendic.user.dto.LoginResponse;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -63,7 +64,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        var user = (User) authResult.getPrincipal();
+        var user = userService.retrieveUserByEmail(((UserDetails) authResult.getPrincipal()).getUsername());
         userService.updateLoginAttempt(user.getEmail(), LoginType.LOGIN_SUCCESS);
         var httpResponse = sendResponse(request,response,user);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -76,22 +77,11 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
 
     private Response sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
         jwtService.addCookie(response,user,TokenType.ACCESS);
-        var userDTO = new UserDTO(
-                user.getCreatedBy(),
-                user.getUpdatedBy(),
-                user.getUserId(),
+        var userResponse = new LoginResponse(user.getUserId(),
                 user.getUserNameObject().getFirstName(),
                 user.getUserNameObject().getLastName(),
-                user.getProfilePicture().getPictureUrl(),
-                user.getProfilePicture().getName(),
-                user.getLastLogin().toString(),
-                user.getCreatedAt().toString(),
-                user.getUpdatedAt().toString(),
-                user.getRole().getName(),
-                user.isAccountNonExpired(),
-                user.isEnabled()
-        );
-        return getResponse(request, Map.of("user", userDTO), "login Success", HttpStatus.OK);
+                user.getRole().toString());
+        return getResponse(request, Map.of("user", userResponse), "login Success", HttpStatus.OK);
     }
 }
 

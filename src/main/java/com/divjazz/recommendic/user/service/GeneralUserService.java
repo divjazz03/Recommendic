@@ -33,7 +33,7 @@ public class GeneralUserService {
 
 
 
-    public User retrieveUserByUsername(String username){
+    public User retrieveUserByEmail(String username){
         User user = null;
         if (userRepository.findByEmail(username).isPresent()){
             user = userRepository.findByEmail(username).get();
@@ -55,7 +55,7 @@ public class GeneralUserService {
         return userCredentialRepository.findById(id).orElseThrow(() -> new RuntimeException("Credentials not Found"));
     }
     public void updateLoginAttempt(String email, LoginType loginType){
-        var user = retrieveUserByUsername(email);
+        var user = retrieveUserByEmail(email);
         RequestContext.setUserId(user.getId());
         switch (loginType) {
             case LOGIN_ATTEMPT -> {

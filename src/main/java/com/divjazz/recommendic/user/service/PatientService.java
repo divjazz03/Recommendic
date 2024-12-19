@@ -129,8 +129,8 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Patient> findPatientByUserId(String id){
-        return patientRepository.findByUserId(id);
+    public Patient findPatientByUserId(String id){
+        return patientRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
     public Set<Patient> findPatientsByMedicalCategories(Set<MedicalCategory> medicalCategories) {

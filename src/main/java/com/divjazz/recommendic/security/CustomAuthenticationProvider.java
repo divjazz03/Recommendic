@@ -31,7 +31,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         var userAuth = (ApiAuthentication) authentication;
-        var user = userService.retrieveUserByUsername(userAuth.getEmail());
+        var user = userService.retrieveUserByEmail(userAuth.getEmail());
         if (Objects.nonNull(user)) {
             var credential = userCredentialRepository.getUserCredentialByUser_UserId(user.getUserId())
                     .orElseThrow(() -> new RuntimeException("Credentials not found"));

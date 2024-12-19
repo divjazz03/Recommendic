@@ -20,4 +20,8 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
             @Param("userId") String userId);
     Set<Consultation> getAllByAccepted(boolean isAccepted);
 
+    Optional<Consultation> getConsultationByConsultationId(String consultationId);
+    Set<Consultation> getAllByConsultantAndAccepted(Consultant consultant, boolean isAccepted);
+
+
 }

@@ -39,7 +39,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -172,12 +171,12 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         return tokenFunction.apply(
                 TokenData.builder()
                         .valid(
-                                Objects.equals(userService.retrieveUserByUsername(subject.apply(token)).getEmail(), claimsFunction.apply(token).getSubject())
+                                Objects.equals(userService.retrieveUserByEmail(subject.apply(token)).getEmail(), claimsFunction.apply(token).getSubject())
                         )
                         .expired(Instant.now().isAfter(getClaimsValue(token, Claims::getExpiration).toInstant()))
                         .authorities(List.of(new SimpleGrantedAuthority((String) claimsFunction.apply(token).get("permissions"))))
                         .claims(claimsFunction.apply(token))
-                        .user(userService.retrieveUserByUsername(subject.apply(token)))
+                        .user(userService.retrieveUserByEmail(subject.apply(token)))
                         .build()
         );
     }

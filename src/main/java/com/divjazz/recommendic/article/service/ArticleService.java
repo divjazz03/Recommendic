@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class ArticleService {
@@ -60,7 +59,7 @@ public class ArticleService {
     public Response recommendArticles(Pageable pageable, Authentication authentication, HttpServletRequest request) {
         List<Article> result = new ArrayList<>(10);
         var patientMedicalCategories = ((Patient) generalUserService
-                    .retrieveUserByUsername(((UserDetails)authentication
+                    .retrieveUserByEmail(((UserDetails)authentication
                         .getPrincipal()).getUsername()))
                 .getMedicalCategories();
         patientMedicalCategories.stream()

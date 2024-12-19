@@ -158,8 +158,8 @@ public class ConsultantService {
         return consultantRepository.findAllConsultationsByConsultantId(consultantId);
     }
 
-    public Optional<Consultant> retrieveConsultantByUserId(String userId){
-        return consultantRepository.findByUserId(userId);
+    public Consultant retrieveConsultantByUserId(String userId){
+        return consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
     }
     public Optional<Consultant> retrieveConsultantByEmail(String email){
         return consultantRepository.findByEmail(email);
