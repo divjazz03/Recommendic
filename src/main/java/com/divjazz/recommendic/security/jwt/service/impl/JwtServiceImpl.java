@@ -68,6 +68,15 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .filter(cookie -> Objects.equals(cookieName, cookie.getName()))
                     .map(Cookie::getValue)
                     .findAny()).orElse(empty());
+
+    private final Function<HttpServletRequest, Optional<String>> extractTokenFromHeader = httpServletRequest -> {
+        var jwtToken = httpServletRequest.getHeader("Authorization");
+        if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
+            jwtToken = jwtToken.substring(7);
+            return Optional.of(jwtToken);
+        }
+        return Optional.empty();
+    };
     private final BiFunction<HttpServletRequest, String, Optional<Cookie>> extractCookie = (request, cookieName) ->
             Optional.of(Arrays.stream(
                             request.getCookies() == null ? new Cookie[]{new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
@@ -157,6 +166,11 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
     }
 
     @Override
+    public Optional<String> extractToken(HttpServletRequest httpServletRequest) {
+        return extractTokenFromHeader.apply(httpServletRequest);
+    }
+
+    @Override
     public void addCookie(HttpServletResponse response, User user, TokenType type) {
         addCookie.accept(response, user, type);
     }
@@ -200,5 +214,12 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         return false;
     }
 
-
+    @Override
+    public boolean validateTokenInHeader(HttpServletRequest request) {
+        var token = extractToken(request);
+        if (token.isPresent()) {
+            return getTokenData(token.get(), TokenData::isValid);
+        }
+        return false;
+    }
 }

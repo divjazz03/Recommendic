@@ -16,6 +16,7 @@ public class Consultation extends Auditable {
     @Column(name = "diagnosis")
     private String diagnosis;
 
+    @Column(name = "consultation_id")
     private String consultationId;
 
     @Column(name = "consultation_time")
@@ -68,6 +69,10 @@ public class Consultation extends Auditable {
 
     public Consultant getConsultant() {
         return consultant;
+    }
+
+    public String getConsultationId() {
+        return consultationId;
     }
 
     public void setConsultant(Consultant consultant) {

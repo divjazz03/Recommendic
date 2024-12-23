@@ -42,9 +42,9 @@ public class GeneralUserService {
         return user;
     }
 
-    public Optional<User> retrieveUserByUserId(String id){
+    public User retrieveUserByUserId(String id){
 
-        return userRepository.findByUserId(id);
+        return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
     public User retrieveUserById(Long id){

@@ -40,7 +40,7 @@ public class ConsultationService {
                 consultant
                 );
         consultationRepository.save(consultation);
-        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserName().getFullName(), consultant.getUserName().getFullName(), Status.NOT_STARTED.toString(), false);
+        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserName().getFullName(), consultant.getUserName().getFullName(), Status.NOT_STARTED.toString(),consultation.getConsultationId(), false);
     }
 
     public ConsultationResponse acknowledgeConsultation(String consultationId) {
@@ -54,6 +54,7 @@ public class ConsultationService {
                 consultation.getPatient().getUserName().getFullName(),
                 consultation.getConsultant().getUserName().getFullName(),
                 consultation.getStatus().toString(),
+                consultation.getConsultationId(),
                 consultation.isAccepted());
     }
 

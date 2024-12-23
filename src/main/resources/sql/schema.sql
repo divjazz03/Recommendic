@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS users,
     patient,
     certification,
     search,
-    roles,
+    roles,message,
     consultation CASCADE ;
 
 /*                                              USER TABLE                                                             */
@@ -208,19 +208,36 @@ CREATE TABLE IF NOT EXISTS consultant_patient
 );
 
 CREATE TABLE IF NOT EXISTS consultation(
-    id            BIGINT PRIMARY KEY,
-    reference_id  CHARACTER VARYING(255),
-    diagnosis     TEXT,
-    consultation_time TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    patient_id    BIGINT NOT NULL,
-    consultant_id BIGINT NOT NULL,
-    accepted      BOOLEAN DEFAULT FALSE,
-    status        CHARACTER VARYING(10) DEFAULT 'NOT_STARTED',
+    id                  BIGINT PRIMARY KEY,
+    reference_id        CHARACTER VARYING(255),
+    diagnosis           TEXT,
+    consultation_time   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    consultation_id     CHARACTER VARYING(255),
+    patient_id          BIGINT NOT NULL,
+    consultant_id       BIGINT NOT NULL,
+    accepted            BOOLEAN DEFAULT FALSE,
+    status              CHARACTER VARYING(10) DEFAULT 'NOT_STARTED',
+    updated_at          TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by          BIGINT NOT NULL,
+    updated_by          BIGINT NOT NULL
+   -- CONSTRAINT uq_consultation_id UNIQUE (id)
+);
+
+CREATE TABLE IF NOT EXISTS message (
+    id              BIGINT PRIMARY KEY ,
+    reference_id    CHARACTER VARYING(255),
+    sender_id       CHARACTER VARYING(255),
+    receiver_id     CHARACTER VARYING(255),
+    consultation_id CHARACTER VARYING(255),
+    content         TEXT,
+    timestamp       CHARACTER VARYING(30),
+    delivered          BOOLEAN DEFAULT FALSE,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    BIGINT NOT NULL,
     updated_by    BIGINT NOT NULL
-   -- CONSTRAINT uq_consultation_id UNIQUE (id)
+
 );
 
 ALTER TABLE IF EXISTS users

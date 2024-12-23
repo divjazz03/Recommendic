@@ -46,7 +46,7 @@ public class SearchService {
      @return Returns a Set of Consultant Objects
      */
     public Set<SearchResult> executeQuery(String query, String userId, String category){
-        var currentUser = userService.retrieveUserByUserId(userId).orElseThrow(UserNotFoundException::new);
+        var currentUser = userService.retrieveUserByUserId(userId);
         return handleSearchForAuthorizedUsers(query, currentUser, category);
     }
     public Set<SearchResult> executeQuery(String query, String category) {
@@ -56,7 +56,7 @@ public class SearchService {
     public Set<Search> retrieveSearchesByUserId(String userId){
         var currentUser = userService.retrieveUserByUserId(userId);
 
-        return currentUser.map(searchRepository::findByOwnerOfSearch).orElse(Collections.emptySet());
+        return searchRepository.findByOwnerOfSearch(currentUser);
     }
 
     private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category){
@@ -79,6 +79,7 @@ public class SearchService {
                                     consultation.getPatient().getUserNameObject().getFullName(),
                                     consultation.getConsultant().getUserNameObject().getFullName(),
                                     consultation.getStatus().toString(),
+                                    consultation.getConsultationId(),
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
@@ -96,6 +97,7 @@ public class SearchService {
                                     consultation.getPatient().getUserNameObject().getFullName(),
                                     consultation.getConsultant().getUserNameObject().getFullName(),
                                     consultation.getStatus().toString(),
+                                    consultation.getConsultationId(),
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
@@ -128,6 +130,7 @@ public class SearchService {
                                     consultation.getPatient().getUserNameObject().getFullName(),
                                     consultation.getConsultant().getUserNameObject().getFullName(),
                                     consultation.getStatus().toString(),
+                                    consultation.getConsultationId(),
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
@@ -148,6 +151,7 @@ public class SearchService {
                                     consultation.getPatient().getUserNameObject().getFullName(),
                                     consultation.getConsultant().getUserNameObject().getFullName(),
                                     consultation.getStatus().toString(),
+                                    consultation.getConsultationId(),
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }

@@ -12,6 +12,7 @@ public record ConsultationResponse (
         String time,
         String patientName,
         String consultantName,
+        String consultationId,
         String status,
         boolean accepted
 )  implements Serializable {

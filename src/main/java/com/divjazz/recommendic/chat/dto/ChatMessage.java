@@ -1,19 +1,27 @@
 package com.divjazz.recommendic.chat.dto;
 
+import com.divjazz.recommendic.chat.MessageType;
+
+import java.time.LocalDateTime;
+
 public class ChatMessage {
 
     private final String senderId;
     private final String receiverId;
     private final String content;
-    private final String timeStamp;
+    private final String consultationId;
+    private final LocalDateTime timeStamp;
+    private final MessageType messageType;
 
 
 
-    public ChatMessage(String senderId, String receiverId, String content) {
+    public ChatMessage(String senderId, String receiverId, String content, String consultationId, MessageType messageType) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
-        timeStamp = String.valueOf(System.currentTimeMillis());
+        this.consultationId = consultationId;
+        this.messageType = messageType;
+        timeStamp = LocalDateTime.now();
     }
 
     public String getSenderId() {
@@ -24,7 +32,15 @@ public class ChatMessage {
         return content;
     }
 
-    public String getTimeStamp() {
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public String getConsultationId() {
+        return consultationId;
+    }
+
+    public LocalDateTime getTimeStamp() {
         return timeStamp;
     }
 

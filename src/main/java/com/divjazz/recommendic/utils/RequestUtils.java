@@ -5,6 +5,8 @@ import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
 import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
+import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +15,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Collections;
@@ -112,5 +116,9 @@ public class RequestUtils {
             Response apiResponse = getErrorResponse(request,response,e,HttpStatus.EXPECTATION_FAILED);
             writeResponse.accept(response,apiResponse);
         }
+    }
+
+    public static User getCurrentUser(Authentication authentication, GeneralUserService userService) {
+        return userService.retrieveUserByEmail(((UserDetails) authentication.getPrincipal()).getUsername());
     }
 }
