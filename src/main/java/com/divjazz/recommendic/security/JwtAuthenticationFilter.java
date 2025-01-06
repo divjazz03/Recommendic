@@ -83,11 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request,response);
             } else {
                 filterChain.doFilter(request,response);
-                try (var out = response.getOutputStream()){
-                    var mapper = new ObjectMapper();
-                    var responseOut = getResponse(request, Map.of(),HttpStatus.valueOf(response.getStatus()).toString(), HttpStatus.valueOf(response.getStatus()));
-                    mapper.writeValue(out, responseOut);
-                }
 
             }
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {

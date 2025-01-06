@@ -134,7 +134,6 @@ public class PatientController {
     }
 
     @DeleteMapping("delete")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Response> deletePatient(@RequestParam("patient_id") String patientId) {
 
         patientService.deletePatientByUserId(patientId);
