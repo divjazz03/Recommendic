@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.consultant;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
 public record ConsultantRegistrationParams(
@@ -8,6 +9,7 @@ public record ConsultantRegistrationParams(
         @NotEmpty(message = "Last name cannot be empty or null")
         String lastName,
         @NotEmpty(message = "Email cannot be empty or null")
+        @Email()
         String email,
         @NotEmpty(message = "Password cannot be empty or null")
         String password,

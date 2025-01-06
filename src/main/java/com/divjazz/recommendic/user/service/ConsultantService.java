@@ -22,6 +22,8 @@ import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepo
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,9 +112,8 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getAllConsultants(){
-        return ImmutableSet.
-                copyOf(consultantRepository.findAll());
+    public Page<Consultant> getAllConsultants(Pageable pageable){
+        return consultantRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.controller.admin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
 public record AdminRegistrationParams(
@@ -11,6 +12,7 @@ public record AdminRegistrationParams(
                 @JsonProperty("last_name")
         String lastName,
         @NotEmpty(message = "Email cannot be empty or null")
+        @Email()
         String email,
         @NotEmpty(message = "Phone number cannot be empty or null")
                 @JsonProperty("phone_number")

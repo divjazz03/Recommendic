@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.chat.config;
 
-import com.divjazz.recommendic.security.JWTCustomHandshakeHandler;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.context.annotation.Bean;
@@ -25,14 +24,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setHandshakeHandler(jwtCustomHandshakeHandler(userService,jwtService))
                 .setAllowedOrigins("*").withSockJS();
     }
 
-    @Bean
-    public JWTCustomHandshakeHandler jwtCustomHandshakeHandler(GeneralUserService userService, JwtService jwtService) {
-        return new JWTCustomHandshakeHandler(jwtService, userService);
-    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {

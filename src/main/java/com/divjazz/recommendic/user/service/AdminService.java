@@ -20,6 +20,8 @@ import com.divjazz.recommendic.user.repository.credential.UserCredentialReposito
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,9 +107,8 @@ public class AdminService {
 
     }
 
-    public Set<Admin> getAllAdmins(){
-        return ImmutableSet
-                .copyOf(adminRepository.findAll());
+    public Page<Admin> getAllAdmins(Pageable pageable){
+        return adminRepository.findAll(pageable);
     }
 
     public Set<Assignment> getAllAssignmentsAssigned(String adminId){

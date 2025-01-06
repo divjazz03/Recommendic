@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +82,7 @@ public class PatientService {
                 role,
                 userCredential);
         Set<MedicalCategory> medicalCategories = Arrays.stream(patientDTO.categoryOfInterest())
+                .map(String::toUpperCase)
                 .map(MedicalCategory::valueOf)
                 .collect(Collectors.toSet());
         var profilePicture = new ProfilePicture();
@@ -110,9 +113,8 @@ public class PatientService {
         }
     }
     @Transactional(readOnly = true)
-    public Set<Patient> getAllPatients(){
-        return ImmutableSet
-                .copyOf(patientRepository.findAll());
+    public Page<Patient> getAllPatients(Pageable pageable){
+        return patientRepository.findAll(pageable);
     }
 
     public void deletePatientByUserId(String patient_Id){

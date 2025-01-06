@@ -44,7 +44,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         try {
-            if ((!request.getRequestURI().equals("/user/login")) && (!request.getRequestURI().matches("/api/v1/(patient|consultant|admin)/create")) && (!request.getRequestURI().matches("/api/v1/search/drug/\\w*"))) {
+            if ((!request.getRequestURI().equals("/user/login")) &&
+                    (!request.getRequestURI().matches("/api/v1/(patient|consultant|admin)/create")) &&
+                    (!request.getRequestURI().matches("/api/v1/search/drug/\\w*")) &&
+                    (!request.getRequestURI().matches("/api/v1/medical_categories/\\w*"))) {
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
                 String username = null;

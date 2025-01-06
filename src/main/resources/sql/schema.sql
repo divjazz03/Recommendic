@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS message (
     receiver_id     CHARACTER VARYING(255),
     consultation_id CHARACTER VARYING(255),
     content         TEXT,
-    timestamp       CHARACTER VARYING(30),
+    timestamp       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     delivered          BOOLEAN DEFAULT FALSE,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -47,8 +47,9 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                        .requestMatchers("/api/v1/patient/create",
                         "/api/v1/consultant/create").permitAll()
-                        .requestMatchers("/api/v1/search/drug/**").permitAll()
+                        .requestMatchers("/api/v1/search/drug/**", "api/v1/medical_categories/").permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                        .requestMatchers("/api-docs","/api-docs/*", "/api-docs.yaml","swagger-ui/*").permitAll()
                         .requestMatchers("/api/v1/patient/delete").hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN, SYSTEM")
                         .requestMatchers("/api/v1/patient/patients").hasAnyAuthority("PATIENT", "ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/v1/patient/recommendations").hasAuthority("PATIENT")
