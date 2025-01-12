@@ -1,15 +1,15 @@
 package com.divjazz.recommendic.recommendation.model;
 
 import com.divjazz.recommendic.Auditable;
-
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,7 +31,9 @@ public class ConsultantRecommendation extends Auditable {
         this.consultant = consultant;
         this.patient = patient;
     }
-    protected ConsultantRecommendation(){}
+
+    protected ConsultantRecommendation() {
+    }
 
     public Patient getPatient() {
         return patient;

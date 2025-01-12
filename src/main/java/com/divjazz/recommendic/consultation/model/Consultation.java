@@ -34,7 +34,9 @@ public class Consultation extends Auditable {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    protected Consultation(){}
+    protected Consultation() {
+    }
+
     public Consultation(String diagnosis, String consultationId, LocalDateTime consultationTime, Patient patient, Consultant consultant) {
         this.diagnosis = diagnosis;
         this.consultationId = consultationId;
@@ -71,17 +73,20 @@ public class Consultation extends Auditable {
         return consultant;
     }
 
-    public String getConsultationId() {
-        return consultationId;
-    }
-
     public void setConsultant(Consultant consultant) {
         this.consultant = consultant;
     }
 
+    public String getConsultationId() {
+        return consultationId;
+    }
 
     public boolean isAccepted() {
         return accepted;
+    }
+
+    public void setAccepted(boolean accepted) {
+        this.accepted = accepted;
     }
 
     public Status getStatus() {
@@ -90,10 +95,6 @@ public class Consultation extends Auditable {
 
     public void setStatus(Status status) {
         this.status = status;
-    }
-
-    public void setAccepted(boolean accepted) {
-        this.accepted = accepted;
     }
 
     @Override

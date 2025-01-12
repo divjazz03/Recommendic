@@ -32,6 +32,20 @@ import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 public class AdminController {
 
+    private static final String VALID_REQUEST = """
+            {
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": "johnDoe@gmail.com",
+                "phoneNumber": "+2347044849392",
+                "gender": "Male"|"Female",
+                "zipCode": "123456",
+                "city": "Ibadan",
+                "state": "Oyo",
+                "country": "Nigeria",
+                "medicalSpecialization": "string"
+            }
+            """;
     private final AdminService adminService;
 
     public AdminController(AdminService adminService) {
@@ -116,19 +130,4 @@ public class AdminController {
                 HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    private static final String VALID_REQUEST = """
-            {
-                "firstName": "John",
-                "lastName": "Doe",
-                "email": "johnDoe@gmail.com",
-                "phoneNumber": "+2347044849392",
-                "gender": "Male"|"Female",
-                "zipCode": "123456",
-                "city": "Ibadan",
-                "state": "Oyo",
-                "country": "Nigeria",
-                "medicalSpecialization": "string"
-            }
-            """;
 }

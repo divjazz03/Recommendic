@@ -2,8 +2,8 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserType;
@@ -20,7 +20,6 @@ import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,7 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,8 +47,6 @@ public class PatientService {
     private final PasswordEncoder encoder;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PatientRepository patientRepository;
-
-
 
 
     public PatientService(
@@ -67,9 +66,8 @@ public class PatientService {
     }
 
 
-
     @Transactional
-    public PatientInfoResponse createPatient(PatientDTO patientDTO){
+    public PatientInfoResponse createPatient(PatientDTO patientDTO) {
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         log.info("The patient role is {}", role);
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
@@ -100,38 +98,40 @@ public class PatientService {
             userRepository.save(user);
             userCredentialRepository.save(userCredential);
             userConfirmationRepository.save(userConfirmation);
-            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION,Map.of("key",userConfirmation.getKey()));
+            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
             return new PatientInfoResponse(user.getUserId()
-                    ,user.getUserNameObject().getLastName()
-                    ,user.getUserNameObject().getFirstName()
-                    ,user.getPhoneNumber()
-                    ,user.getGender().toString()
-                    ,user.getAddress());
+                    , user.getUserNameObject().getLastName()
+                    , user.getUserNameObject().getFirstName()
+                    , user.getPhoneNumber()
+                    , user.getGender().toString()
+                    , user.getAddress());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }
     }
+
     @Transactional(readOnly = true)
-    public Page<Patient> getAllPatients(Pageable pageable){
+    public Page<Patient> getAllPatients(Pageable pageable) {
         return patientRepository.findAll(pageable);
     }
 
-    public void deletePatientByUserId(String patient_Id){
+    public void deletePatientByUserId(String patient_Id) {
         patientRepository.deleteByUserId(patient_Id);
     }
 
-    public void modifyPatient(Patient patient){
+    public void modifyPatient(Patient patient) {
         patientRepository.save(patient);
     }
+
     @Transactional(readOnly = true)
-    public Patient findPatientById(long id){
+    public Patient findPatientById(long id) {
         return patientRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
     }
 
     @Transactional(readOnly = true)
-    public Patient findPatientByUserId(String id){
+    public Patient findPatientByUserId(String id) {
         return patientRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
@@ -139,7 +139,7 @@ public class PatientService {
         return patientRepository.findPatientByMedicalCategories(medicalCategories);
     }
 
-    public Set<Consultation> getConsultations(String patient_id){
+    public Set<Consultation> getConsultations(String patient_id) {
         return patientRepository.findAllConsultationsByPatientId(patient_id);
     }
 

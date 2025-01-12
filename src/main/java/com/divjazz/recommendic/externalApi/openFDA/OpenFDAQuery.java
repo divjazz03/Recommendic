@@ -29,9 +29,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam,url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -43,9 +41,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam,url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -59,9 +55,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -74,9 +68,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -90,9 +82,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -104,9 +94,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -119,9 +107,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -134,9 +120,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -144,11 +128,6 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("&").append("limit=").append(limit);
         url.append("&").append("count=").append(countField);
         return restTemplate.getForObject(url.toString(),OpenFDAApplicationResult.class);
-    }
-
-    private void appendSearchParam(@NotNull String searchParam, StringBuilder url) {
-        var fdaSearchParam = convertToOpenFDAParameter(searchParam);
-        url.append((Objects.nonNull(fdaSearchParam))? fdaSearchParam.getParam() : "");
     }
 
     public OpenFDAResult queryDrugs(
@@ -161,9 +140,7 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("search=");
         appendSearchParam(searchParam, url);
         if (searchTerms.size() > 1) {
-            for (String searchTerm : searchTerms) {
-                url.append(searchTerm).append("AND");
-            }
+            searchTerms.stream().skip(1).forEach(url::append);
             url.delete(url.length()-4, url.length());
         }
         url.append(searchParam);
@@ -172,7 +149,12 @@ public class OpenFDAQuery extends OpenFDAConfig{
         url.append("&").append("limit=").append(5);
         return restTemplate.getForObject(url.toString(),OpenFDACountResult.class);
     }
-  //  public OpenFDAResult queryAdverseEffect(){}
+
+    private void appendSearchParam(@NotNull String searchParam, StringBuilder url) {
+        var fdaSearchParam = convertToOpenFDAParameter(searchParam);
+        url.append((Objects.nonNull(fdaSearchParam))? fdaSearchParam.getParam() : "");
+    }
+    //  public OpenFDAResult queryAdverseEffect(){}
     private List<OpenFDAQueryParameters> convertToOpenFDAParameters(List<String> params) {
 
         return params.stream()

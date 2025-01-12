@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 
 @Table(name = "patient")
-public final class Patient extends User {
+public class Patient extends User {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "medical_categories")
@@ -28,17 +28,17 @@ public final class Patient extends User {
     private List<Consultation> consultations;
 
 
-
-    protected Patient(){}
+    protected Patient() {
+    }
 
     public Patient(
             UserName userName,
             String email,
             String phoneNumber,
             Gender gender,
-            Address address, Role role, UserCredential userCredential){
+            Address address, Role role, UserCredential userCredential) {
 
-        super(userName,email,phoneNumber,gender,address, role, userCredential);
+        super(userName, email, phoneNumber, gender, address, role, userCredential);
         super.setUserType(UserType.PATIENT);
         medicalCategories = new HashSet<>(30);
     }
@@ -49,9 +49,9 @@ public final class Patient extends User {
     }
 
     public void setMedicalCategories(Set<MedicalCategory> medicalCategories) {
-        if (this.medicalCategories == null){
+        if (this.medicalCategories == null) {
             this.medicalCategories = Objects.requireNonNull(medicalCategories);
-        }else {
+        } else {
             this.medicalCategories.addAll(Objects.requireNonNull(medicalCategories));
         }
     }
@@ -63,12 +63,12 @@ public final class Patient extends User {
     public void setConsultations(List<Consultation> consultations) {
         this.consultations = consultations;
     }
+
     @Override
     public String toString() {
         return "Patient{" +
                 '}';
     }
-
 
 
 }

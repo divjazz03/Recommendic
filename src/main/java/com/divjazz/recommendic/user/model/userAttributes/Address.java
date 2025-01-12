@@ -1,17 +1,21 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class Address {
-
+    @JsonProperty(value = "zip_code")
     private String zipCode;
     private String city;
     private String State;
     private String Country;
 
-    protected Address(){}
+    protected Address() {
+    }
 
     public Address(String zipCode, String city, String state, String country) {
         this.zipCode = zipCode;

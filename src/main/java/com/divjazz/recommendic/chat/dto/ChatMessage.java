@@ -14,7 +14,6 @@ public class ChatMessage {
     private final MessageType messageType;
 
 
-
     public ChatMessage(String senderId, String receiverId, String content, String consultationId, MessageType messageType) {
         this.senderId = senderId;
         this.receiverId = receiverId;

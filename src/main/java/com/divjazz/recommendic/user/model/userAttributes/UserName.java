@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 
 @Embeddable
 public class UserName {
@@ -10,9 +9,10 @@ public class UserName {
     private String lastName;
 
 
-    protected UserName(){}
+    protected UserName() {
+    }
 
-    public UserName(String firstName, String lastName){
+    public UserName(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }

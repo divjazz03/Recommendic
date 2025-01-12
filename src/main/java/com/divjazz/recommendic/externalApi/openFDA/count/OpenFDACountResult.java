@@ -6,5 +6,4 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record OpenFDACountResult(String term, long count) implements OpenFDAResult {
-
 }

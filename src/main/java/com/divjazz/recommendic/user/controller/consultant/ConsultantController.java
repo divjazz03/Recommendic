@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.user.controller.UserCreationResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
@@ -36,6 +37,21 @@ import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 @RequestMapping("/api/v1/consultant")
 public class ConsultantController {
 
+    private static final String VALID_REQUEST = """
+            {
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": "johnDoe@gmail.com",
+                "password": "password",
+                "phoneNumber": "+2347044849392",
+                "gender": "Male",
+                "zipCode": "123456",
+                "city": "Ibadan",
+                "state": "Oyo",
+                "country": "Nigeria",
+                "medicalSpecialization": "Dentistry"
+            }
+            """;
     private final ConsultantService consultantService;
 
     public ConsultantController(ConsultantService consultantService) {
@@ -100,12 +116,13 @@ public class ConsultantController {
         ConsultantDTO consultantDTO = getConsultantDTO(requestParams);
         var consultantInfoResponse = consultantService.createConsultant(consultantDTO);
         return new ResponseEntity<>(getResponse(httpServletRequest,
-                Map.of("id", consultantInfoResponse.consultantId(),
-                        "last_name", consultantInfoResponse.lastName(),
-                        "first_name", consultantInfoResponse.firstName(),
-                        "gender", consultantInfoResponse.gender().toLowerCase(),
-                        "address", consultantInfoResponse.address(),
-                        "area_of_specialization", consultantInfoResponse.medicalSpecialization()),
+                Map.of("data", new UserCreationResponse(
+                        consultantInfoResponse.consultantId(),
+                        consultantInfoResponse.firstName(),
+                        consultantInfoResponse.lastName(),
+                        consultantInfoResponse.phoneNumber(),
+                        consultantInfoResponse.address()
+                )),
                 "The Consultant was successfully created, Check your email to activate your account",
                 HttpStatus.CREATED
         ), HttpStatus.CREATED);
@@ -122,6 +139,7 @@ public class ConsultantController {
                         consultant.getUserNameObject().getLastName(),
                         consultant.getUserNameObject().getFirstName(),
                         consultant.getGender().toString().toLowerCase(),
+                        consultant.getPhoneNumber(),
                         consultant.getAddress(),
                         consultant.getMedicalCategory().toString().toLowerCase()
                 ));
@@ -135,20 +153,4 @@ public class ConsultantController {
         );
         return new ResponseEntity<>(response, HttpStatus.FOUND);
     }
-
-    private static final String VALID_REQUEST = """
-            {
-                "firstName": "John",
-                "lastName": "Doe",
-                "email": "johnDoe@gmail.com",
-                "password": "password",
-                "phoneNumber": "+2347044849392",
-                "gender": "Male",
-                "zipCode": "123456",
-                "city": "Ibadan",
-                "state": "Oyo",
-                "country": "Nigeria",
-                "medicalSpecialization": "Dentistry"
-            }
-            """;
 }

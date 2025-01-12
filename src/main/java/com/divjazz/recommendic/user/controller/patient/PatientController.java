@@ -1,8 +1,9 @@
 package com.divjazz.recommendic.user.controller.patient;
 
-import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.recommendation.service.RecommendationService;
+import com.divjazz.recommendic.user.controller.UserCreationResponse;
+import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
 import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 
 
@@ -40,10 +40,24 @@ import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
 @RequestMapping("/api/v1/patient")
 public class PatientController {
 
-    Logger logger = LoggerFactory.getLogger(PatientController.class);
+    private static final String VALID_REQUEST = """
+            {
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": "johnDoe@gmail.com",
+                "password": "password",
+                "phoneNumber": "+2347044849392",
+                "gender": "Male",
+                "zipCode": "123456",
+                "city": "Ibadan",
+                "state": "Oyo",
+                "country": "Nigeria",
+                "categoryOfInterest": ["Dentistry", "Gynecology"]
+            }
+            """;
     private final PatientService patientService;
     private final RecommendationService recommendationService;
-
+    Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     public PatientController(PatientService patientService, RecommendationService recommendationService) {
         this.patientService = patientService;
@@ -93,12 +107,13 @@ public class PatientController {
                 "",
                 HttpStatus.CREATED,
                 "The Patient Account was Successfully created",
-                "",
-                Map.of("id", infoResponse.patientId(),
-                        "last_name", infoResponse.lastName(),
-                        "first_name", infoResponse.firstName(),
-                        "phone_number", infoResponse.phoneNumber(),
-                        "address", infoResponse.address())
+                null,
+                Map.of("data", new UserCreationResponse(
+                        infoResponse.patientId(),
+                        infoResponse.firstName(),
+                        infoResponse.lastName(),
+                        infoResponse.phoneNumber(),
+                        infoResponse.address()))
         );
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -151,7 +166,6 @@ public class PatientController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
     @GetMapping("recommendations")
     public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
 
@@ -168,21 +182,5 @@ public class PatientController {
         );
         return ResponseEntity.ok().body(response);
     }
-
-    private static final String VALID_REQUEST = """
-            {
-                "firstName": "John",
-                "lastName": "Doe",
-                "email": "johnDoe@gmail.com",
-                "password": "password",
-                "phoneNumber": "+2347044849392",
-                "gender": "Male",
-                "zipCode": "123456",
-                "city": "Ibadan",
-                "state": "Oyo",
-                "country": "Nigeria",
-                "categoryOfInterest": ["Dentistry", "Gynecology"]
-            }
-            """;
 
 }

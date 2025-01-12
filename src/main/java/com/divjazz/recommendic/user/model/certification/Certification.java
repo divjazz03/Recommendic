@@ -14,7 +14,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "certification")
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class Certification extends Auditable implements Serializable{
+public class Certification extends Auditable implements Serializable {
     @ManyToOne(targetEntity = Consultant.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id", nullable = false)
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
@@ -22,7 +22,7 @@ public class Certification extends Auditable implements Serializable{
     @JsonProperty("user_id")
     private Consultant ownerOfCertification;
 
-    @ManyToOne( fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
@@ -38,9 +38,10 @@ public class Certification extends Auditable implements Serializable{
     @Column(name = "confirmed")
     private boolean confirmed = false;
 
-    protected Certification(){}
+    protected Certification() {
+    }
 
-    public Certification(Consultant ownerOfCertification, String fileName, String fileUrl){
+    public Certification(Consultant ownerOfCertification, String fileName, String fileUrl) {
         super();
         this.ownerOfCertification = ownerOfCertification;
         this.fileName = fileName;
@@ -103,13 +104,13 @@ public class Certification extends Auditable implements Serializable{
 
         Certification that = (Certification) o;
 
-        return Objects.equals(fileName, that.fileName) &&  Objects.equals(getId(), that.getId());
+        return Objects.equals(fileName, that.fileName) && Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
         var id = getId();
-        var res =  fileName != null ? fileName.hashCode() : 0;
+        var res = fileName != null ? fileName.hashCode() : 0;
         return (int) (31 * res + id ^ (id >>> 31));
     }
 }

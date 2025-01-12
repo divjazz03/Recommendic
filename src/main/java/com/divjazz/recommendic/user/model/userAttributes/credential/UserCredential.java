@@ -2,15 +2,10 @@ package com.divjazz.recommendic.user.model.userAttributes.credential;
 
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.User;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users_credential")
@@ -23,7 +18,8 @@ public class UserCredential extends Auditable {
 
     private boolean expired;
 
-    protected UserCredential(){}
+    protected UserCredential() {
+    }
 
     public UserCredential(String password) {
         super();

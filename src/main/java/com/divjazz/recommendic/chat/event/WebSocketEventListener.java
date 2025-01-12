@@ -13,12 +13,13 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import java.util.Objects;
 
 public class WebSocketEventListener {
-    private final SimpMessagingTemplate messagingTemplate;
     public static final Logger log = LoggerFactory.getLogger(WebSocketEventListener.class);
+    private final SimpMessagingTemplate messagingTemplate;
 
     public WebSocketEventListener(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
+
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -28,11 +29,12 @@ public class WebSocketEventListener {
         if (sender_id != null) {
             log.info("User Disconnected: " + sender_id);
 
-            var chatMessage = new ChatMessage(sender_id, receiver_id,"", consultation_id,MessageType.LEAVE);
+            var chatMessage = new ChatMessage(sender_id, receiver_id, "", consultation_id, MessageType.LEAVE);
             messagingTemplate.convertAndSendToUser(receiver_id, "/queue/actions", chatMessage);
         }
 
     }
+
     @EventListener
     public void handleWebSocketDisconnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -42,7 +44,7 @@ public class WebSocketEventListener {
         if (sender_id != null) {
             log.info("User connected: " + sender_id);
 
-            var chatMessage = new ChatMessage(sender_id, receiver_id,"", consultation_id,MessageType.CONNECT);
+            var chatMessage = new ChatMessage(sender_id, receiver_id, "", consultation_id, MessageType.CONNECT);
             messagingTemplate.convertAndSendToUser(receiver_id, "/queue/actions", chatMessage);
         }
 

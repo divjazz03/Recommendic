@@ -18,7 +18,6 @@ import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.github.javafaker.Faker;
-import com.google.common.collect.ImmutableSet;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -58,60 +57,59 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminCredentialResponse createAdmin(AdminDTO adminDTO) throws UserAlreadyExistsException{
-            GenerateAdminPasswordResponse response = generateAdminPassword();
-            String password = response.encryptedPassword();
-            Role role = roleRepository.getRoleByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("No such roles found"));
-            UserCredential userCredential = new UserCredential(response.encryptedPassword());
+    public AdminCredentialResponse createAdmin(AdminDTO adminDTO) throws UserAlreadyExistsException {
+        GenerateAdminPasswordResponse response = generateAdminPassword();
+        String password = response.encryptedPassword();
+        Role role = roleRepository.getRoleByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("No such roles found"));
+        UserCredential userCredential = new UserCredential(response.encryptedPassword());
 
-            Admin user = new Admin(
-                    adminDTO.userName(),
-                    adminDTO.email(),
-                    adminDTO.number(),
-                    adminDTO.gender(),
-                    adminDTO.address(),role,userCredential
-            );
+        Admin user = new Admin(
+                adminDTO.userName(),
+                adminDTO.email(),
+                adminDTO.number(),
+                adminDTO.gender(),
+                adminDTO.address(), role, userCredential
+        );
 
-            userCredential.setUser(user);
-            var profilePicture = new ProfilePicture();
-            profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
-            profilePicture.setName("149071.png");
-            user.setProfilePicture(profilePicture);
-            user.setUserType(UserType.ADMIN);
-            if (userService.isUserNotExists(user.getEmail())) {
-                adminRepository.save(user);
-                userCredentialRepository.save(userCredential);
-                var userConfirmation = new UserConfirmation(user);
-                UserEvent userEvent = new UserEvent(user,
-                        EventType.REGISTRATION,
-                        Map.of("key",userConfirmation.getKey(), "password", response.normalPassword()));
-                applicationEventPublisher.publishEvent(userEvent);
-                return new AdminCredentialResponse(user.getEmail(),
-                        password);
-            } else {
-                throw new UserAlreadyExistsException(user.getEmail());
-            }
+        userCredential.setUser(user);
+        var profilePicture = new ProfilePicture();
+        profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        profilePicture.setName("149071.png");
+        user.setProfilePicture(profilePicture);
+        user.setUserType(UserType.ADMIN);
+        if (userService.isUserNotExists(user.getEmail())) {
+            adminRepository.save(user);
+            userCredentialRepository.save(userCredential);
+            var userConfirmation = new UserConfirmation(user);
+            UserEvent userEvent = new UserEvent(user,
+                    EventType.REGISTRATION,
+                    Map.of("key", userConfirmation.getKey(), "password", response.normalPassword()));
+            applicationEventPublisher.publishEvent(userEvent);
+            return new AdminCredentialResponse(user.getEmail(),
+                    password);
+        } else {
+            throw new UserAlreadyExistsException(user.getEmail());
+        }
     }
 
 
-
-    public Admin getAdminByEmail(String email){
+    public Admin getAdminByEmail(String email) {
         return adminRepository
                 .findByEmail(email).orElseThrow(UserNotFoundException::new);
     }
 
-    private GenerateAdminPasswordResponse generateAdminPassword(){
+    private GenerateAdminPasswordResponse generateAdminPassword() {
         Faker faker = new Faker();
-        String password = faker.internet().password(8,15,true);
-        return new GenerateAdminPasswordResponse( passwordEncoder.encode(password), password);
+        String password = faker.internet().password(8, 15, true);
+        return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
 
     }
 
-    public Page<Admin> getAllAdmins(Pageable pageable){
+    public Page<Admin> getAllAdmins(Pageable pageable) {
         return adminRepository.findAll(pageable);
     }
 
-    public Set<Assignment> getAllAssignmentsAssigned(String adminId){
+    public Set<Assignment> getAllAssignmentsAssigned(String adminId) {
         return assignmentService.retrieveAllAssignmentByAdminId(adminId);
     }
 

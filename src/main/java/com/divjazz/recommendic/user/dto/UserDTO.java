@@ -1,7 +1,5 @@
 package com.divjazz.recommendic.user.dto;
 
-import java.util.UUID;
-
 public record UserDTO(
         Long createdBy,
         Long updatedBy,

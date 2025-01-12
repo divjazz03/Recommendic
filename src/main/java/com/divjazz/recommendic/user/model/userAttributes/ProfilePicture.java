@@ -1,14 +1,11 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
-import com.divjazz.recommendic.Auditable;
-import jakarta.persistence.*;
-
-
-import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 @Embeddable
-public class ProfilePicture{
+public class ProfilePicture {
     @Column(name = "image_name", nullable = false)
     private String name;
     @Column(name = "image_url", nullable = false)

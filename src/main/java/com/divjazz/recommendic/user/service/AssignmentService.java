@@ -16,10 +16,11 @@ public class AssignmentService {
         this.assignmentRepository = assignmentRepository;
     }
 
-    public Set<Assignment> retrieveAllAssignmentByAdminId(String adminId){
+    public Set<Assignment> retrieveAllAssignmentByAdminId(String adminId) {
         return assignmentRepository.getAllByAdminAssigned_UserId(adminId);
     }
-    public Set<Certification> retrieveAllCertificationByAssignmentId(Long id){
+
+    public Set<Certification> retrieveAllCertificationByAssignmentId(Long id) {
         return assignmentRepository.getAllCertificationByAssignmentId(id);
     }
 }

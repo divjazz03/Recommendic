@@ -27,4 +27,5 @@ public record ConsultantRegistrationParams(
         String country,
         @NotEmpty(message = "Medical Category cannot be empty or null")
         String medicalSpecialization
-) {}
+) {
+}

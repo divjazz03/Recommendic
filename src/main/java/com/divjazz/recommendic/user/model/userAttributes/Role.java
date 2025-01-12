@@ -1,18 +1,18 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
-import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.*;
-
-import java.util.Set;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @Entity
 @Table(name = "roles")
 @JsonInclude(NON_DEFAULT)
-public class Role{
+public class Role {
 
     @Column(name = "name")
     private String name;
@@ -22,7 +22,8 @@ public class Role{
     @Id
     private Long id;
 
-    protected Role(){}
+    protected Role() {
+    }
 
     public Role(String name, String permissions, Long id) {
         this.name = name;
@@ -54,11 +55,11 @@ public class Role{
                 '}';
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

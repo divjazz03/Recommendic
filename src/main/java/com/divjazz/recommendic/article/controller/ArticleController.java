@@ -6,7 +6,6 @@ import com.divjazz.recommendic.article.dto.ArticleUpload;
 import com.divjazz.recommendic.article.service.ArticleService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +25,7 @@ public class ArticleController {
     public ResponseEntity<Response> uploadArticle(@RequestBody ArticleUpload articleUpload, Authentication authentication, HttpServletRequest httpServletRequest) {
 
         var userEmail = ((UserDetails) authentication.getPrincipal()).getUsername();
-        var response = articleService.uploadArticle(new ArticleDTO(articleUpload.title(),articleUpload.content(),userEmail), httpServletRequest);
+        var response = articleService.uploadArticle(new ArticleDTO(articleUpload.title(), articleUpload.content(), userEmail), httpServletRequest);
 
         return new ResponseEntity<>(response, response.status());
     }

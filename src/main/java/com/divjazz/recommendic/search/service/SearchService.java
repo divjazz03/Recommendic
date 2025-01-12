@@ -1,12 +1,11 @@
 package com.divjazz.recommendic.search.service;
 
-import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
+import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -15,7 +14,10 @@ import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,26 +42,28 @@ public class SearchService {
     }
 
     /**
-    The Search is determined by the 0th index of String Array of the query after it has been split
-     @param query This represents the query string which could either be "category" or the consultant name
-     @param userId This represents the user's id who made the search
-     @return Returns a Set of Consultant Objects
+     * The Search is determined by the 0th index of String Array of the query after it has been split
+     *
+     * @param query  This represents the query string which could either be "category" or the consultant name
+     * @param userId This represents the user's id who made the search
+     * @return Returns a Set of Consultant Objects
      */
-    public Set<SearchResult> executeQuery(String query, String userId, String category){
+    public Set<SearchResult> executeQuery(String query, String userId, String category) {
         var currentUser = userService.retrieveUserByUserId(userId);
         return handleSearchForAuthorizedUsers(query, currentUser, category);
     }
+
     public Set<SearchResult> executeQuery(String query, String category) {
         return handleSearchForUnauthorizedUsers(query, category);
     }
 
-    public Set<Search> retrieveSearchesByUserId(String userId){
+    public Set<Search> retrieveSearchesByUserId(String userId) {
         var currentUser = userService.retrieveUserByUserId(userId);
 
         return searchRepository.findByOwnerOfSearch(currentUser);
     }
 
-    private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category){
+    private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category) {
         Set<SearchResult> results = new HashSet<>(20);
         // For authorized users
         var searchCategoryEnum = Category.valueOf(category.toUpperCase().trim());
@@ -83,7 +87,7 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
-                        results.add( new SearchResult(
+                        results.add(new SearchResult(
                                 Map.of("consultations", consultationsResult)
                         ));
                     }
@@ -103,7 +107,7 @@ public class SearchService {
                         }
                         var consultants = consultantService.searchSomeConsultantsByQuery(query);
 
-                        results.add( new SearchResult(
+                        results.add(new SearchResult(
                                 Map.of("consultations", consultationsResult,
                                         "consultantsByQuery", consultants)
                         ));
@@ -137,7 +141,7 @@ public class SearchService {
                         var consultant = consultantService.retrieveConsultantByUserId(currentUser.getUserId());
                         var patients = patientService.findPatientsByMedicalCategories(Collections.singleton(consultant.getMedicalCategory()));
                         results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult ,
+                                Map.of("consultations", consultationsResult,
                                         "patients", patients)
                         ));
                     }
@@ -178,7 +182,7 @@ public class SearchService {
 
                         var consultants = consultantService.getAllUnCertifiedConsultants();
                         var assignments = adminService.getAllAssignmentsAssigned(currentUser.getUserId());
-                        if (!consultants.isEmpty() && !assignments.isEmpty()){
+                        if (!consultants.isEmpty() && !assignments.isEmpty()) {
                             results.add(new SearchResult(
                                     Map.of("assignments", assignments,
                                             "unCertifiedConsultants", consultants)
@@ -187,7 +191,7 @@ public class SearchService {
                             results.add(new SearchResult(
                                     Map.of("unCertifiedConsultants", consultants)
                             ));
-                        } else if (!assignments.isEmpty()){
+                        } else if (!assignments.isEmpty()) {
                             results.add(new SearchResult(
                                     Map.of("assignments", assignments)
                             ));
@@ -215,7 +219,7 @@ public class SearchService {
         return results;
     }
 
-    private Set<SearchResult> handleSearchForUnauthorizedUsers(String query, String category ){
+    private Set<SearchResult> handleSearchForUnauthorizedUsers(String query, String category) {
 //        var categoryEnum = Category.valueOf(category.toUpperCase().trim());
 //
 //        switch (categoryEnum){
@@ -224,7 +228,7 @@ public class SearchService {
         return Collections.emptySet();
     }
 
-    private Set<SearchResult> handleSearchBasedOnHistory(String userId){
+    private Set<SearchResult> handleSearchBasedOnHistory(String userId) {
         var temporarySearchResults = new HashSet<SearchResult>(20);
         var searches = retrieveSearchesByUserId(userId);
         searches.stream()

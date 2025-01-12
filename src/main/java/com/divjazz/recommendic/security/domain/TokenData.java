@@ -15,6 +15,10 @@ public class TokenData {
     private boolean expired;
     private List<? extends GrantedAuthority> grantedAuthorities;
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public UserDetails getUser() {
         return user;
     }
@@ -39,25 +43,23 @@ public class TokenData {
         return grantedAuthorities;
     }
 
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public static class Builder {
         private final TokenData tokenData;
 
         private Builder() {
             this.tokenData = new TokenData();
         }
+
         public Builder user(UserDetails user) {
             this.tokenData.user = user;
             return this;
         }
+
         public Builder claims(Claims claims) {
             this.tokenData.claims = claims;
             return this;
         }
+
         public Builder authorities(List<? extends GrantedAuthority> authorities) {
             this.tokenData.grantedAuthorities = authorities;
             return this;
@@ -72,6 +74,7 @@ public class TokenData {
             this.tokenData.expired = isExpired;
             return this;
         }
+
         public TokenData build() {
             return this.tokenData;
         }

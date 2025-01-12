@@ -1,20 +1,17 @@
 package com.divjazz.recommendic.externalApi.openFDA;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class OpenFDAConfig {
 
     @Value("${api.drug.base_url}")
-    String openFDABaseUrl;
+    private String openFDABaseUrl;
     @Value("${api.drug.adverse_effect_endpoint}")
-    String openFDAAdverseEffectEndpoint;
+    private String openFDAAdverseEffectEndpoint;
     @Value("${api.drug.drugs_endpoint}")
-    String openFDADrugsEndPoint;
+    private String openFDADrugsEndPoint;
 
 
     public String getOpenFDABaseUrl() {

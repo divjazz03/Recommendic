@@ -6,16 +6,16 @@ import jakarta.validation.constraints.NotEmpty;
 
 public record AdminRegistrationParams(
         @NotEmpty(message = "First name cannot be empty or null")
-                @JsonProperty("first_name")
+        @JsonProperty("first_name")
         String firstName,
         @NotEmpty(message = "last name cannot be empty or null")
-                @JsonProperty("last_name")
+        @JsonProperty("last_name")
         String lastName,
         @NotEmpty(message = "Email cannot be empty or null")
         @Email()
         String email,
         @NotEmpty(message = "Phone number cannot be empty or null")
-                @JsonProperty("phone_number")
+        @JsonProperty("phone_number")
         String phoneNumber,
         @NotEmpty(message = "Gender cannot be empty or null")
         String gender,
@@ -27,4 +27,5 @@ public record AdminRegistrationParams(
         String state,
         @NotEmpty(message = "Country cannot be empty or null")
         String country
-){}
+) {
+}

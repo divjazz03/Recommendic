@@ -18,9 +18,11 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     @Query(value = "SELECT c from Consultation c where c.patient.userId = :userId or c.consultant.userId = :userId")
     Set<Consultation> getAllConsultationsWhichContainsTheUserId(
             @Param("userId") String userId);
+
     Set<Consultation> getAllByAccepted(boolean isAccepted);
 
     Optional<Consultation> getConsultationByConsultationId(String consultationId);
+
     Set<Consultation> getAllByConsultantAndAccepted(Consultant consultant, boolean isAccepted);
 
 

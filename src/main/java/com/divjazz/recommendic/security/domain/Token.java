@@ -4,7 +4,12 @@ public class Token {
     private String access;
     private String refresh;
 
-    private Token(){}
+    private Token() {
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public String getAccess() {
         return access;
@@ -22,26 +27,25 @@ public class Token {
         this.refresh = refresh;
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
     public static class Builder {
         private final Token token;
 
 
-        private Builder(){
+        private Builder() {
             token = new Token();
         }
+
         public Builder access(String token) {
-             this.token.setAccess(token);
-             return this;
+            this.token.setAccess(token);
+            return this;
         }
 
         public Builder refresh(String token) {
             this.token.setRefresh(token);
             return this;
         }
-        public Token build(){
+
+        public Token build() {
             return this.token;
         }
     }

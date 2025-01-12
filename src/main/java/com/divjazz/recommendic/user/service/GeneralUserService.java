@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class GeneralUserService {
@@ -24,7 +23,7 @@ public class GeneralUserService {
     private final CacheStore<String, Integer> loginCache;
 
     public GeneralUserService(
-                              UserRepository userRepository, UserCredentialRepository userCredentialRepository, CacheStore<String, Integer> loginCache) {
+            UserRepository userRepository, UserCredentialRepository userCredentialRepository, CacheStore<String, Integer> loginCache) {
 
         this.userRepository = userRepository;
         this.userCredentialRepository = userCredentialRepository;
@@ -32,29 +31,29 @@ public class GeneralUserService {
     }
 
 
-
-    public User retrieveUserByEmail(String username){
+    public User retrieveUserByEmail(String username) {
         User user = null;
-        if (userRepository.findByEmail(username).isPresent()){
+        if (userRepository.findByEmail(username).isPresent()) {
             user = userRepository.findByEmail(username).get();
         } else
             throw new UsernameNotFoundException("User not found");
         return user;
     }
 
-    public User retrieveUserByUserId(String id){
+    public User retrieveUserByUserId(String id) {
 
         return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
-    public User retrieveUserById(Long id){
+    public User retrieveUserById(Long id) {
         return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 
     public UserCredential retrieveCredentialById(Long id) {
         return userCredentialRepository.findById(id).orElseThrow(() -> new RuntimeException("Credentials not Found"));
     }
-    public void updateLoginAttempt(String email, LoginType loginType){
+
+    public void updateLoginAttempt(String email, LoginType loginType) {
         var user = retrieveUserByEmail(email);
         RequestContext.setUserId(user.getId());
         switch (loginType) {
@@ -79,7 +78,7 @@ public class GeneralUserService {
         userRepository.save(user);
     }
 
-    public boolean isUserNotExists(String email){
+    public boolean isUserNotExists(String email) {
         return !userRepository.existsByEmail(email);
     }
 }

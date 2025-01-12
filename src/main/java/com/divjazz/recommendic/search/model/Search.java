@@ -1,12 +1,9 @@
 package com.divjazz.recommendic.search.model;
 
 import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "search")
@@ -23,9 +20,10 @@ public class Search extends Auditable {
     @JsonProperty("user_id")
     private User ownerOfSearch;
 
-    protected Search(){
+    protected Search() {
     }
-    public Search(String query, User ownerOfSearch){
+
+    public Search(String query, User ownerOfSearch) {
         this.query = query;
     }
 
@@ -33,11 +31,11 @@ public class Search extends Auditable {
         return query;
     }
 
-    public void setOwnerOfSearch(User ownerOfSearch) {
-        this.ownerOfSearch = ownerOfSearch;
-    }
-
     public User getOwnerOfSearch() {
         return ownerOfSearch;
+    }
+
+    public void setOwnerOfSearch(User ownerOfSearch) {
+        this.ownerOfSearch = ownerOfSearch;
     }
 }

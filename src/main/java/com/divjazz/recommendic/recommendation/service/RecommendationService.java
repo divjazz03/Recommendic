@@ -13,7 +13,9 @@ import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,20 +26,21 @@ public class RecommendationService {
     private final PatientService patientService;
     private final SearchService searchService;
 
-    public RecommendationService(RecommendationRepository recommendationRepository, ConsultantService consultantService, PatientService patientService, SearchService searchService){
+    public RecommendationService(RecommendationRepository recommendationRepository, ConsultantService consultantService, PatientService patientService, SearchService searchService) {
         this.recommendationRepository = recommendationRepository;
         this.consultantService = consultantService;
         this.patientService = patientService;
         this.searchService = searchService;
     }
 
-    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient){
+    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
         createRecommendationForPatient(patient);
 
         return recommendationRepository.findByPatient(patient).orElse(Set.of());
 
     }
-    private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant){
+
+    private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant) {
         return new ConsultantInfoResponse(
                 consultant.getUserId(),
                 consultant.getUserNameObject().getLastName(),
@@ -47,7 +50,8 @@ public class RecommendationService {
                 consultant.getMedicalCategory().toString()
         );
     }
-    private PatientInfoResponse toPatientInfoResponse(Patient patient){
+
+    private PatientInfoResponse toPatientInfoResponse(Patient patient) {
         return new PatientInfoResponse(
                 patient.getUserId(),
                 patient.getUserNameObject().getLastName(),
@@ -58,7 +62,7 @@ public class RecommendationService {
         );
     }
 
-    public void createRecommendationForPatient(Patient patient){
+    public void createRecommendationForPatient(Patient patient) {
         var medicalCategories = patient.getMedicalCategories();
         var searchHistory = searchService.retrieveSearchesByUserId(patient.getUserId());
         var consultantsBasedOnMedicalCategories = retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
@@ -87,28 +91,13 @@ public class RecommendationService {
         Set<MedicalCategory> medicalCategories = new HashSet<>(30);
         for (Search search : searches) {
             for (MedicalCategory medicalCategory : MedicalCategory.values()) {
-                if (search.getQuery().matches("["+medicalCategory.toString().toLowerCase()+"]")) {
+                if (search.getQuery().matches("[" + medicalCategory.toString().toLowerCase() + "]")) {
                     medicalCategories.add(medicalCategory);
                 }
             }
         }
         return retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

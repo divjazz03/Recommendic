@@ -11,13 +11,13 @@ import java.util.UUID;
 
 public interface FileService {
 
-    public void storeProfilePicture(UUID userId, String pictureUrl);
-    public void storeCertificate(UUID userId, CertificateType type, String certificateUrl);
-    public Certification getCertificationByConsultant(Consultant consultant, CertificateType type);
-    public ProfilePicture getProfilePictureByUserId(String user);
-    public Set<Certification> getAllCertificationsByConsultantId(UUID userId);
-    public ProfilePicture getProfilePictureByProfilePictureId(String id);
-    public Certification getCertificationById(String id);
+    void storeProfilePicture(UUID userId, String pictureUrl);
+    void storeCertificate(UUID userId, CertificateType type, String certificateUrl);
+    Certification getCertificationByConsultant(Consultant consultant, CertificateType type);
+    ProfilePicture getProfilePictureByUserId(String user);
+    Set<Certification> getAllCertificationsByConsultantId(UUID userId);
+    ProfilePicture getProfilePictureByProfilePictureId(String id);
+    Certification getCertificationById(String id);
 
 
 }

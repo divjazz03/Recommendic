@@ -42,14 +42,21 @@ import java.util.function.Supplier;
 
 
 @Service
-public class JwtServiceImpl extends JwtConfiguration implements JwtService {
+public class JwtServiceImpl implements JwtService {
     private final Logger log = LoggerFactory.getLogger(JwtServiceImpl.class);
+
     private final GeneralUserService userService;
 
+    private JwtConfiguration jwtConfiguration;
+
+    public JwtServiceImpl(GeneralUserService userService, JwtConfiguration jwtConfiguration) {
+        this.userService = userService;
+        this.jwtConfiguration = jwtConfiguration;
+    }
 
     private final Supplier<SecretKey> keySupplier = () -> Keys
             .hmacShaKeyFor(
-                    Decoders.BASE64.decode(getSecret())
+                    Decoders.BASE64.decode(jwtConfiguration.getSecret())
             );
 
     private final Function<String, Claims> claimsFunction = token ->
@@ -68,7 +75,6 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .filter(cookie -> Objects.equals(cookieName, cookie.getName()))
                     .map(Cookie::getValue)
                     .findAny()).orElse(empty());
-
     private final Function<HttpServletRequest, Optional<String>> extractTokenFromHeader = httpServletRequest -> {
         var jwtToken = httpServletRequest.getHeader("Authorization");
         if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
@@ -77,6 +83,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
         }
         return Optional.empty();
     };
+
     private final BiFunction<HttpServletRequest, String, Optional<Cookie>> extractCookie = (request, cookieName) ->
             Optional.of(Arrays.stream(
                             request.getCookies() == null ? new Cookie[]{new Cookie(EMPTY_VALUE, EMPTY_VALUE)} :
@@ -100,7 +107,7 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
                     .subject(user.getEmail())
                     .claim(PERMISSIONS, user.getRole().getPermissions())
                     .claim(ROLE, user.getRole().getName())
-                    .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
+                    .expiration(Date.from(Instant.now().plusSeconds(jwtConfiguration.getExpiration())))
                     .compact() : builder.get()
                     .subject(user.getEmail())
                     .compact();
@@ -137,18 +144,6 @@ public class JwtServiceImpl extends JwtConfiguration implements JwtService {
 
     public <T> T getClaimsValue(String token, Function<Claims, T> claims) {
         return claimsFunction.andThen(claims).apply(token);
-    }
-
-
-    public Function<String, List<? extends GrantedAuthority>> stringToAuthorities = token ->
-            commaSeparatedStringToAuthorityList(new StringJoiner(PERMISSION_DELIMITER)
-                    .add(claimsFunction.apply(token).get(PERMISSIONS, String.class)).toString());
-
-
-
-
-    public JwtServiceImpl(GeneralUserService userService) {
-        this.userService = userService;
     }
 
     @Override

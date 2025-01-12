@@ -12,13 +12,12 @@ import static com.divjazz.recommendic.email.util.EmailUtils.*;
 
 
 @Service
-public class EmailServiceImpl implements EmailService{
+public class EmailServiceImpl implements EmailService {
 
     public static final String PASSWORD_RESET_REQUEST = "Reset Password Request";
-    Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
-
     public static final String NEW_USER_ACCOUNT_VERIFICATION = "New User Account Verification";
     private final JavaMailSender sender;
+    Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
     @Value("${spring.mail.verify.host}")
     private String host;
     @Value("${spring.mail.username}")
@@ -38,7 +37,7 @@ public class EmailServiceImpl implements EmailService{
             message.setTo(toEmail);
             message.setText(getEmailMessage(name, host, key));
             sender.send(message);
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
 
@@ -54,10 +53,11 @@ public class EmailServiceImpl implements EmailService{
             message.setTo(toEmail);
             message.setText(getResetPasswordMessage(name, host, key));
             sender.send(message);
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
     }
+
     @Async
     @Override
     public void sendNewAdminAccountEmail(String name, String toEmail, String key, String password) {
@@ -67,7 +67,7 @@ public class EmailServiceImpl implements EmailService{
             message.setTo(toEmail);
             message.setText(getAdminRegistrationEmailMessage(name, toEmail, key, password));
             sender.send(message);
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
     }

@@ -8,12 +8,6 @@ import jakarta.persistence.*;
 @Table(name = "article")
 public class Article extends Auditable {
 
-    public Article(String title, String content, Consultant consultant) {
-        this.title = title;
-        this.content = content;
-        this.consultant = consultant;
-    }
-
     @Column(nullable = false)
     private String title;
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -21,8 +15,14 @@ public class Article extends Auditable {
     @ManyToOne
     @JoinColumn(name = "consultant_id", nullable = false)
     private Consultant consultant;
+    public Article(String title, String content, Consultant consultant) {
+        this.title = title;
+        this.content = content;
+        this.consultant = consultant;
+    }
 
-    protected Article() {}
+    protected Article() {
+    }
 
 
 }

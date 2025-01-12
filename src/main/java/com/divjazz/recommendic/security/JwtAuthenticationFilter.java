@@ -83,7 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request,response);
             } else {
                 filterChain.doFilter(request,response);
-
             }
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
             filterChain.doFilter(request,response);

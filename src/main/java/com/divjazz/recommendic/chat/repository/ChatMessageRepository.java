@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByReceiverId(String receiver);
+
     List<Message> findByReceiverIdAndDeliveredFalse(String userId);
 
 }

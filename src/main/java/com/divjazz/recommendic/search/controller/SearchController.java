@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-
 import static com.divjazz.recommendic.externalApi.openFDA.OpenFDAQuery.Sort.valueOf;
 import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
 import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
@@ -47,14 +46,14 @@ public class SearchController {
 
     @GetMapping("auth/")
     public ResponseEntity<Response> search(@RequestParam(name = "user_Id") String userId,
-                                                              @RequestParam(name = "category") String category,
-                                                              @RequestParam(name = "query") String query,
-                                                              Authentication authentication,
-                                                              HttpServletRequest request){
+                                           @RequestParam(name = "category") String category,
+                                           @RequestParam(name = "query") String query,
+                                           Authentication authentication,
+                                           HttpServletRequest request) {
         if (isValidUser(userId, authentication)) {
             var results = searchService.executeQuery(query, userId, category);
             var response = getResponse(request, Map.of("data", results), "Search Successful", HttpStatus.OK);
-            return new ResponseEntity<>(response,HttpStatus.OK);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
 
         var response = getErrorResponse(request, HttpStatus.FORBIDDEN, new RuntimeException("User not authenticated"));
@@ -64,10 +63,10 @@ public class SearchController {
 
     @GetMapping("drug/")
     public ResponseEntity<Response> search(@RequestParam("search_param") String searchParam,
-                                                              @RequestParam("search_term") String searchTerm,
-                                                              @RequestParam("limit") String limit,
-                                                              @RequestParam("count") String count,
-                                                              @RequestParam("sort") String sort, HttpServletRequest httpServletRequest) {
+                                           @RequestParam("search_term") String searchTerm,
+                                           @RequestParam("limit") String limit,
+                                           @RequestParam("count") String count,
+                                           @RequestParam("sort") String sort, HttpServletRequest httpServletRequest) {
         try {
             //search terms are separated by ':'
             boolean sortIsNullButLimitIsNot = Objects.isNull(sort) && Objects.nonNull(limit);
@@ -75,42 +74,42 @@ public class SearchController {
             if (Objects.isNull(count)) {
 
                 if (sortAndLimitAreNotNull) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
                                     splitSearchTerms(searchTerm))),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
 
                 } else if (sortIsNullButLimitIsNot) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(Integer.parseInt(limit),searchParam, splitSearchTerms(searchTerm))),
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(Integer.parseInt(limit), searchParam, splitSearchTerms(searchTerm))),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 } else if (Objects.nonNull(sort)) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(valueOf(sort), searchParam, splitSearchTerms(searchTerm))),
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(valueOf(sort), searchParam, splitSearchTerms(searchTerm))),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 } else {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(searchParam,
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(searchParam,
                                     splitSearchTerms(searchTerm))),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 }
             } else {
                 if (sortAndLimitAreNotNull) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
                                     splitSearchTerms(searchTerm))),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
 
                 } else if (sortIsNullButLimitIsNot) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(Integer.parseInt(limit),searchParam, splitSearchTerms(searchTerm),count)),
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(Integer.parseInt(limit), searchParam, splitSearchTerms(searchTerm), count)),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 } else if (Objects.nonNull(sort)) {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(valueOf(sort), searchParam, splitSearchTerms(searchTerm),count)),
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(valueOf(sort), searchParam, splitSearchTerms(searchTerm), count)),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
                 } else {
-                    var result = getResponse(httpServletRequest, Map.of("data",openFDAQuery.queryDrugs(searchParam,
+                    var result = getResponse(httpServletRequest, Map.of("data", openFDAQuery.queryDrugs(searchParam,
                                     splitSearchTerms(searchTerm), count)),
                             "query was successful", HttpStatus.OK);
                     return new ResponseEntity<>(result, HttpStatus.OK);
@@ -126,8 +125,8 @@ public class SearchController {
 
     @GetMapping("/")
     public ResponseEntity<Response> search(@RequestParam(name = "category") String category,
-                                                              @RequestParam(name = "query") String query,
-                                                              HttpServletRequest request) {
+                                           @RequestParam(name = "query") String query,
+                                           HttpServletRequest request) {
         var results = searchService.executeQuery(query, category);
         var response = getResponse(request, Map.of("data", results), "Search Successful", HttpStatus.OK);
         return new ResponseEntity<>(response, response.status());
@@ -135,17 +134,18 @@ public class SearchController {
 
     // Should be pageable
     @GetMapping("/article")
-    public ResponseEntity<Response> searchArticle(@RequestParam(name = "query",defaultValue = "") String query,
+    public ResponseEntity<Response> searchArticle(@RequestParam(name = "query", defaultValue = "") String query,
                                                   @RequestParam(name = "offset", defaultValue = "0") Integer offset,
                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                   @RequestParam(name = "sortBy", defaultValue = "title") String sortBy,
                                                   HttpServletRequest httpServletRequest) {
         var results = articleService.searchArticle(query,
-                PageRequest.of(offset,pageSize, Sort.by(sortBy)),
+                PageRequest.of(offset, pageSize, Sort.by(sortBy)),
                 httpServletRequest);
         return new ResponseEntity<>(results, results.status());
 
     }
+
     private boolean isValidUser(String userId, Authentication authentication) {
         var authUserId = userService.retrieveUserByEmail(((UserDetails) authentication.getPrincipal()).getUsername()).getUserId();
         return (userId.equals(authUserId) && authentication.isAuthenticated());

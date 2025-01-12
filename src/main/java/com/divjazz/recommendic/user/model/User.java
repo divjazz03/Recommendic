@@ -3,9 +3,10 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
-import com.divjazz.recommendic.user.model.userAttributes.*;
-
-
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
@@ -14,8 +15,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.*;
-
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 
 @Entity
@@ -66,7 +68,6 @@ public class User extends Auditable implements UserDetails {
     private UserType userType;
 
 
-
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.REMOVE)
     private UserConfirmation userConfirmation;
@@ -76,8 +77,8 @@ public class User extends Auditable implements UserDetails {
     private boolean enabled;
 
 
-
-    protected User(){}
+    protected User() {
+    }
 
     public User(UserName userName,
                 String email,
@@ -85,7 +86,7 @@ public class User extends Auditable implements UserDetails {
                 Gender gender,
                 Address address,
                 Role role,
-                UserCredential userCredential){
+                UserCredential userCredential) {
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -108,8 +109,16 @@ public class User extends Auditable implements UserDetails {
         return userId;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public UserType getUserType() {
@@ -124,14 +133,6 @@ public class User extends Auditable implements UserDetails {
         return phoneNumber;
     }
 
-    public void setUserName(UserName userName) {
-        this.userName = userName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
@@ -140,26 +141,40 @@ public class User extends Auditable implements UserDetails {
         return gender;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 
     public Address getAddress() {
         return address;
     }
 
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
     public Role getRole() {
         return role;
     }
 
-
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
     public UserName getUserName() {
         return userName;
     }
 
+    public void setUserName(UserName userName) {
+        this.userName = userName;
+    }
+
     public ProfilePicture getProfilePicture() {
         return profilePicture;
+    }
+
+    public void setProfilePicture(ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public LocalDateTime getLastLogin() {
@@ -178,14 +193,10 @@ public class User extends Auditable implements UserDetails {
         this.loginAttempts = loginAttempts;
     }
 
-    public void setAccountNonLocked(boolean accountNonLocked) {
-        this.accountNonLocked = accountNonLocked;
-    }
-
     @Override
     public Set<? extends GrantedAuthority> getAuthorities() {
 
-         return Set.of(new SimpleGrantedAuthority(role.getPermissions()));
+        return Set.of(new SimpleGrantedAuthority(role.getPermissions()));
     }
 
     @Override
@@ -203,9 +214,17 @@ public class User extends Auditable implements UserDetails {
         return accountNonExpired;
     }
 
+    public void setAccountNonExpired(boolean accountNonExpired) {
+        this.accountNonExpired = accountNonExpired;
+    }
+
     @Override
     public boolean isAccountNonLocked() {
         return accountNonLocked;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
     }
 
     @Override
@@ -218,20 +237,8 @@ public class User extends Auditable implements UserDetails {
         return true;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
-
-    public void setProfilePicture(ProfilePicture profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public UserCredential getUserCredential() {
@@ -240,14 +247,6 @@ public class User extends Auditable implements UserDetails {
 
     public void setUserCredential(UserCredential userCredential) {
         this.userCredential = userCredential;
-    }
-
-    public void setAccountNonExpired(boolean accountNonExpired) {
-        this.accountNonExpired = accountNonExpired;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 
     public UserConfirmation getUserConfirmation() {
@@ -271,7 +270,7 @@ public class User extends Auditable implements UserDetails {
     @Override
     public int hashCode() {
         var id = getId();
-        var res =  email != null ? email.hashCode() : 0;
+        var res = email != null ? email.hashCode() : 0;
         return (int) (31 * res + id ^ (id >>> 31));
     }
 }

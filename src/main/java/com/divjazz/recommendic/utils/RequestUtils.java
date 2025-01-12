@@ -34,14 +34,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class RequestUtils {
 
     private static final BiConsumer<HttpServletResponse, Response> writeResponse = (httpServletResponse, response) -> {
-                try {
-                    var outputStream = httpServletResponse.getOutputStream();
-                    new ObjectMapper().writeValue(outputStream, response);
-                    outputStream.flush();
-                } catch (Exception e) {
-                    throw new RuntimeException(e.getMessage());
-                }
-            };
+        try {
+            var outputStream = httpServletResponse.getOutputStream();
+            new ObjectMapper().writeValue(outputStream, response);
+            outputStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    };
 
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, httpStatus) -> {
         if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
@@ -62,10 +62,11 @@ public class RequestUtils {
         else
             return "An error occurred. Please try again ";
     };
+
     public static Response getResponse(HttpServletRequest httpServletRequest,
-                                       Map<?,?> data,
+                                       Map<?, ?> data,
                                        String message,
-                                       HttpStatus status){
+                                       HttpStatus status) {
         return new Response(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
@@ -73,48 +74,50 @@ public class RequestUtils {
                 HttpStatus.valueOf(status.value()),
                 message,
                 EMPTY,
-                (Objects.isNull(data))? Collections.EMPTY_MAP : data
+                (Objects.isNull(data)) ? Collections.EMPTY_MAP : data
         );
     }
+
     public static Response getErrorResponse(HttpServletRequest httpServletRequest,
                                             HttpStatus status,
-                                            Exception exception){
+                                            Exception exception) {
         return new Response(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
                 httpServletRequest.getRequestURI(),
                 HttpStatus.valueOf(status.value()),
-                errorReason.apply(exception,status),
+                errorReason.apply(exception, status),
                 getRootCauseMessage(exception),
                 Collections.emptyMap()
         );
     }
+
     public static Response getErrorResponse(HttpServletRequest httpServletRequest,
                                             HttpServletResponse httpServletResponse,
-                                            Exception exception, HttpStatus status){
-       httpServletResponse.setContentType(APPLICATION_JSON_VALUE);
-       httpServletResponse.setStatus(status.value());
-       return new Response(
-               now().format(ISO_LOCAL_DATE_TIME),
-               status.value(),
-               httpServletRequest.getRequestURI(),
-               HttpStatus.valueOf(status.value()),
-               errorReason.apply(exception,status),
-               getRootCauseMessage(exception),
-               Collections.emptyMap()
-       );
+                                            Exception exception, HttpStatus status) {
+        httpServletResponse.setContentType(APPLICATION_JSON_VALUE);
+        httpServletResponse.setStatus(status.value());
+        return new Response(
+                now().format(ISO_LOCAL_DATE_TIME),
+                status.value(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.valueOf(status.value()),
+                errorReason.apply(exception, status),
+                getRootCauseMessage(exception),
+                Collections.emptyMap()
+        );
     }
 
-    public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response,Exception e) {
-        if (e instanceof AccessDeniedException ) {
-            Response apiREsponse = getErrorResponse(request,response,e,HttpStatus.FORBIDDEN);
-            writeResponse.accept(response,apiREsponse);
+    public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception e) {
+        if (e instanceof AccessDeniedException) {
+            Response apiREsponse = getErrorResponse(request, response, e, HttpStatus.FORBIDDEN);
+            writeResponse.accept(response, apiREsponse);
         } else if (e instanceof UserNotFoundException) {
-            Response apiResponse = getErrorResponse(request,response,e,HttpStatus.NOT_FOUND);
-            writeResponse.accept(response,apiResponse);
+            Response apiResponse = getErrorResponse(request, response, e, HttpStatus.NOT_FOUND);
+            writeResponse.accept(response, apiResponse);
         } else {
-            Response apiResponse = getErrorResponse(request,response,e,HttpStatus.EXPECTATION_FAILED);
-            writeResponse.accept(response,apiResponse);
+            Response apiResponse = getErrorResponse(request, response, e, HttpStatus.EXPECTATION_FAILED);
+            writeResponse.accept(response, apiResponse);
         }
     }
 

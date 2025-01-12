@@ -3,7 +3,6 @@ package com.divjazz.recommendic;
 
 import com.divjazz.recommendic.user.domain.RequestContext;
 import jakarta.persistence.*;
-
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -29,14 +28,14 @@ public abstract class Auditable {
     @NotNull
     @Column(name = "updated_by", nullable = false)
     private long updatedBy;
-    @Column(name = "created_at",nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     @NotNull
     private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Auditable(){
+    protected Auditable() {
         this.referenceId = UUID.randomUUID().toString();
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
@@ -50,7 +49,7 @@ public abstract class Auditable {
         this.id = id;
     }
 
-    public String  getReferenceId() {
+    public String getReferenceId() {
         return referenceId;
     }
 
@@ -89,8 +88,9 @@ public abstract class Auditable {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
     @PrePersist
-    public void beforePersist(){
+    public void beforePersist() {
         long userId = RequestContext.getUserId();
         setReferenceId(UUID.randomUUID().toString());
         this.createdAt = LocalDateTime.now();
@@ -100,7 +100,7 @@ public abstract class Auditable {
     }
 
     @PreUpdate
-    public void beforeUpdate(){
+    public void beforeUpdate() {
         long userId = RequestContext.getUserId();
         setUpdatedBy(userId);
         setUpdatedAt(LocalDateTime.now());

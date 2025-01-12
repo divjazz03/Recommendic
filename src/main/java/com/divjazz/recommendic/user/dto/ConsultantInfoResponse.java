@@ -11,6 +11,7 @@ public record ConsultantInfoResponse(
         String lastName,
         String firstName,
         String gender,
+        String phoneNumber,
         Address address,
         String medicalSpecialization
 ) implements UserResponse {

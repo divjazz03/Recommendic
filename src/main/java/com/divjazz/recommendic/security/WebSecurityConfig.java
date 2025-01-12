@@ -38,7 +38,8 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http,
                                            LoginAuthenticationFilter loginAuthenticationFilter,
-                                           JwtAuthenticationFilter filter) throws Exception {
+                                           JwtAuthenticationFilter filter,
+                                           LogoutAuthenticationFilter logoutFilter) throws Exception {
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -59,6 +60,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(logoutFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -77,12 +79,14 @@ public class WebSecurityConfig {
         return new LoginAuthenticationFilter(authenticationManager, service,userService);
     }
 
-    @Bean()
+    @Bean
     JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
         return new JwtAuthenticationFilter(jwtService, userDetailsService);
     }
 
-
-
+    @Bean
+    LogoutAuthenticationFilter logoutAuthenticationFilter(JwtService jwtService) {
+        return new LogoutAuthenticationFilter(jwtService);
+    }
 
 }

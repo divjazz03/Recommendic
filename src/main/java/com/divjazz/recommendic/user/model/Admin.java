@@ -2,22 +2,27 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
-import com.divjazz.recommendic.user.model.userAttributes.*;
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "admin")
-public final class Admin extends User{
+public class Admin extends User {
     @OneToMany(mappedBy = "adminAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Assignment> assignment;
 
 
-
-    protected Admin(){}
+    protected Admin() {
+    }
 
 
     public Admin(
@@ -27,7 +32,7 @@ public final class Admin extends User{
             Gender gender,
             Address address,
             Role role, UserCredential userCredential) {
-        super(userName,email,phoneNumber,gender,address, role, userCredential);
+        super(userName, email, phoneNumber, gender, address, role, userCredential);
         super.setUserType(UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
@@ -44,6 +49,7 @@ public final class Admin extends User{
         this.assignment.add(assignment);
         assignment.setAdminAssigned(this);
     }
+
     public void removeAssignment(Assignment assignment) {
         assignment.setAdminAssigned(null);
         this.assignment.remove(assignment);

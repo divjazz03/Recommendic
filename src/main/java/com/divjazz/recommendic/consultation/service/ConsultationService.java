@@ -38,9 +38,9 @@ public class ConsultationService {
                 consultationId, LocalDateTime.now(),
                 patient,
                 consultant
-                );
+        );
         consultationRepository.save(consultation);
-        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserName().getFullName(), consultant.getUserName().getFullName(), Status.NOT_STARTED.toString(),consultation.getConsultationId(), false);
+        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserName().getFullName(), consultant.getUserName().getFullName(), Status.NOT_STARTED.toString(), consultation.getConsultationId(), false);
     }
 
     public ConsultationResponse acknowledgeConsultation(String consultationId) {
@@ -65,7 +65,7 @@ public class ConsultationService {
 
     }
 
-    public Set<Consultation> retrieveConsultationsByUserId(String userId){
+    public Set<Consultation> retrieveConsultationsByUserId(String userId) {
         return consultationRepository.getAllConsultationsWhichContainsTheUserId(userId);
     }
 

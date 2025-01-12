@@ -38,7 +38,7 @@ public class ArticleService {
     public Response uploadArticle(ArticleDTO articleDTO, HttpServletRequest httpServletRequest) {
         try {
             var consultant = consultantService.retrieveConsultantByEmail(articleDTO.userEmail()).orElseThrow(UserNotFoundException::new);
-            var article = new Article(articleDTO.title(), articleDTO.content(),consultant);
+            var article = new Article(articleDTO.title(), articleDTO.content(), consultant);
             articleRepository.save(article);
             return RequestUtils.getResponse(httpServletRequest, Map.of(), "Article was uploaded successfully", HttpStatus.OK);
         } catch (UserNotFoundException e) {
@@ -59,14 +59,14 @@ public class ArticleService {
     public Response recommendArticles(Pageable pageable, Authentication authentication, HttpServletRequest request) {
         List<Article> result = new ArrayList<>(10);
         var patientMedicalCategories = ((Patient) generalUserService
-                    .retrieveUserByEmail(((UserDetails)authentication
+                .retrieveUserByEmail(((UserDetails) authentication
                         .getPrincipal()).getUsername()))
                 .getMedicalCategories();
         patientMedicalCategories.stream()
                 .flatMap(medicalCategory -> articleRepository.findAllByMedicalCategoryOfInterest(medicalCategory.toString(), pageable).stream())
                 .forEach(result::add);
 
-        return RequestUtils.getResponse(request,Map.of("data", result), "successful", HttpStatus.OK);
+        return RequestUtils.getResponse(request, Map.of("data", result), "successful", HttpStatus.OK);
 
 
     }

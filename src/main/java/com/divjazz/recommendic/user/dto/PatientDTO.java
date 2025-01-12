@@ -1,7 +1,8 @@
 package com.divjazz.recommendic.user.dto;
 
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.userAttributes.*;
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 
 public record PatientDTO(
         UserName userName,
@@ -11,4 +12,5 @@ public record PatientDTO(
         Address address,
         String password,
         String[] categoryOfInterest
-) {}
+) {
+}

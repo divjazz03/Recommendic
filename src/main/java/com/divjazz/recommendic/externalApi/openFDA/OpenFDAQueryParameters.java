@@ -9,7 +9,6 @@ public enum OpenFDAQueryParameters {
     DOSAGE_FORM("products.dosage_form"),
     ROUTE("products.route.exact");
 
-
     private final String param;
 
     OpenFDAQueryParameters(String param) {

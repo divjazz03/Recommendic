@@ -13,6 +13,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     Set<Assignment> getAllByAdminAssigned_UserId(String userId);
 
-    @Query(value = "select c from certification c join assignment a on a.id = c.assignment_id where confirmed = false",nativeQuery = true)
+    @Query(value = "select c from certification c join assignment a on a.id = c.assignment_id where confirmed = false", nativeQuery = true)
     Set<Certification> getAllCertificationByAssignmentId(Long id);
 }

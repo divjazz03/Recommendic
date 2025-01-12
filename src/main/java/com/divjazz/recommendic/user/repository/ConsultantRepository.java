@@ -18,6 +18,7 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
 
 
     boolean existsByEmail(String email);
+
     Optional<List<Consultant>> findByMedicalCategory(MedicalCategory category);
 
     @Query(value = "select c from consultant c inner join users u on u.id = c.id where first_name = :name or last_name = :name", nativeQuery = true)

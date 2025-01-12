@@ -15,7 +15,8 @@ public enum MedicalCategory {
     PHYSICAL_THERAPY("Dealing with recovery of patients rom injuries or surgeries");
 
     private final String description;
-    private MedicalCategory(String description){
+
+    MedicalCategory(String description) {
         this.description = description;
     }
 

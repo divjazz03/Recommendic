@@ -21,7 +21,7 @@ public class CacheStore<K, V> {
     }
 
     public V get(@NotNull K key) {
-        log.info("Retrieving from Cache with key {}" , key.toString());
+        log.info("Retrieving from Cache with key {}", key.toString());
         return cache.getIfPresent(key);
     }
 

@@ -1,19 +1,11 @@
 package com.divjazz.recommendic.user.model.userAttributes.confirmation;
 
 import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.User;
-import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 
 @Entity
@@ -30,10 +22,10 @@ public class UserConfirmation extends Auditable {
     private User user;
 
 
-    protected UserConfirmation(){
+    protected UserConfirmation() {
     }
 
-    public UserConfirmation(User user){
+    public UserConfirmation(User user) {
         super();
         this.key = UUID.randomUUID().toString();
         this.user = user;
@@ -43,8 +35,16 @@ public class UserConfirmation extends Auditable {
         return key;
     }
 
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     public Boolean getExpired() {
         return expired;
+    }
+
+    public void setExpired(Boolean expired) {
+        this.expired = expired;
     }
 
     @Override
@@ -55,14 +55,6 @@ public class UserConfirmation extends Auditable {
         UserConfirmation that = (UserConfirmation) o;
 
         return Objects.equals(key, that.key) && Objects.equals(getId(), that.getId());
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public void setExpired(Boolean expired) {
-        this.expired = expired;
     }
 
     public User getUser() {

@@ -24,7 +24,7 @@ public class ChatController {
 
     @MessageMapping("/sendMessage") //Maps to "/app/sendMessage"
     public void sendMessage(@Payload ChatMessage message) {
-       chatMessageService.sendMessage(message);
+        chatMessageService.sendMessage(message);
     }
 
     @MessageMapping("/connect")

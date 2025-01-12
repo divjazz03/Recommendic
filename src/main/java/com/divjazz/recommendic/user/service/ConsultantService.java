@@ -2,10 +2,10 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.RequestContext;
+import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
@@ -28,7 +28,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -70,6 +69,15 @@ public class ConsultantService {
         this.assignmentService = assignmentService;
     }
 
+    public static ConsultantInfoResponse consultantToConsultantInfoResponse(Consultant consultant) {
+        return new ConsultantInfoResponse(consultant.getUserId(),
+                consultant.getUserNameObject().getLastName(),
+                consultant.getUserNameObject().getFirstName(),
+                consultant.getGender().toString(),
+                consultant.getAddress(),
+                consultant.getMedicalCategory().toString());
+    }
+
     @Transactional
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
         Role role = roleRepository.getRoleByName("ROLE_CONSULTANT").orElseThrow(() -> new RuntimeException("No such role exists"));
@@ -80,7 +88,7 @@ public class ConsultantService {
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                consultantDTO.medicalCategory(),role, userCredential
+                consultantDTO.medicalCategory(), role, userCredential
         );
 
         user.setUserCredential(userCredential);
@@ -98,26 +106,27 @@ public class ConsultantService {
             userRepository.save(user);
             userConfirmationRepository.save(userConfirmation);
             userCredentialRepository.save(userCredential);
-            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key",userConfirmation.getKey()));
+            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
-           return new ConsultantInfoResponse(user.getUserId(),
-                   user.getUserNameObject().getLastName(),
-                   user.getUserNameObject().getFirstName(),
-                   user.getGender().toString(),
-                   user.getAddress(),
-                   user.getMedicalCategory().toString());
+            return new ConsultantInfoResponse(user.getUserId(),
+                    user.getUserNameObject().getLastName(),
+                    user.getUserNameObject().getFirstName(),
+                    user.getGender().toString(),
+                    user.getPhoneNumber(),
+                    user.getAddress(),
+                    user.getMedicalCategory().toString());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }
     }
 
     @Transactional(readOnly = true)
-    public Page<Consultant> getAllConsultants(Pageable pageable){
+    public Page<Consultant> getAllConsultants(Pageable pageable) {
         return consultantRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantByCategory(MedicalCategory category){
+    public Set<Consultant> getConsultantByCategory(MedicalCategory category) {
         return ImmutableSet.
                 copyOf(
                         consultantRepository.findByMedicalCategory(category)
@@ -126,21 +135,12 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantsByName(String name){
+    public Set<Consultant> getConsultantsByName(String name) {
 
         return consultantRepository.findConsultantByName(name);
     }
 
-    public static ConsultantInfoResponse consultantToConsultantInfoResponse(Consultant consultant) {
-        return new ConsultantInfoResponse(consultant.getUserId(),
-                consultant.getUserNameObject().getLastName(),
-                consultant.getUserNameObject().getFirstName(),
-                consultant.getGender().toString(),
-                consultant.getAddress(),
-                consultant.getMedicalCategory().toString());
-    }
-
-    public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query){
+    public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query) {
         return consultantRepository.searchConsultant(query)
                 .stream()
                 .limit(5)
@@ -155,18 +155,19 @@ public class ConsultantService {
                 .collect(Collectors.toSet());
     }
 
-    public Set<Consultation> getAllConsultations(String consultantId){
+    public Set<Consultation> getAllConsultations(String consultantId) {
         return consultantRepository.findAllConsultationsByConsultantId(consultantId);
     }
 
-    public Consultant retrieveConsultantByUserId(String userId){
+    public Consultant retrieveConsultantByUserId(String userId) {
         return consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
     }
-    public Optional<Consultant> retrieveConsultantByEmail(String email){
+
+    public Optional<Consultant> retrieveConsultantByEmail(String email) {
         return consultantRepository.findByEmail(email);
     }
 
-    public Set<Consultant> getAllUnCertifiedConsultants(){
+    public Set<Consultant> getAllUnCertifiedConsultants() {
         return consultantRepository.findUnCertifiedConsultant();
     }
 
