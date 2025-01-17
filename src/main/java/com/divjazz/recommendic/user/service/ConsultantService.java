@@ -74,6 +74,7 @@ public class ConsultantService {
                 consultant.getUserNameObject().getLastName(),
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
+                consultant.getPhoneNumber(),
                 consultant.getAddress(),
                 consultant.getMedicalCategory().toString());
     }
@@ -149,6 +150,7 @@ public class ConsultantService {
                         consultant.getUserNameObject().getLastName(),
                         consultant.getUserNameObject().getFirstName(),
                         consultant.getGender().toString(),
+                        consultant.getPhoneNumber(),
                         consultant.getAddress(),
                         consultant.getMedicalCategory().toString()
                 ))

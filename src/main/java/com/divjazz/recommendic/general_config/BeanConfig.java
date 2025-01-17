@@ -38,7 +38,7 @@ public class BeanConfig {
                         .description("A medical recommendation app")
                         .version("v0.0.1")
                         .termsOfService("https://swagger.io/terms/")
-                        .license(new License().name("Apache 2.0").url("http://springdoc.org")))
+                        .license(new License().name("Apache 2.0").url("https://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
                         .description("SpringShop Wiki Documentation")
                         .url("https://springshop.wiki.github.org/docs"));

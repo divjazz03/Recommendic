@@ -46,6 +46,7 @@ public class RecommendationService {
                 consultant.getUserNameObject().getLastName(),
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
+                consultant.getPhoneNumber(),
                 consultant.getAddress(),
                 consultant.getMedicalCategory().toString()
         );

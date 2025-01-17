@@ -5,7 +5,7 @@ server:
 
 spring:
   profiles:
-    active: ${ACTIVE_PROFILE}
+    active: dev
   jackson:
     default-property-inclusion: non_null
     serialization:
@@ -32,7 +32,7 @@ spring:
   datasource:
     password: ${POSTGRES_PASSWORD}
     username: ${POSTGRES_USER}
-    url: ${POSTGRES_URL}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     driver-class-name: org.postgresql.Driver
     hikari:
       auto-commit: false
