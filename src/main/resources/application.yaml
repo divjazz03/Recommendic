@@ -3,7 +3,10 @@ server:
     include-message: never
     include-binding-errors: never
 
+
+
 spring:
+
   profiles:
     active: dev
   jackson:
@@ -77,3 +80,7 @@ api:
 springdoc:
   api-docs:
     path: /api-docs
+
+cors:
+  frontend:
+    domain: 'http://localhost:5173'

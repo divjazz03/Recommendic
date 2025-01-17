@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -25,7 +26,7 @@ public record PatientRegistrationParams(
         String city,
         @NotEmpty(message = "State cannot be empty")
         String state,
-
+        @JsonProperty("categoriesOfInterest")
         String[] categoryOfInterest,
         @NotEmpty(message = "Country cannot be empty")
         String country) {

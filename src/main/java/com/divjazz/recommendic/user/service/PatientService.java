@@ -79,6 +79,7 @@ public class PatientService {
                 patientDTO.address(),
                 role,
                 userCredential);
+        log.info("Categories is {}", (Object) patientDTO.categoryOfInterest());
         Set<MedicalCategory> medicalCategories = Arrays.stream(patientDTO.categoryOfInterest())
                 .map(String::toUpperCase)
                 .map(MedicalCategory::valueOf)
