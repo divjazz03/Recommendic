@@ -135,6 +135,11 @@
 							</goals>
 						</execution>
 						<execution>
+							<goals>
+								<goal>repackage</goal>
+							</goals>
+						</execution>
+						<execution>
 							<id>post-integration-test</id>
 							<goals>
 								<goal>stop</goal>
