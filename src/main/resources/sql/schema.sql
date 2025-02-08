@@ -21,18 +21,18 @@ DROP TABLE IF EXISTS users,
 CREATE TABLE IF NOT EXISTS users
 (
     id                  BIGINT PRIMARY KEY,
-    reference_id        CHARACTER VARYING(40) UNIQUE  NOT NULL,
-    user_id             CHARACTER VARYING(40) UNIQUE  NOT NULL,
-    first_name          CHARACTER VARYING(50)         NOT NULL,
-    last_name           CHARACTER VARYING(50)         NOT NULL,
-    email               CHARACTER VARYING(100) UNIQUE NOT NULL,
+    reference_id        CHARACTER VARYING(54) UNIQUE  NOT NULL,
+    user_id             CHARACTER VARYING(54) UNIQUE  NOT NULL,
+    first_name          CHARACTER VARYING(30)         NOT NULL,
+    last_name           CHARACTER VARYING(30)         NOT NULL,
+    email               CHARACTER VARYING(54) UNIQUE NOT NULL,
     phone_number        CHARACTER VARYING(20)                  DEFAULT NULL,
     bio                 TEXT                                   DEFAULT NULL,
-    image_url           CHARACTER VARYING(40)                  DEFAULT 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-    image_name          CHARACTER VARYING(40)                  DEFAULT '149071.png',
-    country             CHARACTER VARYING(100)        NOT NULL,
-    state               CHARACTER VARYING(100)        NOT NULL,
-    city                CHARACTER VARYING(100)        NOT NULL,
+    image_url           CHARACTER VARYING(54)                  DEFAULT 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+    image_name          CHARACTER VARYING(30)                  DEFAULT '149071.png',
+    country             CHARACTER VARYING(30)        NOT NULL,
+    state               CHARACTER VARYING(30)        NOT NULL,
+    city                CHARACTER VARYING(30)        NOT NULL,
     zip_code            CHARACTER VARYING(10)         NOT NULL,
     user_type           CHARACTER VARYING(10)         NOT NULL,
     enabled             BOOLEAN                       NOT NULL DEFAULT FALSE,
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS users_credential
 (
     id           BIGINT PRIMARY KEY,
     user_id      BIGINT                NOT NULL,
-    reference_id CHARACTER VARYING(40),
-    password     CHARACTER VARYING(40) NOT NULL,
+    reference_id CHARACTER VARYING(54),
+    password     CHARACTER VARYING(30) NOT NULL,
     expired      BOOLEAN                     DEFAULT FALSE,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -66,10 +66,10 @@ CREATE TABLE IF NOT EXISTS users_credential
 CREATE TABLE IF NOT EXISTS users_confirmation
 (
     id           BIGINT PRIMARY KEY UNIQUE,
-    reference_id CHARACTER VARYING(40),
+    reference_id CHARACTER VARYING(54),
     user_id      BIGINT                NOT NULL,
     expiry      TIMESTAMP(6) WITH TIME ZONE NOT NULL,
-    key          CHARACTER VARYING(40) NOT NULL,
+    key          CHARACTER VARYING(30) NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by   BIGINT                NOT NULL,
@@ -97,19 +97,19 @@ CREATE TABLE IF NOT EXISTS roles
 (
     id          BIGINT PRIMARY KEY,
     name        CHARACTER VARYING(20) NOT NULL,
-    permissions CHARACTER VARYING(40) NOT NULL
+    permissions CHARACTER VARYING(30) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS certification
 (
     id               BIGINT PRIMARY KEY,
-    reference_id     CHARACTER VARYING(40) UNIQUE NOT NULL,
+    reference_id     CHARACTER VARYING(54) UNIQUE NOT NULL,
     consultant_id    BIGINT                       NOT NULL,
     assignment_id    BIGINT                       NOT NULL,
-    file_name        CHARACTER VARYING(40)        NOT NULL,
-    file_url         CHARACTER VARYING(40)        NOT NULL,
-    certificate_type CHARACTER VARYING(40)        NOT NULL,
+    file_name        CHARACTER VARYING(30)        NOT NULL,
+    file_url         CHARACTER VARYING(30)        NOT NULL,
+    certificate_type CHARACTER VARYING(30)        NOT NULL,
     confirmed        BOOLEAN                     DEFAULT TRUE,
     updated_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS admin
 CREATE TABLE IF NOT EXISTS assignment
 (
     id           BIGINT PRIMARY KEY,
-    reference_id CHARACTER VARYING(40) UNIQUE,
+    reference_id CHARACTER VARYING(54) UNIQUE,
     admin_id     BIGINT,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -149,9 +149,9 @@ CREATE TABLE IF NOT EXISTS admin_assignment
 CREATE TABLE IF NOT EXISTS search
 (
     id           BIGINT PRIMARY KEY,
-    query        CHARACTER VARYING(40) NOT NULL,
+    query        CHARACTER VARYING(30) NOT NULL,
     owner_id     BIGINT                NOT NULL,
-    reference_id CHARACTER VARYING(40) UNIQUE,
+    reference_id CHARACTER VARYING(54) UNIQUE,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by   BIGINT                NOT NULL,
@@ -161,10 +161,10 @@ CREATE TABLE IF NOT EXISTS search
 CREATE TABLE IF NOT EXISTS article
 (
     id            BIGINT PRIMARY KEY,
-    title         CHARACTER VARYING(40) NOT NULL,
+    title         CHARACTER VARYING(30) NOT NULL,
     content       TEXT                  NOT NULL,
     consultant_id BIGINT                NOT NULL,
-    reference_id  CHARACTER VARYING(40),
+    reference_id  CHARACTER VARYING(54),
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    BIGINT                NOT NULL,
@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS article
 CREATE TABLE IF NOT EXISTS consultant_recommendation
 (
     id            BIGINT PRIMARY KEY,
-    reference_id  CHARACTER VARYING(40) UNIQUE NOT NULL,
+    reference_id  CHARACTER VARYING(54) UNIQUE NOT NULL,
     patient_id    BIGINT                       NOT NULL,
     consultant_id BIGINT                       NOT NULL,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS consultant_recommendation
 CREATE TABLE IF NOT EXISTS article_recommendation
 (
     id           BIGINT PRIMARY KEY,
-    reference_id CHARACTER VARYING(40) UNIQUE,
+    reference_id CHARACTER VARYING(54) UNIQUE,
     patient_id   BIGINT NOT NULL,
     article_id   BIGINT NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -206,10 +206,10 @@ CREATE TABLE IF NOT EXISTS consultant_patient
 CREATE TABLE IF NOT EXISTS consultation
 (
     id                BIGINT PRIMARY KEY,
-    reference_id      CHARACTER VARYING(40) UNIQUE,
+    reference_id      CHARACTER VARYING(54) UNIQUE,
     diagnosis         TEXT,
     consultation_time TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    consultation_id   CHARACTER VARYING(40),
+    consultation_id   CHARACTER VARYING(30),
     patient_id        BIGINT NOT NULL,
     consultant_id     BIGINT NOT NULL,
     accepted          BOOLEAN                     DEFAULT FALSE,
@@ -223,10 +223,10 @@ CREATE TABLE IF NOT EXISTS consultation
 CREATE TABLE IF NOT EXISTS message
 (
     id              BIGINT PRIMARY KEY,
-    reference_id    CHARACTER VARYING(40),
-    sender_id       CHARACTER VARYING(40),
-    receiver_id     CHARACTER VARYING(40),
-    consultation_id CHARACTER VARYING(40),
+    reference_id    CHARACTER VARYING(54),
+    sender_id       CHARACTER VARYING(54),
+    receiver_id     CHARACTER VARYING(54),
+    consultation_id CHARACTER VARYING(54),
     content         TEXT,
     timestamp       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     delivered       BOOLEAN                     DEFAULT FALSE,

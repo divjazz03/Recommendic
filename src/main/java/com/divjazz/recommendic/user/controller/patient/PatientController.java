@@ -134,10 +134,9 @@ public class PatientController {
                         patient.getPhoneNumber(),
                         patient.getGender(),
                         patient.getAddress(),
-                        null,
-                        medicalCategoriesToStringArrayFunction.apply(patient.getMedicalCategories())
+                        null)
 
-                ));
+                );
         var response = getResponse(httpServletRequest,
                 Map.of("patients", patientDTOSet),
                 "Success in retrieving the Patient Users",

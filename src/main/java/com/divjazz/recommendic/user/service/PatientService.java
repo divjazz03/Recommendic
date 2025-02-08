@@ -75,7 +75,6 @@ public class PatientService {
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
-        log.info("The patient role is {}", role);
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
                 patientDTO.userName(),
@@ -106,6 +105,7 @@ public class PatientService {
             });
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
+            log.info("New user with id {} created", user.getUserId());
             return new PatientInfoResponse(user.getUserId()
                     , user.getUserNameObject().getLastName()
                     , user.getUserNameObject().getFirstName()
