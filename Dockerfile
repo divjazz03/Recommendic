@@ -15,4 +15,4 @@ WORKDIR /opt/recommendic
 EXPOSE 8080
 COPY --from=builder ./target/*.jar .
 
-ENTRYPOINT ["java", "-jar","--enable-preview" ,"./recommendic-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar","--enable-preview" ,"./recommendic.jar"]
