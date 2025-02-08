@@ -105,6 +105,7 @@ public class ConsultantService {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
             userRepository.save(user);
+            consultantRepository.save(user);
             userConfirmationRepository.save(userConfirmation);
             userCredentialRepository.save(userCredential);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));

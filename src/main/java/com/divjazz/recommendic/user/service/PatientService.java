@@ -95,6 +95,7 @@ public class PatientService {
                 try {
 
                     userRepository.save(user);
+                    patientRepository.save(user);
                     userCredentialRepository.save(userCredential);
                     userConfirmationRepository.save(userConfirmation);
                 } catch (Exception e) {
