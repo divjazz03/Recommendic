@@ -26,8 +26,6 @@ public record PatientRegistrationParams(
         String city,
         @NotEmpty(message = "State cannot be empty")
         String state,
-        @JsonProperty("categoriesOfInterest")
-        String[] categoryOfInterest,
         @NotEmpty(message = "Country cannot be empty")
         String country) {
 }

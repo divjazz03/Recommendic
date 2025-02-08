@@ -24,10 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     private final Logger log = LoggerFactory.getLogger(PatientService.class);
+    public static final int DEFAULT_PAGE_SIZE = 50;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -48,13 +51,15 @@ public class PatientService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PatientRepository patientRepository;
 
+    private final TransactionTemplate transactionTemplate;
+
 
     public PatientService(
             PatientRepository patientRepository,
             UserRepository userRepository, RoleRepository roleRepository, UserCredentialRepository userCredentialRepository,
             UserConfirmationRepository userConfirmationRepository, GeneralUserService userService,
             PasswordEncoder encoder,
-            ApplicationEventPublisher applicationEventPublisher) {
+            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate) {
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
         this.roleRepository = roleRepository;
@@ -63,10 +68,11 @@ public class PatientService {
         this.userService = userService;
         this.encoder = encoder;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.transactionTemplate = transactionTemplate;
     }
 
 
-    @Transactional
+
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         log.info("The patient role is {}", role);
@@ -79,26 +85,25 @@ public class PatientService {
                 patientDTO.address(),
                 role,
                 userCredential);
-        log.info("Categories is {}", (Object) patientDTO.categoryOfInterest());
-        Set<MedicalCategory> medicalCategories = Arrays.stream(patientDTO.categoryOfInterest())
-                .map(String::toUpperCase)
-                .map(MedicalCategory::valueOf)
-                .collect(Collectors.toSet());
-        var profilePicture = new ProfilePicture();
-
-        profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
-        profilePicture.setName("149071.png");
-        user.setProfilePicture(profilePicture);
-        user.setMedicalCategories(medicalCategories);
         user.setUserCredential(userCredential);
         user.setUserType(UserType.PATIENT);
         userCredential.setUser(user);
+
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
-            userRepository.save(user);
-            userCredentialRepository.save(userCredential);
-            userConfirmationRepository.save(userConfirmation);
+            transactionTemplate.execute( status -> {
+                try {
+
+                    userRepository.save(user);
+                    userCredentialRepository.save(userCredential);
+                    userConfirmationRepository.save(userConfirmation);
+                } catch (Exception e) {
+                    status.setRollbackOnly();
+                }
+                return null;
+
+            });
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
             return new PatientInfoResponse(user.getUserId()
@@ -117,10 +122,12 @@ public class PatientService {
         return patientRepository.findAll(pageable);
     }
 
+    @Transactional
     public void deletePatientByUserId(String patient_Id) {
         patientRepository.deleteByUserId(patient_Id);
     }
 
+    @Transactional
     public void modifyPatient(Patient patient) {
         patientRepository.save(patient);
     }
@@ -136,12 +143,17 @@ public class PatientService {
         return patientRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
     public Set<Patient> findPatientsByMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return patientRepository.findPatientByMedicalCategories(medicalCategories);
     }
+    public Set<Consultation> findAllConsultationForaGivenPatient(String patientId) {
+        return patientRepository.findAllConsultationByPatientId(patientId);
+    }
 
-    public Set<Consultation> getConsultations(String patient_id) {
-        return patientRepository.findAllConsultationsByPatientId(patient_id);
+    public Page<Consultation> getConsultations(String patient_id, int page) {
+        var pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
+        return patientRepository.findConsultationsByPatientIdOrderByCreatedAtAsc(patient_id, pageable);
     }
 
 }

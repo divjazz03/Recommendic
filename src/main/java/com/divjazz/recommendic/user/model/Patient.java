@@ -24,7 +24,7 @@ public class Patient extends User {
     @Column(name = "medical_categories")
     private Set<MedicalCategory> medicalCategories;
 
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
     private List<Consultation> consultations;
 
 

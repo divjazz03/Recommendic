@@ -96,8 +96,7 @@ public class PatientController {
                     default -> throw new IllegalArgumentException("No Such Gender");
                 },
                 new Address(requestParams.zipCode(), requestParams.city(), requestParams.state(), requestParams.country()),
-                requestParams.password(),
-                requestParams.categoryOfInterest()
+                requestParams.password()
         );
 
         var infoResponse = patientService.createPatient(patient);

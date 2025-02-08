@@ -10,7 +10,6 @@ public record PatientDTO(
         String phoneNumber,
         Gender gender,
         Address address,
-        String password,
-        String[] categoryOfInterest
+        String password
 ) {
 }

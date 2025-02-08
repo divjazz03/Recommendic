@@ -21,12 +21,12 @@ import java.util.Set;
 @Table(name = "consultant")
 public class Consultant extends User implements Serializable {
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL,
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
             mappedBy = "ownerOfCertification", orphanRemoval = true)
     private Set<Certification> certificates;
 
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "consultant")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "consultant")
     private List<Consultation> consultations;
     @Column(columnDefinition = "text")
     private String bio;

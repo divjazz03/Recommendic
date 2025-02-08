@@ -10,6 +10,7 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "users")
+@DynamicUpdate
 public class User extends Auditable implements UserDetails {
 
     @Column(nullable = false)
@@ -234,7 +236,7 @@ public class User extends Auditable implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -264,13 +266,16 @@ public class User extends Auditable implements UserDetails {
 
         User user = (User) o;
 
-        return Objects.equals(email, user.email) && Objects.equals(getId(), user.getId());
+        return Objects.equals(email, user.email)
+                && Objects.equals(userId, user.userId)
+                && Objects.equals(getId(), user.getId());
     }
 
     @Override
     public int hashCode() {
         var id = getId();
         var res = email != null ? email.hashCode() : 0;
+        res = userId != null ? userId.hashCode() : 0;
         return (int) (31 * res + id ^ (id >>> 31));
     }
 }

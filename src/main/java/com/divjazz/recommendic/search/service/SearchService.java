@@ -92,7 +92,7 @@ public class SearchService {
                         ));
                     }
                     case CONSULTATION -> {
-                        var consultations = patientService.getConsultations(currentUser.getUserId());
+                        var consultations = patientService.findAllConsultationForaGivenPatient(currentUser.getUserId());
                         Set<ConsultationResponse> consultationsResult = new HashSet<>(10);
                         if (!consultations.isEmpty()) {
                             consultationsResult = consultations.stream().map(consultation -> new ConsultationResponse(

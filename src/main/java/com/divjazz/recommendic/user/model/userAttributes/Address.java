@@ -11,8 +11,8 @@ public class Address {
     @JsonProperty(value = "zip_code")
     private String zipCode;
     private String city;
-    private String State;
-    private String Country;
+    private String state;
+    private String country;
 
     protected Address() {
     }
@@ -20,8 +20,8 @@ public class Address {
     public Address(String zipCode, String city, String state, String country) {
         this.zipCode = zipCode;
         this.city = city;
-        State = state;
-        Country = country;
+        this.state = state;
+        this.country = country;
     }
 
     public String getCity() {
@@ -33,19 +33,19 @@ public class Address {
     }
 
     public String getState() {
-        return State;
+        return state;
     }
 
     public void setState(String state) {
-        State = state;
+        this.state = state;
     }
 
     public String getCountry() {
-        return Country;
+        return country;
     }
 
     public void setCountry(String country) {
-        Country = country;
+        this.country = country;
     }
 
     public String getZipCode() {
@@ -61,8 +61,8 @@ public class Address {
         return "Address{" +
                 "zipCode='" + zipCode + '\'' +
                 ", city='" + city + '\'' +
-                ", State='" + State + '\'' +
-                ", Country='" + Country + '\'' +
+                ", state='" + state + '\'' +
+                ", country='" + country + '\'' +
                 '}';
     }
 }

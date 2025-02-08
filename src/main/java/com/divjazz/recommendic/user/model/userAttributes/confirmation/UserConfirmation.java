@@ -4,8 +4,10 @@ import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.model.User;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @Entity
@@ -14,12 +16,12 @@ public class UserConfirmation extends Auditable {
     @Column(name = "key")
     private String key;
 
-    @Column(name = "expired")
-    private Boolean expired;
-
     @OneToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
+
+    @Column(name = "expiry", nullable = false, updatable = false)
+    private LocalDateTime expiry;
 
 
     protected UserConfirmation() {
@@ -29,6 +31,7 @@ public class UserConfirmation extends Auditable {
         super();
         this.key = UUID.randomUUID().toString();
         this.user = user;
+        this.expiry = LocalDateTime.now().plusHours(24);
     }
 
     public String getKey() {
@@ -39,12 +42,8 @@ public class UserConfirmation extends Auditable {
         this.key = key;
     }
 
-    public Boolean getExpired() {
-        return expired;
-    }
-
-    public void setExpired(Boolean expired) {
-        this.expired = expired;
+    public Boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiry);
     }
 
     @Override

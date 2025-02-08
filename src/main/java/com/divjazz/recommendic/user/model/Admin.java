@@ -6,10 +6,7 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +14,10 @@ import java.util.Set;
 @Entity
 @Table(name = "admin")
 public class Admin extends User {
-    @OneToMany(mappedBy = "adminAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "adminAssigned",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<Assignment> assignment;
 
 

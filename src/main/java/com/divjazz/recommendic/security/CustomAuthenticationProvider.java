@@ -33,7 +33,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         var userAuth = (ApiAuthentication) authentication;
         var user = userService.retrieveUserByEmail(userAuth.getEmail());
         if (Objects.nonNull(user)) {
-            var credential = userCredentialRepository.getUserCredentialByUser_UserId(user.getUserId())
+            var credential = userCredentialRepository.findUserCredentialByUser_UserId(user.getUserId())
                     .orElseThrow(() -> new RuntimeException("Credentials not found"));
             if (credential.getUpdatedAt().minusDays(90).isAfter(LocalDateTime.now())) {
                 throw new LockedException("Credentials are expired, please reset your password");
@@ -56,11 +56,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private final Consumer<User> validAccount = user -> {
         if (!user.isAccountNonLocked()) {
             throw new LockedException("Your account is currently locked");
-        }if (!user.isEnabled()) {
+        }
+        if (!user.isEnabled()) {
             throw new LockedException("Your account is currently disabled");
-        }if (!user.isCredentialsNonExpired()) {
+        }
+        if (!user.isCredentialsNonExpired()) {
             throw new LockedException("Your password has expired. Please update your password");
-        }if (!user.isAccountNonExpired()) {
+        }
+        if (!user.isAccountNonExpired()) {
             throw new LockedException("Your account has expired. Please contact administrator");
         }
 
