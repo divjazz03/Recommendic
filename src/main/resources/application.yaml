@@ -37,9 +37,7 @@ spring:
 
 
   datasource:
-    password: ${POSTGRES_PASSWORD}
-    username: ${POSTGRES_USER}
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    url: ${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     hikari:
       auto-commit: false
