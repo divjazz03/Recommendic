@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
     private final CustomUserDetailsService userService;
-    public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(/\\w*)?");
+    public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(?:/[\\w.-]+)*$");
     public static final Pattern FAVICON = Pattern.compile("^/favicon.ico");
     public static final Pattern USER_PATH = Pattern.compile("^/api/v1/(patient|consultant|admin)/create$");
     public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/drug/\\w+");
