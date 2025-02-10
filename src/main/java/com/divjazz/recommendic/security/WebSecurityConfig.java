@@ -59,6 +59,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/search/drug/**", "api/v1/medical_categories/").permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
                         .requestMatchers("/api-docs","/api-docs/*", "/api-docs.yaml","swagger-ui/*").permitAll()
+                        .requestMatchers("/actuator/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/v1/patient/delete").
                         hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN, SYSTEM")
                         .requestMatchers("/api/v1/patient/patients").

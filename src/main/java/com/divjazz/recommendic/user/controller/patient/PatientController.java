@@ -51,8 +51,7 @@ public class PatientController {
                 "zipCode": "123456",
                 "city": "Ibadan",
                 "state": "Oyo",
-                "country": "Nigeria",
-                "categoryOfInterest": ["Dentistry", "Gynecology"]
+                "country": "Nigeria"
             }
             """;
     private final PatientService patientService;
