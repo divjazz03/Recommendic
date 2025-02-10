@@ -30,12 +30,19 @@ import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
     private final CustomUserDetailsService userService;
+    public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(?:/[\\w.-]+)*$");
+    public static final Pattern FAVICON = Pattern.compile("^/favicon.ico");
+    public static final Pattern USER_PATH = Pattern.compile("^/api/v1/(patient|consultant|admin)/create$");
+    public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/drug/\\w+");
+    public static final Pattern LOGIN_PATH= Pattern.compile("^/user/login");
     public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
@@ -43,11 +50,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+        var requestURI = request.getRequestURI();
+        var shouldBeIgnored = !(FAVICON.matcher(requestURI).matches() ||
+                ACTUATOR_PATHS.matcher(requestURI).matches() ||
+                USER_PATH.matcher(requestURI).matches() ||
+                DRUG_API_PATH.matcher(requestURI).matches() ||
+                LOGIN_PATH.matcher(requestURI).matches());
         try {
-            if ((!request.getRequestURI().equals("/user/login")) &&
-                    (!request.getRequestURI().matches("/api/v1/(patient|consultant|admin)/create")) &&
-                    (!request.getRequestURI().matches("/api/v1/search/drug/\\w*")) &&
-                    (!request.getRequestURI().matches("/api/v1/medical_categories/\\w*"))) {
+            if (shouldBeIgnored) {
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
                 String username = null;
