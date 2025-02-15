@@ -2,6 +2,7 @@ package com.divjazz.recommendic.unit.user.model;
 
 
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
@@ -29,7 +30,7 @@ public class UserTest {
             Role role,
             UserCredential userCredential
     ){
-        var user = new User(userName, email, phoneNumber, gender, address, role, userCredential);
+        var user = new Patient(userName, email, phoneNumber, gender, address, role, userCredential);
         assertInstanceOf(User.class, user);
         assertFalse(user.isEnabled());
     }

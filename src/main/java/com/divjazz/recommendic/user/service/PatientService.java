@@ -6,6 +6,7 @@ import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -72,7 +74,6 @@ public class PatientService {
     }
 
 
-
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
         Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
@@ -86,6 +87,7 @@ public class PatientService {
                 userCredential);
         user.setUserCredential(userCredential);
         user.setUserType(UserType.PATIENT);
+        user.setUserStage(UserStage.ONBOARDING);
         userCredential.setUser(user);
 
         if (userService.isUserNotExists(user.getEmail())) {
@@ -93,8 +95,6 @@ public class PatientService {
             var userConfirmation = new UserConfirmation(user);
             transactionTemplate.execute( status -> {
                 try {
-
-                    userRepository.save(user);
                     patientRepository.save(user);
                     userCredentialRepository.save(userCredential);
                     userConfirmationRepository.save(userConfirmation);
@@ -155,6 +155,24 @@ public class PatientService {
     public Page<Consultation> getConsultations(String patient_id, int page) {
         var pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
         return patientRepository.findConsultationsByPatientIdOrderByCreatedAtAsc(patient_id, pageable);
+    }
+
+    @Transactional
+    public boolean handleOnboarding(String userId, List<String> medicalCategories) {
+        try {
+
+            Set<MedicalCategory> medicalCategorySet = medicalCategories.stream()
+                    .map(String::toUpperCase)
+                    .map(MedicalCategory::valueOf)
+                    .collect(Collectors.toSet());
+            Patient patient = patientRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+            patient.setMedicalCategories(medicalCategorySet);
+            patient.setUserStage(UserStage.ACTIVE_USER);
+            patientRepository.save(patient);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+        return true;
     }
 
 }

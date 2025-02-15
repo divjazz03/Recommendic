@@ -24,7 +24,8 @@ public class UserCredential extends Auditable {
     public UserCredential(String password) {
         super();
         this.password = password;
-        expired = LocalDateTime.now().isBefore(getCreatedAt().plusMonths(9));
+        var expiry = getCreatedAt().plusMonths(9);
+        expired = LocalDateTime.now().isAfter(expiry);
     }
 
     public String getPassword() {

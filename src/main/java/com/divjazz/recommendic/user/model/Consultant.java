@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "consultant")
+@DiscriminatorValue("Consultant")
 public class Consultant extends User implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,

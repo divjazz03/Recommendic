@@ -11,13 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
-    Optional<Consultant> findByEmail(String email);
-
-    Optional<Consultant> findByUserId(String id);
-
-
-    boolean existsByEmail(String email);
+public interface ConsultantRepository extends UserBaseRepository<Consultant> {
 
     Optional<List<Consultant>> findByMedicalCategory(MedicalCategory category);
 

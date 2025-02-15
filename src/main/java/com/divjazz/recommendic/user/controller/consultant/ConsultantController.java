@@ -26,9 +26,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
@@ -54,8 +58,11 @@ public class ConsultantController {
             """;
     private final ConsultantService consultantService;
 
-    public ConsultantController(ConsultantService consultantService) {
+    private final RestTemplate restTemplate;
+
+    public ConsultantController(ConsultantService consultantService, RestTemplate restTemplate) {
         this.consultantService = consultantService;
+        this.restTemplate = restTemplate;
     }
 
     private static ConsultantDTO getConsultantDTO(@NotNull ConsultantRegistrationParams requestParams) {
@@ -152,5 +159,19 @@ public class ConsultantController {
                 Map.of("consultants", data)
         );
         return new ResponseEntity<>(response, HttpStatus.FOUND);
+    }
+
+    @GetMapping("/onboarding")
+    public ResponseEntity<Response> onboardingGetListOfMedicalInterests() throws URISyntaxException {
+        return restTemplate.getForEntity(new URI("api/v1/medical_categories"), Response.class);
+    }
+
+    @PutMapping("/onboarding/{userId}")
+    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
+            @PathVariable("userId") String userId, @RequestBody String medicalSpecialization
+    ) {
+        boolean value = consultantService.handleOnboarding(userId, medicalSpecialization);
+
+        return ResponseEntity.ok().build();
     }
 }

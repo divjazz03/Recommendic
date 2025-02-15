@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Table(name = "patient")
+@DiscriminatorValue("Patient")
 public class Patient extends User {
 
     @Enumerated(value = EnumType.STRING)

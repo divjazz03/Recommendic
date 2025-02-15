@@ -6,11 +6,13 @@ import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
@@ -28,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -93,6 +96,7 @@ public class ConsultantService {
         );
 
         user.setUserCredential(userCredential);
+        user.setUserStage(UserStage.ONBOARDING);
         userCredential.setUser(user);
         var profilePicture = new ProfilePicture();
 
@@ -174,4 +178,16 @@ public class ConsultantService {
         return consultantRepository.findUnCertifiedConsultant();
     }
 
+    public boolean handleOnboarding(String userId, String medicalSpecialization) {
+        try {
+            MedicalCategory medicalSpec = MedicalCategory.valueOf(medicalSpecialization);
+            Consultant consultant = consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+            consultant.setMedicalCategory(medicalSpec);
+            consultant.setUserStage(UserStage.ACTIVE_USER);
+            consultantRepository.save(consultant);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+        return true;
+    }
 }

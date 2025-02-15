@@ -37,7 +37,7 @@ VALUES (4,
 
 
 
-INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code,user_type,gender,role_id, created_by, updated_by)
+INSERT INTO users (id, reference_id, user_id, first_name, last_name, email, phone_number, country, state, city, zip_code,user_type,gender,role_id, created_by, updated_by, user_stage,dtype)
 VALUES (0,
         'f317a5b3-bdd2-4d48-a21d-d4eh2b6548f3',
          'f317a5b3-bdd3-4d48-a21d-d4ef2b6548f3',
@@ -53,7 +53,9 @@ VALUES (0,
         'MALE',
         2,
         0,
-        0
+        0,
+        'ACTIVE_USER',
+        'Admin'
 );
 
 

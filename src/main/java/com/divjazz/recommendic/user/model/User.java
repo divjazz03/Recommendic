@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
@@ -15,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -22,10 +24,10 @@ import java.util.UUID;
 
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "dtype",discriminatorType = DiscriminatorType.STRING)
 @Table(name = "users")
-@DynamicUpdate
-public class User extends Auditable implements UserDetails {
+public abstract class User extends Auditable implements UserDetails, Serializable {
 
     @Column(nullable = false)
     @Embedded
@@ -69,15 +71,18 @@ public class User extends Auditable implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
+    @Column(name = "user_stage", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserStage userStage;
 
     @OneToOne(mappedBy = "user",
             cascade = CascadeType.REMOVE)
     private UserConfirmation userConfirmation;
 
     private boolean accountNonExpired;
+
     private boolean accountNonLocked;
     private boolean enabled;
-
 
     protected User() {
     }
@@ -255,6 +260,10 @@ public class User extends Auditable implements UserDetails {
         return userConfirmation;
     }
 
+    public UserStage getUserStage() {
+        return userStage;
+    }
+
     public void setUserConfirmation(UserConfirmation userConfirmation) {
         this.userConfirmation = userConfirmation;
     }
@@ -277,5 +286,9 @@ public class User extends Auditable implements UserDetails {
         var res = email != null ? email.hashCode() : 0;
         res = userId != null ? userId.hashCode() : 0;
         return (int) (31 * res + id ^ (id >>> 31));
+    }
+
+    public void setUserStage(UserStage userStage) {
+        this.userStage = userStage;
     }
 }

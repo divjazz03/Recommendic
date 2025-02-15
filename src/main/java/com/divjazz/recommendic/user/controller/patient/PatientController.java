@@ -26,9 +26,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -56,11 +60,13 @@ public class PatientController {
             """;
     private final PatientService patientService;
     private final RecommendationService recommendationService;
+    private final RestTemplate restTemplate;
     Logger logger = LoggerFactory.getLogger(PatientController.class);
 
-    public PatientController(PatientService patientService, RecommendationService recommendationService) {
+    public PatientController(PatientService patientService, RecommendationService recommendationService, RestTemplate restTemplate) {
         this.patientService = patientService;
         this.recommendationService = recommendationService;
+        this.restTemplate = restTemplate;
     }
 
     @PostMapping("create")
@@ -155,7 +161,7 @@ public class PatientController {
                 "",
                 HttpStatus.OK,
                 "Successfully deleted patient",
-                "",
+                null,
                 null
 
         );
@@ -163,6 +169,20 @@ public class PatientController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    //In patient onboarding
+    @GetMapping("/onboarding")
+    public ResponseEntity<Response> onboardingGetListOfMedicalInterests() throws URISyntaxException {
+        return restTemplate.getForEntity(new URI("api/v1/medical_categories"), Response.class);
+    }
+
+    @PutMapping("/onboarding/{userId}")
+    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
+            @PathVariable("userId") String userId, @RequestBody List<String> medicalCategories
+            ) {
+
+        boolean value = patientService.handleOnboarding(userId, medicalCategories);
+        return ResponseEntity.ok().build();
+    }
     @GetMapping("recommendations")
     public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
 

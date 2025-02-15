@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(?:/[\\w.-]+)*$");
     public static final Pattern FAVICON = Pattern.compile("^/favicon.ico");
     public static final Pattern USER_PATH = Pattern.compile("^/api/v1/(patient|consultant|admin)/create$");
+    public static final Pattern MEDICAL_PATH = Pattern.compile("^/api/v1/medical_categories/$");
     public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/drug/\\w+");
     public static final Pattern LOGIN_PATH= Pattern.compile("^/user/login");
     public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userService) {
@@ -55,7 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 ACTUATOR_PATHS.matcher(requestURI).matches() ||
                 USER_PATH.matcher(requestURI).matches() ||
                 DRUG_API_PATH.matcher(requestURI).matches() ||
-                LOGIN_PATH.matcher(requestURI).matches());
+                LOGIN_PATH.matcher(requestURI).matches() ||
+                MEDICAL_PATH.matcher(requestURI).matches());
         try {
             if (shouldBeIgnored) {
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());

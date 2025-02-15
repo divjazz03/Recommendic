@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "admin")
+@DiscriminatorValue("Admin")
 public class Admin extends User {
     @OneToMany(mappedBy = "adminAssigned",
             fetch = FetchType.LAZY,

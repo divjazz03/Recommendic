@@ -11,14 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 import java.util.Set;
 
-public interface PatientRepository extends JpaRepository<Patient, Long> {
-    Optional<Patient> findByEmail(String email);
+public interface PatientRepository extends UserBaseRepository<Patient> {
 
-    boolean existsByEmail(String email);
-
-    void deleteByUserId(String userId);
-
-    Optional<Patient> findByUserId(String id);
 
     @Query(value = "select * from consultation where patient_id = :patientId order by created_at ",
             countQuery = "select count(*) from consultation where patient_id = :patientId", nativeQuery = true)
