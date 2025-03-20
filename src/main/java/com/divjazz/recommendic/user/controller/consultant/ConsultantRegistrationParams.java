@@ -17,15 +17,11 @@ public record ConsultantRegistrationParams(
         String phoneNumber,
         @NotEmpty(message = "Gender cannot be empty or null")
         String gender,
-        @NotEmpty(message = "Zip Code cannot be empty or null")
-        String zipCode,
         @NotEmpty(message = "City cannot be empty or null")
         String city,
         @NotEmpty(message = "State cannot be empty or null")
         String state,
         @NotEmpty(message = "Country cannot be empty or null")
-        String country,
-        @NotEmpty(message = "Medical Category cannot be empty or null")
-        String medicalSpecialization
+        String country
 ) {
 }

@@ -69,7 +69,7 @@ public class PatientController {
         this.restTemplate = restTemplate;
     }
 
-    @PostMapping("create")
+    @PostMapping("/create")
     @Operation(summary = "Register a Patient User",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(examples = {
@@ -100,7 +100,7 @@ public class PatientController {
                     case "FEMALE" -> Gender.FEMALE;
                     default -> throw new IllegalArgumentException("No Such Gender");
                 },
-                new Address(requestParams.zipCode(), requestParams.city(), requestParams.state(), requestParams.country()),
+                new Address(requestParams.city(), requestParams.state(), requestParams.country()),
                 requestParams.password()
         );
 
@@ -122,7 +122,7 @@ public class PatientController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("patients")
+    @GetMapping("/patients")
     public ResponseEntity<Response> patients(@ParameterObject Pageable pageable,
                                              HttpServletRequest httpServletRequest) {
         var patients = patientService.getAllPatients(pageable);
@@ -151,7 +151,7 @@ public class PatientController {
 
     }
 
-    @DeleteMapping("delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<Response> deletePatient(@RequestParam("patient_id") String patientId) {
 
         patientService.deletePatientByUserId(patientId);
@@ -183,7 +183,7 @@ public class PatientController {
         boolean value = patientService.handleOnboarding(userId, medicalCategories);
         return ResponseEntity.ok().build();
     }
-    @GetMapping("recommendations")
+    @GetMapping("/recommendations")
     public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
 
         Patient patient = patientService.findPatientById(id);

@@ -92,7 +92,8 @@ public class ConsultantService {
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                consultantDTO.medicalCategory(), role, userCredential
+                null,
+                role, userCredential
         );
 
         user.setUserCredential(userCredential);
@@ -119,8 +120,7 @@ public class ConsultantService {
                     user.getUserNameObject().getFirstName(),
                     user.getGender().toString(),
                     user.getPhoneNumber(),
-                    user.getAddress(),
-                    user.getMedicalCategory().toString());
+                    user.getAddress());
         } else {
             throw new UserAlreadyExistsException(user.getEmail());
         }

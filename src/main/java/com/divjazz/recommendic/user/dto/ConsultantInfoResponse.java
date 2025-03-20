@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.dto;
 
+import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -15,4 +16,13 @@ public record ConsultantInfoResponse(
         Address address,
         String medicalSpecialization
 ) implements UserResponse {
+
+    public ConsultantInfoResponse (String consultantId,
+                                   String lastName,
+                                   String firstName,
+                                   String gender,
+                                   String phoneNumber,
+                                   Address address) {
+        this(consultantId,lastName,firstName,gender,phoneNumber,address,null);
+    }
 }

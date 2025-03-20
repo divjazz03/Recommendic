@@ -6,5 +6,5 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 
 public record ConsultantDTO(UserName userName, String email, String phoneNumber, Gender gender, Address address,
-                            String password, MedicalCategory medicalCategory) {
+                            String password) {
 }

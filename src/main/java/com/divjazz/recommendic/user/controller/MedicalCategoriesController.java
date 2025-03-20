@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("api/v1/medical_categories")
+@RequestMapping("/api/v1/medical_categories")
 public class MedicalCategoriesController {
 
     @GetMapping("/")
@@ -31,8 +31,10 @@ public class MedicalCategoriesController {
     })
     public Response getAllMedicalCategories(HttpServletRequest request) {
         var medicalCategories = Arrays.stream(MedicalCategory.values())
-                .map(category -> category.toString().toUpperCase())
+                .map(category -> new MedicalCategoryResponse(category.toString(), category.getDescription()))
                 .collect(Collectors.toSet());
         return RequestUtils.getResponse(request, Map.of("categories", medicalCategories), "found", HttpStatus.OK);
     }
 }
+
+record MedicalCategoryResponse(String name, String description) {}

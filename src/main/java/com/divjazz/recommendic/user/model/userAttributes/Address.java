@@ -8,8 +8,6 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class Address {
-    @JsonProperty(value = "zip_code")
-    private String zipCode;
     private String city;
     private String state;
     private String country;
@@ -17,8 +15,7 @@ public class Address {
     protected Address() {
     }
 
-    public Address(String zipCode, String city, String state, String country) {
-        this.zipCode = zipCode;
+    public Address(String city, String state, String country) {
         this.city = city;
         this.state = state;
         this.country = country;
@@ -48,18 +45,11 @@ public class Address {
         this.country = country;
     }
 
-    public String getZipCode() {
-        return zipCode;
-    }
 
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
-    }
 
     @Override
     public String toString() {
         return "Address{" +
-                "zipCode='" + zipCode + '\'' +
                 ", city='" + city + '\'' +
                 ", state='" + state + '\'' +
                 ", country='" + country + '\'' +

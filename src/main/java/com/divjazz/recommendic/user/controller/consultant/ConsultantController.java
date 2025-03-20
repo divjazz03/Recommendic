@@ -75,29 +75,14 @@ public class ConsultantController {
             default ->
                     throw new IllegalArgumentException(String.format("Gender %s is not valid", requestParams.gender()));
         };
-        Address address = new Address(requestParams.zipCode(),
+        Address address = new Address(
                 requestParams.city(),
                 requestParams.state(),
                 requestParams.country());
-        MedicalCategory medicalCategory = switch (requestParams.medicalSpecialization().toUpperCase()) {
-            case "PEDIATRICIAN" -> MedicalCategory.PEDIATRICIAN;
-            case "CARDIOLOGY" -> MedicalCategory.CARDIOLOGY;
-            case "ONCOLOGY" -> MedicalCategory.ONCOLOGY;
-            case "DERMATOLOGY" -> MedicalCategory.DERMATOLOGY;
-            case "ORTHOPEDIC_SURGERY" -> MedicalCategory.ORTHOPEDIC_SURGERY;
-            case "NEUROSURGERY" -> MedicalCategory.NEUROSURGERY;
-            case "CARDIOVASCULAR_SURGERY" -> MedicalCategory.CARDIOVASCULAR_SURGERY;
-            case "GYNECOLOGY" -> MedicalCategory.GYNECOLOGY;
-            case "PSYCHIATRY" -> MedicalCategory.PSYCHIATRY;
-            case "DENTISTRY" -> MedicalCategory.DENTISTRY;
-            case "OPHTHALMOLOGY" -> MedicalCategory.OPHTHALMOLOGY;
-            case "PHYSICAL_THERAPY" -> MedicalCategory.PHYSICAL_THERAPY;
-            case null, default -> throw new NoSuchMedicalCategory();
-        };
-        return new ConsultantDTO(userName, userEmail, phoneNumber, gender, address, requestParams.password(), medicalCategory);
+        return new ConsultantDTO(userName, userEmail, phoneNumber, gender, address, requestParams.password());
     }
 
-    @PostMapping("create")
+    @PostMapping("/create")
     @Operation(summary = "Register a Consultant User",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(examples = {
@@ -137,7 +122,7 @@ public class ConsultantController {
 
     }
 
-    @GetMapping("consultants")
+    @GetMapping("/consultants")
     public ResponseEntity<Response> getConsultants(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
 
         var data = consultantService.getAllConsultants(pageable).stream()

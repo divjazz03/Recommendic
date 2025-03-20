@@ -64,7 +64,7 @@ public class AdminController {
                     description = "You do not have the permission to perform this action",
                     content = {@Content(mediaType = "application.json", schema = @Schema(implementation = Response.class))})
     })
-    @PostMapping("create")
+    @PostMapping("/create")
     public ResponseEntity<Response> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
         RequestContext.reset();
         RequestContext.setUserId(0L);
@@ -75,7 +75,7 @@ public class AdminController {
                     case "FEMALE" -> Gender.FEMALE;
                     default -> throw new IllegalArgumentException("No such Gender");
                 },
-                new Address(requestParams.zipcode(), requestParams.city(), requestParams.state(), requestParams.country())
+                new Address(requestParams.city(), requestParams.state(), requestParams.country())
         );
         AdminCredentialResponse adminResponse = adminService.createAdmin(adminDTO);
         var data = Map.of(
@@ -111,7 +111,7 @@ public class AdminController {
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
     })
 
-    @GetMapping("admins")
+    @GetMapping("/admins")
     public ResponseEntity<Response> getAdmins(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
 
         var admins = adminService.getAllAdmins(pageable);

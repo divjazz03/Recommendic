@@ -38,20 +38,22 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
     Logger log = LoggerFactory.getLogger(LoginAuthenticationFilter.class);
     private final GeneralUserService userService;
     private final JwtService jwtService;
+    private final ObjectMapper objectMapper;
     public LoginAuthenticationFilter(AuthenticationManager authenticationManager,
                                      JwtService jwtService,
-                                     GeneralUserService userService) {
+                                     GeneralUserService userService,
+                                     ObjectMapper objectMapper) {
         super(new AntPathRequestMatcher(LOGIN_PATH, HttpMethod.POST.name()), authenticationManager);
         this.userService = userService;
         this.jwtService = jwtService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
         try {
-            var loginRequest = new ObjectMapper()
-                    .configure(AUTO_CLOSE_SOURCE, true)
-                    .readValue(request.getInputStream(), LoginRequest.class);
+            var loginRequest = objectMapper.
+                    readValue(request.getInputStream(), LoginRequest.class);
             userService.updateLoginAttempt(loginRequest.getEmail(), LoginType.LOGIN_ATTEMPT);
             var authentication = ApiAuthentication.unAuthenticated(loginRequest.getEmail(), loginRequest.getPassword());
             return getAuthenticationManager().authenticate(authentication);
@@ -80,7 +82,9 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
         var userResponse = new LoginResponse(user.getUserId(),
                 user.getUserNameObject().getFirstName(),
                 user.getUserNameObject().getLastName(),
-                user.getRole().toString());
+                user.getRole().toString(),
+                user.getAddress(),
+                user.getUserStage());
         return getResponse(request, Map.of("user", userResponse), "login Success", HttpStatus.OK);
     }
 }

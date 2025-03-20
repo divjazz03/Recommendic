@@ -21,7 +21,6 @@ public record PatientRegistrationParams(
         String phoneNumber,
         @NotEmpty(message = "Gender cannot be empty")
         String gender,
-        String zipCode,
         @NotEmpty(message = "City cannot be empty")
         String city,
         @NotEmpty(message = "State cannot be empty")

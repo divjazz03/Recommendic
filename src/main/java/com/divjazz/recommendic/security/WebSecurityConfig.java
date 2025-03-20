@@ -3,12 +3,14 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,12 +19,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http,
                                            LoginAuthenticationFilter loginAuthenticationFilter,
-                                           JwtAuthenticationFilter filter,
+                                           JwtAuthenticationFilter jwtFilter,
                                            LogoutAuthenticationFilter logoutFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -71,16 +72,22 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/admin/create").hasAuthority("SUPER_ADMIN")
                         .requestMatchers("/api/v1/admin/admins").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated())
-                .addFilterBefore(loginAuthenticationFilter, AuthorizationFilter.class)
-                .addFilterBefore(filter, AuthorizationFilter.class)
-                .addFilterBefore(logoutFilter, AuthorizationFilter.class)
+                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(logoutFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    AuthenticationManager authenticationManager(GeneralUserService userService, PasswordEncoder passwordEncoder, UserCredentialRepository userCredentialRepository){
-        var provider = new CustomAuthenticationProvider(userService, passwordEncoder, userCredentialRepository);
-        return new ProviderManager(provider);
+    DaoAuthenticationProvider authenticationManager(GeneralUserService userService,UserDetailsService userDetailsService, PasswordEncoder passwordEncoder, UserCredentialRepository userCredentialRepository){
+        var daoProvider = new CustomAuthenticationProvider(userService, passwordEncoder, userCredentialRepository);
+        daoProvider.setUserDetailsService(userDetailsService);
+        return daoProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
     @Bean
     UserDetailsService userDetailsService (){
@@ -88,8 +95,8 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    LoginAuthenticationFilter authenticationFilter(JwtService service, AuthenticationManager authenticationManager, GeneralUserService userService) {
-        return new LoginAuthenticationFilter(authenticationManager, service,userService);
+    LoginAuthenticationFilter authenticationFilter(JwtService service, AuthenticationManager authenticationManager, GeneralUserService userService, ObjectMapper objectMapper) {
+        return new LoginAuthenticationFilter(authenticationManager, service, userService, objectMapper);
     }
 
     @Bean
@@ -104,7 +111,6 @@ public class WebSecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
             corsConfiguration.setAllowedOrigins(
                     List.of(corsFrontendDomain)
@@ -113,8 +119,11 @@ public class WebSecurityConfig {
                     List.of("GET", "POST", "PUT", "DELETE")
             );
             corsConfiguration.setAllowedHeaders(List.of("*"));
-            return corsConfiguration;
-        };
+            corsConfiguration.setAllowCredentials(true);
+
+            UrlBasedCorsConfigurationSource configurationSource = new UrlBasedCorsConfigurationSource();
+            configurationSource.registerCorsConfiguration("/**", corsConfiguration);
+            return configurationSource;
     }
 
 }

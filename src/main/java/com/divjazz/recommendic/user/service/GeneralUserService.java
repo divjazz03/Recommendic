@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.cache.CacheStore;
+import com.divjazz.recommendic.security.ApiAuthentication;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
@@ -8,6 +9,10 @@ import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -31,17 +36,18 @@ public class GeneralUserService {
     }
 
 
-    public User retrieveUserByEmail(String username) {
-        User user = null;
-        if (userRepository.findByEmail(username).isPresent()) {
-            user = userRepository.findByEmail(username).get();
-        } else
-            throw new UsernameNotFoundException("User not found");
-        return user;
+    public User retrieveUserByEmail(String email) {
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+    }
+    public User retrieveCurrentUser() {
+        ApiAuthentication authentication = (ApiAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        return retrieveUserByEmail(authentication.getEmail());
+
     }
 
     public User retrieveUserByUserId(String id) {
-
         return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
     }
 
@@ -50,7 +56,9 @@ public class GeneralUserService {
     }
 
     public UserCredential retrieveCredentialById(Long id) {
-        return userCredentialRepository.findById(id).orElseThrow(() -> new RuntimeException("Credentials not Found"));
+        return userCredentialRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Credentials not Found"));
     }
 
     public void updateLoginAttempt(String email, LoginType loginType) {
@@ -60,7 +68,6 @@ public class GeneralUserService {
             case LOGIN_ATTEMPT -> {
                 if (loginCache.get(user.getEmail()) == null) {
                     user.setLoginAttempts(0);
-                    user.setAccountNonLocked(true);
                 }
                 user.setLoginAttempts(user.getLoginAttempts() + 1);
                 loginCache.put(user.getEmail(), user.getLoginAttempts());
@@ -69,8 +76,6 @@ public class GeneralUserService {
                 }
             }
             case LOGIN_SUCCESS -> {
-                user.setAccountNonLocked(true);
-                user.setLoginAttempts(0);
                 user.setLastLogin(LocalDateTime.now());
                 loginCache.evict(user.getEmail());
             }

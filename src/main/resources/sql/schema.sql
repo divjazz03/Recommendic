@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS users
     country             CHARACTER VARYING(54)        NOT NULL,
     state               CHARACTER VARYING(54)        NOT NULL,
     city                CHARACTER VARYING(54)        NOT NULL,
-    zip_code            CHARACTER VARYING(54)         NOT NULL,
     user_type           CHARACTER VARYING(54)         NOT NULL,
     user_stage          CHARACTER VARYING(54)           NOT NULL,
     enabled             BOOLEAN                       NOT NULL DEFAULT FALSE,
