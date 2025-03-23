@@ -52,8 +52,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    @Column(name = "login_attempts")
-    private int loginAttempts;
 
     @Embedded
     private ProfilePicture profilePicture;
@@ -62,7 +60,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @OneToOne(fetch = FetchType.EAGER,
+    @OneToOne(fetch = FetchType.LAZY,
             mappedBy = "user",
             cascade = CascadeType.REMOVE)
     private UserCredential userCredential;
@@ -76,6 +74,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     private UserStage userStage;
 
     @OneToOne(mappedBy = "user",
+            fetch = FetchType.LAZY,
             cascade = CascadeType.REMOVE)
     private UserConfirmation userConfirmation;
 
@@ -104,7 +103,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         this.userId = UUID.randomUUID().toString();
         this.accountNonLocked = true;
         this.accountNonExpired = true;
-        this.enabled = false;
+        this.enabled = true;
     }
 
 
@@ -192,13 +191,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         this.lastLogin = lastLogin;
     }
 
-    public int getLoginAttempts() {
-        return loginAttempts;
-    }
-
-    public void setLoginAttempts(int loginAttempts) {
-        this.loginAttempts = loginAttempts;
-    }
 
     @Override
     public Set<? extends GrantedAuthority> getAuthorities() {
@@ -236,7 +228,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return userCredential.isExpired();
+        return !userCredential.isExpired();
     }
 
     @Override

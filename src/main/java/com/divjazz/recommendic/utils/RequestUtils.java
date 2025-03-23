@@ -11,11 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.nio.file.AccessDeniedException;
@@ -46,12 +43,7 @@ public class RequestUtils {
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, httpStatus) -> {
         if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
             return "You do not have enough permission";
-        if (httpStatus.isSameCodeAs(HttpStatus.UNAUTHORIZED))
-            return "You are not logged in";
-        if (exception instanceof DisabledException ||
-                exception instanceof LockedException ||
-                exception instanceof BadCredentialsException ||
-                exception instanceof CredentialsExpiredException ||
+        if (exception instanceof AuthenticationException ||
                 exception instanceof UserNotFoundException ||
                 exception instanceof CertificateNotFoundException ||
                 exception instanceof NoSuchMedicalCategory ||
@@ -109,15 +101,18 @@ public class RequestUtils {
     }
 
     public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception e) {
-        if (e instanceof AccessDeniedException) {
-            Response apiREsponse = getErrorResponse(request, response, e, HttpStatus.FORBIDDEN);
-            writeResponse.accept(response, apiREsponse);
-        } else if (e instanceof UserNotFoundException) {
-            Response apiResponse = getErrorResponse(request, response, e, HttpStatus.NOT_FOUND);
-            writeResponse.accept(response, apiResponse);
-        } else {
-            Response apiResponse = getErrorResponse(request, response, e, HttpStatus.EXPECTATION_FAILED);
-            writeResponse.accept(response, apiResponse);
+        switch (e) {
+            case AccessDeniedException _ -> {
+                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.FORBIDDEN));
+            }
+            case UserNotFoundException _ -> {
+                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.NOT_FOUND));
+            }
+            case AuthenticationException _ ->
+                    writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.UNAUTHORIZED));
+            case null, default -> {
+                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.EXPECTATION_FAILED));
+            }
         }
     }
 

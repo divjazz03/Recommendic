@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS users
     gender              CHARACTER VARYING(54)         NOT NULL,
     role_id             BIGINT,
     last_login          TIMESTAMP                              DEFAULT NULL,
-    login_attempts      INTEGER                                DEFAULT 0,
     updated_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_by          BIGINT                        NOT NULL,
@@ -85,23 +84,6 @@ CREATE TABLE IF NOT EXISTS users_confirmation
     updated_by   BIGINT                NOT NULL
 );
 
--- CREATE TABLE IF NOT EXISTS patient
--- (
---     id                 BIGINT PRIMARY KEY,
---     medical_categories CHARACTER VARYING(30)[] DEFAULT '{PHYSICAL_THERAPY}',
---     recommendation_id  BIGINT
--- );
-/*                                      CONSULTANT TABLES                                                              */
--- CREATE TABLE IF NOT EXISTS consultant
--- (
---     id             BIGINT PRIMARY KEY,
---     specialization CHARACTER VARYING(30) NOT NULL,
---     bio            TEXT                           DEFAULT NULL,
---     certified      BOOLEAN               NOT NULL DEFAULT FALSE,
---     certificate_id BIGINT
--- );
-
-
 CREATE TABLE IF NOT EXISTS roles
 (
     id          BIGINT PRIMARY KEY,
@@ -126,16 +108,6 @@ CREATE TABLE IF NOT EXISTS certification
     updated_by       BIGINT                       NOT NULL
 
 );
-
-
-/*                                          ADMIN TABLES                                                                */
-
-
--- CREATE TABLE IF NOT EXISTS admin
--- (
---     id            BIGINT PRIMARY KEY,
---     assignment_id BIGINT DEFAULT NULL
--- );
 
 CREATE TABLE IF NOT EXISTS assignment
 (

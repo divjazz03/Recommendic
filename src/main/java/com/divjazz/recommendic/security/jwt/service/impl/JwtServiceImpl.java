@@ -100,7 +100,7 @@ public class JwtServiceImpl implements JwtService {
                     .id(String.valueOf(UUID.randomUUID()))
                     .issuedAt(Date.from(Instant.now()))
                     .notBefore(new Date())
-                    .signWith(keySupplier.get(), Jwts.SIG.HS512);
+                    .signWith(keySupplier.get(), Jwts.SIG.HS256);
 
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
             Objects.equals(type, ACCESS) ? builder.get()

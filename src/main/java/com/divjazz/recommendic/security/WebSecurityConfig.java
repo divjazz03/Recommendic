@@ -3,11 +3,13 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -79,15 +81,13 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    DaoAuthenticationProvider authenticationManager(GeneralUserService userService,UserDetailsService userDetailsService, PasswordEncoder passwordEncoder, UserCredentialRepository userCredentialRepository){
-        var daoProvider = new CustomAuthenticationProvider(userService, passwordEncoder, userCredentialRepository);
-        daoProvider.setUserDetailsService(userDetailsService);
-        return daoProvider;
+    DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder){
+        return new CustomAuthenticationProvider(passwordEncoder, userDetailsService);
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationProvider provider) {
+        return new ProviderManager(provider);
     }
     @Bean
     UserDetailsService userDetailsService (){
@@ -95,8 +95,12 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    LoginAuthenticationFilter authenticationFilter(JwtService service, AuthenticationManager authenticationManager, GeneralUserService userService, ObjectMapper objectMapper) {
-        return new LoginAuthenticationFilter(authenticationManager, service, userService, objectMapper);
+    LoginAuthenticationFilter authenticationFilter(JwtService service,
+                                                   AuthenticationManager authenticationManager,
+                                                   GeneralUserService userService,
+                                                   ObjectMapper objectMapper,
+                                                   UserLoginRetryHandler userLoginRetryHandler) {
+        return new LoginAuthenticationFilter(authenticationManager, service, userService, objectMapper, userLoginRetryHandler);
     }
 
     @Bean

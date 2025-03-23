@@ -1,10 +1,5 @@
 DELETE FROM users;
-DELETE FROM admin WHERE id = 0;
-DELETE FROM roles WHERE id = 0;
-DELETE FROM roles WHERE id = 1;
-DELETE FROM roles WHERE id = 2;
-DELETE FROM roles WHERE id = 3;
-DELETE FROM roles WHERE id = 4;
+DELETE FROM roles;
 
 INSERT INTO roles (id, name, permissions)
 VALUES (0,
@@ -50,7 +45,7 @@ VALUES (0,
         'Awka',
         'ADMIN',
         'MALE',
-        2,
+        4,
         0,
         0,
         'ACTIVE_USER',
@@ -65,11 +60,6 @@ VALUES (
         0,
         'june12003',
         0,
-        0
-       );
-
-INSERT INTO admin (id)
-VALUES (
         0
        );
 

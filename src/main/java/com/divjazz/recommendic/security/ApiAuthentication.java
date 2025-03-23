@@ -11,7 +11,7 @@ import java.util.Collection;
 public class ApiAuthentication extends AbstractAuthenticationToken {
     private static final String PASSWORD_PROTECTED = "[PASSWORD_PROTECTED]";
     private static final String EMAIL_PROTECTED = "[EMAIL_PROTECTED]";
-    private UserDetails user;
+    private User user;
     private final String email;
     private final String password;
 

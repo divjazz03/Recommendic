@@ -7,18 +7,17 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
-@Component
+
 public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
-    private final GeneralUserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final UserCredentialRepository userCredentialRepository;
     private final Consumer<User> validAccount = user -> {
         if (!user.isAccountNonLocked()) {
             throw new LockedException("Your account is currently locked");
@@ -35,25 +34,21 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
     };
 
-    public CustomAuthenticationProvider(GeneralUserService userService, PasswordEncoder passwordEncoder, UserCredentialRepository userCredentialRepository) {
+    public CustomAuthenticationProvider( PasswordEncoder passwordEncoder,UserDetailsService userDetailsService) {
         super(passwordEncoder);
-        this.userService = userService;
+        super.setUserDetailsService(userDetailsService);
         this.passwordEncoder = passwordEncoder;
-        this.userCredentialRepository = userCredentialRepository;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        var userAuth = (ApiAuthentication) authentication;
-        var user = userService.retrieveUserByEmail(userAuth.getEmail());
-        var credential = userCredentialRepository
-                .findUserCredentialByUser_UserId(user.getUserId())
-                .orElseThrow(() -> new RuntimeException("Credentials not found"));
-        if (credential.getUpdatedAt().plusDays(60).isAfter(LocalDateTime.now())) {
+        var user =(User) getUserDetailsService().loadUserByUsername(((ApiAuthentication) authentication).getEmail());
+        var credential = user.getUserCredential();
+        if (credential.getUpdatedAt().plusDays(60).isBefore(LocalDateTime.now())) {
             throw new CredentialsExpiredException("Credentials are expired, please reset your password");
         }
         validAccount.accept(user);
-        if (passwordEncoder.matches(userAuth.getPassword(), credential.getPassword())) {
+        if (passwordEncoder.matches(((ApiAuthentication) authentication).getPassword(), credential.getPassword())) {
             user.setLastLogin(LocalDateTime.now());
             return ApiAuthentication.authenticated(user, user.getAuthorities());
         } else
