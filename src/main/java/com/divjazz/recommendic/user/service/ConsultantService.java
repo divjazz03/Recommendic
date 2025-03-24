@@ -12,16 +12,13 @@ import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
-import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -30,7 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -42,10 +38,8 @@ public class ConsultantService {
 
     private final UserRepository userRepository;
     private final UserConfirmationRepository userConfirmationRepository;
-    private final UserCredentialRepository userCredentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final GeneralUserService userService;
-    private final RoleRepository roleRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ConsultantRepository consultantRepository;
     private final AssignmentService assignmentService;
@@ -55,19 +49,15 @@ public class ConsultantService {
             ConsultantRepository consultantRepository,
             UserRepository userRepository,
             UserConfirmationRepository userConfirmationRepository,
-            UserCredentialRepository userCredentialRepository,
             PasswordEncoder passwordEncoder,
             GeneralUserService userService,
-            RoleRepository roleRepository,
             ApplicationEventPublisher applicationEventPublisher,
             AssignmentService assignmentService) {
         this.userRepository = userRepository;
         this.consultantRepository = consultantRepository;
         this.userConfirmationRepository = userConfirmationRepository;
-        this.userCredentialRepository = userCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
-        this.roleRepository = roleRepository;
         this.applicationEventPublisher = applicationEventPublisher;
         this.assignmentService = assignmentService;
     }
@@ -84,7 +74,6 @@ public class ConsultantService {
 
     @Transactional
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
-        Role role = roleRepository.getRoleByName("ROLE_CONSULTANT").orElseThrow(() -> new RuntimeException("No such role exists"));
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = new Consultant(
                 consultantDTO.userName(),
@@ -93,12 +82,11 @@ public class ConsultantService {
                 consultantDTO.gender(),
                 consultantDTO.address(),
                 null,
-                role, userCredential
+                Role.CONSULTANT, userCredential
         );
 
         user.setUserCredential(userCredential);
         user.setUserStage(UserStage.ONBOARDING);
-        userCredential.setUser(user);
         var profilePicture = new ProfilePicture();
 
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
@@ -112,7 +100,6 @@ public class ConsultantService {
             userRepository.save(user);
             consultantRepository.save(user);
             userConfirmationRepository.save(userConfirmation);
-            userCredentialRepository.save(userCredential);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
             return new ConsultantInfoResponse(user.getUserId(),

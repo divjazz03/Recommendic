@@ -12,15 +12,12 @@ import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.RoleRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
-import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,8 +41,6 @@ public class PatientService {
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final UserCredentialRepository userCredentialRepository;
     private final UserConfirmationRepository userConfirmationRepository;
     private final GeneralUserService userService;
     private final PasswordEncoder encoder;
@@ -58,14 +52,12 @@ public class PatientService {
 
     public PatientService(
             PatientRepository patientRepository,
-            UserRepository userRepository, RoleRepository roleRepository, UserCredentialRepository userCredentialRepository,
+            UserRepository userRepository,
             UserConfirmationRepository userConfirmationRepository, GeneralUserService userService,
             PasswordEncoder encoder,
             ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate) {
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
-        this.roleRepository = roleRepository;
-        this.userCredentialRepository = userCredentialRepository;
         this.userConfirmationRepository = userConfirmationRepository;
         this.userService = userService;
         this.encoder = encoder;
@@ -75,7 +67,6 @@ public class PatientService {
 
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
-        Role role = roleRepository.getRoleByName("ROLE_PATIENT").orElseThrow(() -> new RuntimeException("No such role found"));
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
                 patientDTO.userName(),
@@ -83,12 +74,11 @@ public class PatientService {
                 patientDTO.phoneNumber(),
                 patientDTO.gender(),
                 patientDTO.address(),
-                role,
+                Role.PATIENT,
                 userCredential);
         user.setUserCredential(userCredential);
         user.setUserType(UserType.PATIENT);
         user.setUserStage(UserStage.ONBOARDING);
-        userCredential.setUser(user);
 
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
@@ -96,7 +86,6 @@ public class PatientService {
             transactionTemplate.execute( status -> {
                 try {
                     patientRepository.save(user);
-                    userCredentialRepository.save(userCredential);
                     userConfirmationRepository.save(userConfirmation);
                 } catch (Exception e) {
                     status.setRollbackOnly();

@@ -15,8 +15,6 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.divjazz.recommendic.user.repository.RoleRepository;
-import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import com.github.javafaker.Faker;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -31,9 +29,6 @@ import java.util.Set;
 @Service
 @Transactional
 public class AdminService {
-
-    private final UserCredentialRepository userCredentialRepository;
-    private final RoleRepository roleRepository;
     private final GeneralUserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
@@ -42,13 +37,10 @@ public class AdminService {
     private final AssignmentService assignmentService;
 
 
-    public AdminService(
-            UserCredentialRepository userCredentialRepository, RoleRepository roleRepository, GeneralUserService userService,
+    public AdminService(GeneralUserService userService,
             PasswordEncoder passwordEncoder,
             AdminRepository adminRepository,
             ApplicationEventPublisher applicationEventPublisher, AssignmentService assignmentService) {
-        this.userCredentialRepository = userCredentialRepository;
-        this.roleRepository = roleRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
@@ -60,7 +52,6 @@ public class AdminService {
     public AdminCredentialResponse createAdmin(AdminDTO adminDTO) throws UserAlreadyExistsException {
         GenerateAdminPasswordResponse response = generateAdminPassword();
         String password = response.encryptedPassword();
-        Role role = roleRepository.getRoleByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("No such roles found"));
         UserCredential userCredential = new UserCredential(response.encryptedPassword());
 
         Admin user = new Admin(
@@ -68,10 +59,8 @@ public class AdminService {
                 adminDTO.email(),
                 adminDTO.number(),
                 adminDTO.gender(),
-                adminDTO.address(), role, userCredential
+                adminDTO.address(), Role.ADMIN, userCredential
         );
-
-        userCredential.setUser(user);
         var profilePicture = new ProfilePicture();
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
         profilePicture.setName("149071.png");
@@ -79,7 +68,6 @@ public class AdminService {
         user.setUserType(UserType.ADMIN);
         if (userService.isUserNotExists(user.getEmail())) {
             adminRepository.save(user);
-            userCredentialRepository.save(userCredential);
             var userConfirmation = new UserConfirmation(user);
             UserEvent userEvent = new UserEvent(user,
                     EventType.REGISTRATION,

@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS users
     account_non_expired BOOLEAN                       NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN                       NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)         NOT NULL,
-    role_id             BIGINT,
+    role                CHARACTER VARYING(54)         NOT NULL,
     last_login          TIMESTAMP                              DEFAULT NULL,
     updated_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
@@ -52,7 +52,11 @@ CREATE TABLE IF NOT EXISTS users
     certified      BOOLEAN               DEFAULT FALSE,
     certificate_id BIGINT,
     /*Admin*/
-    assignment_id BIGINT DEFAULT NULL
+    assignment_id BIGINT DEFAULT NULL,
+    /*Credential embed*/
+    password     CHARACTER VARYING(100) NOT NULL,
+    credential_expired      BOOLEAN     DEFAULT FALSE,
+    credential_last_modified    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 
 );
 
@@ -60,15 +64,7 @@ CREATE TABLE IF NOT EXISTS users
 /*                                             PATIENT TABLES                                                          */
 CREATE TABLE IF NOT EXISTS users_credential
 (
-    id           BIGINT PRIMARY KEY,
-    user_id      BIGINT NOT NULL,
-    reference_id CHARACTER VARYING(100),
-    password     CHARACTER VARYING(100) NOT NULL,
-    expired      BOOLEAN                     DEFAULT FALSE,
-    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   BIGINT                NOT NULL,
-    updated_by   BIGINT                NOT NULL
+
 );
 
 CREATE TABLE IF NOT EXISTS users_confirmation
@@ -84,12 +80,6 @@ CREATE TABLE IF NOT EXISTS users_confirmation
     updated_by   BIGINT                NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS roles
-(
-    id          BIGINT PRIMARY KEY,
-    name        CHARACTER VARYING(20) NOT NULL,
-    permissions CHARACTER VARYING(30) NOT NULL
-);
 
 
 CREATE TABLE IF NOT EXISTS certification
@@ -221,17 +211,11 @@ CREATE TABLE IF NOT EXISTS message
 ALTER TABLE IF EXISTS users
     ADD FOREIGN KEY (created_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
     ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (role_id) REFERENCES roles (id) MATCH SIMPLE,
     ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
     ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
     ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE ;
 
 ALTER TABLE IF EXISTS users_confirmation
-    ADD FOREIGN KEY (user_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
-
-ALTER TABLE IF EXISTS users_credential
     ADD FOREIGN KEY (user_id) REFERENCES users (id),
     ADD FOREIGN KEY (created_by) REFERENCES users (id),
     ADD FOREIGN KEY (updated_by) REFERENCES users (id);

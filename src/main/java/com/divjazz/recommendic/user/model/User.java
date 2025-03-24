@@ -55,14 +55,10 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
 
     @Embedded
     private ProfilePicture profilePicture;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
     private Role role;
-
-    @OneToOne(fetch = FetchType.LAZY,
-            mappedBy = "user",
-            cascade = CascadeType.REMOVE)
+    @Embedded
     private UserCredential userCredential;
 
     @Column(name = "user_type", nullable = false)

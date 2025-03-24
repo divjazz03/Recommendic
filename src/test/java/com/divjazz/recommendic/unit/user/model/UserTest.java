@@ -41,14 +41,14 @@ public class UserTest {
                         "1234567890",
                         Gender.MALE,
                         new Address("test","state","country"),
-                        new Role("ROLE_ADMIN", "ADMIN",2L)
+                        Role.ADMIN
                 ),
                 Arguments.of(new UserName("Victory", "Boland"),
                         "boland@test.com",
                         "1234567890",
                         Gender.MALE,
                         new Address( "test","state","country"),
-                        new Role("ROLE_CONSULTANT", "CONSULTANT",2L)
+                        Role.CONSULTANT
                 ));
     }
 }

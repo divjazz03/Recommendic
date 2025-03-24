@@ -1,15 +1,12 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
-import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
@@ -44,7 +41,7 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         var user =(User) getUserDetailsService().loadUserByUsername(((ApiAuthentication) authentication).getEmail());
         var credential = user.getUserCredential();
-        if (credential.getUpdatedAt().plusDays(60).isBefore(LocalDateTime.now())) {
+        if (credential.isExpired()) {
             throw new CredentialsExpiredException("Credentials are expired, please reset your password");
         }
         validAccount.accept(user);

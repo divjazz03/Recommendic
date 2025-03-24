@@ -5,9 +5,7 @@ import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.UserRepository;
-import com.divjazz.recommendic.user.repository.credential.UserCredentialRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +15,14 @@ public class GeneralUserService {
 
     private final UserRepository userRepository;
 
-    private final UserCredentialRepository userCredentialRepository;
 
     private final UserLoginRetryHandler userLoginRetryHandler;
 
     public GeneralUserService(
-            UserRepository userRepository, UserCredentialRepository userCredentialRepository,
+            UserRepository userRepository,
             UserLoginRetryHandler userLoginRetryHandler) {
 
         this.userRepository = userRepository;
-        this.userCredentialRepository = userCredentialRepository;
         this.userLoginRetryHandler = userLoginRetryHandler;
     }
 
@@ -50,12 +46,6 @@ public class GeneralUserService {
 
     public User retrieveUserById(Long id) {
         return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
-    }
-
-    public UserCredential retrieveCredentialById(Long id) {
-        return userCredentialRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException("Credentials not Found"));
     }
 
     @Transactional
