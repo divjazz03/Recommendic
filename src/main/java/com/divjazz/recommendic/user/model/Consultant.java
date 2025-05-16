@@ -10,9 +10,12 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,7 +38,8 @@ public class Consultant extends User implements Serializable {
     private String bio;
 
     @Column(name = "specialization", columnDefinition = "jsonb")
-    @Type(JsonType.class)
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     private MedicalCategory medicalCategory;
     private boolean certified;
     protected Consultant() {

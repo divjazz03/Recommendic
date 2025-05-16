@@ -8,9 +8,12 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +25,8 @@ import java.util.Set;
 public class Patient extends User {
 
     @Column(name = "medical_categories", columnDefinition = "jsonb")
-    @Type(JsonType.class)
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     private Set<MedicalCategory> medicalCategories;
 
     @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)

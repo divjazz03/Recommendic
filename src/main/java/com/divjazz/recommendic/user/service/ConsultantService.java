@@ -1,6 +1,8 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
@@ -42,8 +44,8 @@ public class ConsultantService {
     private final GeneralUserService userService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ConsultantRepository consultantRepository;
+    private final ConsultationRepository consultationRepository;
     private final AssignmentService assignmentService;
-
 
     public ConsultantService(
             ConsultantRepository consultantRepository,
@@ -52,13 +54,14 @@ public class ConsultantService {
             PasswordEncoder passwordEncoder,
             GeneralUserService userService,
             ApplicationEventPublisher applicationEventPublisher,
-            AssignmentService assignmentService) {
+            ConsultationRepository consultationRepository, AssignmentService assignmentService) {
         this.userRepository = userRepository;
         this.consultantRepository = consultantRepository;
         this.userConfirmationRepository = userConfirmationRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.consultationRepository = consultationRepository;
         this.assignmentService = assignmentService;
     }
 
@@ -122,7 +125,7 @@ public class ConsultantService {
     public Set<Consultant> getConsultantByCategory(MedicalCategoryEnum category) {
         return ImmutableSet.
                 copyOf(
-                        consultantRepository.findByMedicalCategory(category)
+                        consultantRepository.findByMedicalCategory(new MedicalCategory(category.getValue(), category.getDescription()))
                                 .orElseThrow(UserNotFoundException::new)
                 );
     }
@@ -150,7 +153,7 @@ public class ConsultantService {
     }
 
     public Set<Consultation> getAllConsultations(String consultantId) {
-        return consultantRepository.findAllConsultationsByConsultantId(consultantId);
+        return consultationRepository.findAllByConsultantId(consultantId);
     }
 
     public Consultant retrieveConsultantByUserId(String userId) {

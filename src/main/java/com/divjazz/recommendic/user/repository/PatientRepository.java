@@ -13,10 +13,6 @@ import java.util.Set;
 public interface PatientRepository extends UserBaseRepository<Patient> {
 
 
-    @Query(value = "select * from consultation where patient_id = :patientId order by created_at ",
-            countQuery = "select count(*) from consultation where patient_id = :patientId", nativeQuery = true)
-    Page<Consultation> findConsultationsByPatientIdOrderByCreatedAtAsc(String patientId, Pageable pageable);
-
     Set<Patient> findPatientByMedicalCategories(Set<MedicalCategory> category);
 
     @Query(value = "select * from consultation where patient_id=:patientId", nativeQuery = true)

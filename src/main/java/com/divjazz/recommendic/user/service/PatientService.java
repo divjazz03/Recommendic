@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
@@ -50,13 +51,15 @@ public class PatientService {
 
     private final TransactionTemplate transactionTemplate;
 
+    private final ConsultationRepository consultationRepository;
+
 
     public PatientService(
             PatientRepository patientRepository,
             UserRepository userRepository,
             UserConfirmationRepository userConfirmationRepository, GeneralUserService userService,
             PasswordEncoder encoder,
-            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate) {
+            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate, ConsultationRepository consultationRepository) {
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
         this.userConfirmationRepository = userConfirmationRepository;
@@ -64,6 +67,7 @@ public class PatientService {
         this.encoder = encoder;
         this.applicationEventPublisher = applicationEventPublisher;
         this.transactionTemplate = transactionTemplate;
+        this.consultationRepository = consultationRepository;
     }
 
 
@@ -144,7 +148,7 @@ public class PatientService {
 
     public Page<Consultation> getConsultations(String patient_id, int page) {
         var pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
-        return patientRepository.findConsultationsByPatientIdOrderByCreatedAtAsc(patient_id, pageable);
+        return consultationRepository.findConsultationsByPatientIdOrderByCreatedAtAsc(patient_id, pageable);
     }
 
     @Transactional
