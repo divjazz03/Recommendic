@@ -2,13 +2,12 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.user.controller.UserCreationResponse;
+import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.user.dto.UserCreationResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -32,10 +31,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/consultant")
@@ -101,20 +101,13 @@ public class ConsultantController {
                     description = "You do not have the permission to perform this action",
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
     })
-    public ResponseEntity<Response> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<ConsultantInfoResponse>> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
         RequestContext.reset();
         RequestContext.setUserId(0L);
 
         ConsultantDTO consultantDTO = getConsultantDTO(requestParams);
         var consultantInfoResponse = consultantService.createConsultant(consultantDTO);
-        return new ResponseEntity<>(getResponse(httpServletRequest,
-                Map.of("data", new UserCreationResponse(
-                        consultantInfoResponse.consultantId(),
-                        consultantInfoResponse.firstName(),
-                        consultantInfoResponse.lastName(),
-                        consultantInfoResponse.phoneNumber(),
-                        consultantInfoResponse.address()
-                )),
+        return new ResponseEntity<>(getResponse(consultantInfoResponse,
                 "The Consultant was successfully created, Check your email to activate your account",
                 HttpStatus.CREATED
         ), HttpStatus.CREATED);
@@ -123,7 +116,7 @@ public class ConsultantController {
     }
 
     @GetMapping("/consultants")
-    public ResponseEntity<Response> getConsultants(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<Set<ConsultantInfoResponse>>> getConsultants(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
 
         var data = consultantService.getAllConsultants(pageable).stream()
                 .map(consultant -> new ConsultantInfoResponse(
@@ -135,14 +128,7 @@ public class ConsultantController {
                         consultant.getAddress(),
                         consultant.getMedicalCategory().toString().toLowerCase()
                 ));
-        var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                HttpStatus.OK.value(),
-                "",
-                HttpStatus.OK,
-                "All Consultants have been successfully retrieved",
-                "",
-                Map.of("consultants", data)
-        );
+        var response = getResponse(data.collect(Collectors.toSet()), "success", HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.FOUND);
     }
 

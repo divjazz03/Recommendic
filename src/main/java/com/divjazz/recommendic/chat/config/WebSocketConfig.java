@@ -12,17 +12,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final GeneralUserService userService;
-    private final JwtService jwtService;
-
-    public WebSocketConfig(GeneralUserService userService, JwtService jwtService) {
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat")
+        registry.addEndpoint("ws","/chat")
                 .setAllowedOrigins("*").withSockJS();
     }
 

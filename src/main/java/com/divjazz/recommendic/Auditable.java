@@ -4,7 +4,11 @@ package com.divjazz.recommendic;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -20,23 +24,23 @@ public abstract class Auditable {
     @SequenceGenerator(name = "primary_key_seq", sequenceName = "primary_key_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "primary_key_seq")
     private long id;
-    @Column(name = "reference_id")
-    private String referenceId;
     @NotNull
     @Column(name = "created_by", updatable = false, nullable = false)
+    @CreatedBy
     private long createdBy;
     @NotNull
     @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
     private long updatedBy;
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     @NotNull
     private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
     protected Auditable() {
-        this.referenceId = UUID.randomUUID().toString();
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
@@ -48,19 +52,9 @@ public abstract class Auditable {
     public void setId(long id) {
         this.id = id;
     }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
     public long getCreatedBy() {
         return createdBy;
     }
-
     public void setCreatedBy(long createdBy) {
         this.createdBy = createdBy;
     }
@@ -92,7 +86,6 @@ public abstract class Auditable {
     @PrePersist
     public void beforePersist() {
         long userId = RequestContext.getUserId();
-        setReferenceId(UUID.randomUUID().toString());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         setCreatedBy(userId);
@@ -107,24 +100,7 @@ public abstract class Auditable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Auditable auditable = (Auditable) o;
-
-        if (id != auditable.id) return false;
-        if (createdBy != auditable.createdBy) return false;
-        if (updatedBy != auditable.updatedBy) return false;
-        if (!Objects.equals(referenceId, auditable.referenceId))
-            return false;
-        if (!Objects.equals(createdAt, auditable.createdAt)) return false;
-        return Objects.equals(updatedAt, auditable.updatedAt);
-    }
-
-    @Override
     public int hashCode() {
         return (int) (id ^ (id >>> 32));
-
     }
 }

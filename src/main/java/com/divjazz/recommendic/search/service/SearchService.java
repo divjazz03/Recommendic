@@ -6,6 +6,7 @@ import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -14,10 +15,7 @@ import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,13 +30,16 @@ public class SearchService {
 
     private final AdminService adminService;
 
-    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, GeneralUserService userService, ConsultationService consultationService, PatientService patientService, AdminService adminService) {
+    private final AuthUtils authUtils;
+
+    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, GeneralUserService userService, ConsultationService consultationService, PatientService patientService, AdminService adminService, AuthUtils authUtils) {
         this.searchRepository = searchRepository;
         this.consultantService = consultantService;
         this.userService = userService;
         this.consultationService = consultationService;
         this.patientService = patientService;
         this.adminService = adminService;
+        this.authUtils = authUtils;
     }
 
     /**
@@ -48,12 +49,10 @@ public class SearchService {
      * @param userId This represents the user's id who made the search
      * @return Returns a Set of Consultant Objects
      */
-    public Set<SearchResult> executeQuery(String query, String userId, String category) {
-        var currentUser = userService.retrieveUserByUserId(userId);
-        return handleSearchForAuthorizedUsers(query, currentUser, category);
-    }
-
-    public Set<SearchResult> executeQuery(String query, String category) {
+    public Set<SearchResult> executeQueryForAuthorizedUsers(String query, String category) {
+        if (Objects.nonNull(authUtils.getCurrentUser())) {
+            return handleSearchForAuthorizedUsers(query, authUtils.getCurrentUser(), category);
+        }
         return handleSearchForUnauthorizedUsers(query, category);
     }
 

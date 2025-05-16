@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.dto;
 
-import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
 

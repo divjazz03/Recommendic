@@ -9,30 +9,21 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 public class ChatController {
 
-
-    private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageService chatMessageService;
 
-    public ChatController(SimpMessagingTemplate messagingTemplate, ChatMessageService chatMessageService) {
-        this.messagingTemplate = messagingTemplate;
+    public ChatController(ChatMessageService chatMessageService) {
         this.chatMessageService = chatMessageService;
     }
 
     @MessageMapping("/sendMessage") //Maps to "/app/sendMessage"
     public void sendMessage(@Payload ChatMessage message) {
         chatMessageService.sendMessage(message);
-    }
-
-    @MessageMapping("/connect")
-    public void connectToChat(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor simpMessageHeaderAccessor) {
-        Objects.requireNonNull(simpMessageHeaderAccessor.getSessionAttributes()).put("sender_id", chatMessage.getSenderId());
-        Objects.requireNonNull(simpMessageHeaderAccessor.getSessionAttributes()).put("receiver_id", chatMessage.getReceiverId());
-        Objects.requireNonNull(simpMessageHeaderAccessor.getSessionAttributes()).put("consultation_id", chatMessage.getConsultationId());
-        messagingTemplate.convertAndSendToUser(chatMessage.getReceiverId(), "/queue/actions", chatMessage);
+        CompletableFuture.runAsync(() -> chatMessageService.saveMessage(message));
     }
 
 }

@@ -39,7 +39,7 @@ This app emphasises on ease and great admin experiences for all our users.</p>
 - 👉 **Real Time Consultation and Chat**: This involves real time consultation/chats with consultants whom the admin has started a consultation with. It utilizes web sockets. The admin can have a real-time conversation with the practitioner of their choosing about topics they are interested in.
 - 👉 **Admin Registration**: An `ADMIN` can be registered as an admin by a `SUPER_ADMIN` and an automatically generated password is assigned to that admin.
 - 👉 **Consultant Certification**: Admins are assigned the certificates of the consultants that haven't been certified. Once the assigned admin certifies the certificates. The Consultant is automatically verified.
-- 👉 **File upload**: The Consultant can upload pdf documents or clear images of their certificates. Everyone consultant and patients need to upload their profile pictures for visual identification.
+- 👉 **File upload**: The Consultant can upload pdf documents or clear images of their certificates. Everyone writer and patients need to upload their profile pictures for visual identification.
 - 👉 **Email Notifications**: Implements email notifications for account confirmation and reset of passwords
 
 ## 🔩 Tech Stack

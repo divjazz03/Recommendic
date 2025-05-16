@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,9 +12,9 @@ import java.util.Set;
 
 public interface ConsultantRepository extends UserBaseRepository<Consultant> {
 
-    Optional<List<Consultant>> findByMedicalCategory(MedicalCategory category);
+    Optional<List<Consultant>> findByMedicalCategory(MedicalCategoryEnum category);
 
-    @Query(value = "select c from consultant c inner join users u on u.id = c.id where first_name = :name or last_name = :name", nativeQuery = true)
+    @Query(value = "select c from writer c inner join users u on u.id = c.id where first_name = :name or last_name = :name", nativeQuery = true)
     Set<Consultant> findConsultantByName(@Param("name") String name);
 
     @Query(value = """

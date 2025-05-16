@@ -5,7 +5,7 @@ import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
@@ -119,7 +119,7 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantByCategory(MedicalCategory category) {
+    public Set<Consultant> getConsultantByCategory(MedicalCategoryEnum category) {
         return ImmutableSet.
                 copyOf(
                         consultantRepository.findByMedicalCategory(category)
@@ -167,7 +167,7 @@ public class ConsultantService {
 
     public boolean handleOnboarding(String userId, String medicalSpecialization) {
         try {
-            MedicalCategory medicalSpec = MedicalCategory.valueOf(medicalSpecialization);
+            MedicalCategoryEnum medicalSpec = MedicalCategoryEnum.valueOf(medicalSpecialization);
             Consultant consultant = consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
             consultant.setMedicalCategory(medicalSpec);
             consultant.setUserStage(UserStage.ACTIVE_USER);

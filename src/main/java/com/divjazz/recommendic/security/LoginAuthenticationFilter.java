@@ -22,7 +22,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -30,8 +29,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.divjazz.recommendic.security.constant.Constants.LOGIN_PATH;
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
-import static com.divjazz.recommendic.utils.RequestUtils.handleErrorResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.handleErrorResponse;
 
 
 public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -80,7 +79,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
         var auth = (ApiAuthentication) authResult;
         var user = (User) auth.getPrincipal();
         userService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
-        var httpResponse = sendResponse(request, response, user);
+        var httpResponse = sendResponse(response, user);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.OK.value());
         try (var out = response.getOutputStream()) {
@@ -89,7 +88,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
         }
     }
 
-    private Response sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
+    private Response<LoginResponse> sendResponse(HttpServletResponse response, User user) {
         jwtService.addCookie(response, user, TokenType.ACCESS);
         var userResponse = new LoginResponse(user.getUserId(),
                 user.getUserNameObject().getFirstName(),
@@ -97,7 +96,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
                 user.getRole().toString(),
                 user.getAddress(),
                 user.getUserStage());
-        return getResponse(request, Map.of("user", userResponse), "login Success", HttpStatus.OK);
+        return getResponse(userResponse, "login Success", HttpStatus.OK);
     }
 }
 

@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.utils;
+package com.divjazz.recommendic.security.utils;
 
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
@@ -30,7 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class RequestUtils {
 
-    private static final BiConsumer<HttpServletResponse, Response> writeResponse = (httpServletResponse, response) -> {
+    private static final BiConsumer<HttpServletResponse, Response<?>> writeResponse = (httpServletResponse,  response) -> {
         try {
             var outputStream = httpServletResponse.getOutputStream();
             new ObjectMapper().writeValue(outputStream, response);
@@ -55,68 +55,46 @@ public class RequestUtils {
             return "An error occurred. Please try again ";
     };
 
-    public static Response getResponse(HttpServletRequest httpServletRequest,
-                                       Map<?, ?> data,
+    public static<T> Response<T> getResponse(
+                                       T data,
                                        String message,
                                        HttpStatus status) {
-        return new Response(
+        return new Response<T>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
-                httpServletRequest.getRequestURI(),
                 HttpStatus.valueOf(status.value()),
                 message,
                 EMPTY,
-                (Objects.isNull(data)) ? Collections.EMPTY_MAP : data
+                data
         );
     }
 
-    public static Response getErrorResponse(HttpServletRequest httpServletRequest,
+    public static Response<String> getErrorResponse(
                                             HttpStatus status,
                                             Exception exception) {
-        return new Response(
+        return new Response<>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
-                httpServletRequest.getRequestURI(),
                 HttpStatus.valueOf(status.value()),
                 errorReason.apply(exception, status),
                 getRootCauseMessage(exception),
-                Collections.emptyMap()
-        );
-    }
-
-    public static Response getErrorResponse(HttpServletRequest httpServletRequest,
-                                            HttpServletResponse httpServletResponse,
-                                            Exception exception, HttpStatus status) {
-        httpServletResponse.setContentType(APPLICATION_JSON_VALUE);
-        httpServletResponse.setStatus(status.value());
-        return new Response(
-                now().format(ISO_LOCAL_DATE_TIME),
-                status.value(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.valueOf(status.value()),
-                errorReason.apply(exception, status),
-                getRootCauseMessage(exception),
-                Collections.emptyMap()
+                exception.getMessage()
         );
     }
 
     public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception e) {
         switch (e) {
             case AccessDeniedException _ -> {
-                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.FORBIDDEN));
+                writeResponse.accept(response, getErrorResponse(HttpStatus.FORBIDDEN, e));
             }
             case UserNotFoundException _ -> {
-                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.NOT_FOUND));
+                writeResponse.accept(response, getErrorResponse(HttpStatus.NOT_FOUND, e));
             }
             case AuthenticationException _ ->
-                    writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.UNAUTHORIZED));
+                    writeResponse.accept(response, getErrorResponse(HttpStatus.UNAUTHORIZED, e));
             case null, default -> {
-                writeResponse.accept(response, getErrorResponse(request, response, e, HttpStatus.EXPECTATION_FAILED));
+                writeResponse.accept(response, getErrorResponse(HttpStatus.EXPECTATION_FAILED, e));
             }
         }
-    }
-
-    public static User getCurrentUser(Authentication authentication, GeneralUserService userService) {
-        return userService.retrieveUserByEmail(((UserDetails) authentication.getPrincipal()).getUsername());
     }
 }

@@ -7,8 +7,7 @@ import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
-import static com.divjazz.recommendic.utils.RequestUtils.getErrorResponse;
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.getErrorResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -28,9 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -99,10 +96,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
             filterChain.doFilter(request,response);
             var errorResponse = getErrorResponse(
-                    request,
-                    response,
-                    e,
-                    HttpStatus.EXPECTATION_FAILED
+                    HttpStatus.EXPECTATION_FAILED,
+                    e
             );
             try (var out = response.getOutputStream()){
                 var mapper = new ObjectMapper();

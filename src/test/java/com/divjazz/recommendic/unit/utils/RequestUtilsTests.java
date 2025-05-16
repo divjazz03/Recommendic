@@ -5,7 +5,7 @@ import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
 import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
-import com.divjazz.recommendic.utils.RequestUtils;
+import com.divjazz.recommendic.security.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -29,29 +29,21 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
-//@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class RequestUtilsTests {
-
-    private HttpServletRequest mockHttpServletRequest;
     private static final String TEST_MESSAGE = "test message";
 
-    @BeforeEach
-    public void setup() {
-        mockHttpServletRequest = Mockito.mock(HttpServletRequest.class);
-    }
     @ParameterizedTest
     @MethodSource
     public void getErrorResponseShouldReturnAResponseObjectWithTheAppropriateException(Exception e){
-        var response = RequestUtils.getErrorResponse(mockHttpServletRequest, HttpStatus.EXPECTATION_FAILED, e);
-        var expectedResponse = new Response(
+        var response = RequestUtils.getErrorResponse(HttpStatus.EXPECTATION_FAILED, e);
+        var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 HttpStatus.EXPECTATION_FAILED.value(),
-                mockHttpServletRequest.getRequestURI(),
                 HttpStatus.EXPECTATION_FAILED,
                 e.getMessage(),
                 ExceptionUtils.getRootCauseMessage(e),
-                Collections.emptyMap());
+                e.getMessage());
         assertEquals(expectedResponse.exception(), response.exception());
     }
     private static Stream<Arguments> getErrorResponseShouldReturnAResponseObjectWithTheAppropriateException(){
@@ -66,15 +58,14 @@ public class RequestUtilsTests {
     @ParameterizedTest
     @MethodSource
     public void getErrorResponseShouldReturnAResponseObjectWithTheAppropriateStatusCodeAndMessage(HttpStatus status, Exception e){
-        var response = RequestUtils.getErrorResponse(mockHttpServletRequest, status, e);
-        var expectedResponse = new Response(
+        var response = RequestUtils.getErrorResponse(status, e);
+        var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status.value(),
-                mockHttpServletRequest.getRequestURI(),
                 status,
                 e.getMessage(),
                 ExceptionUtils.getRootCauseMessage(e),
-                Collections.emptyMap());
+                e.getMessage());
 
         assertEquals(expectedResponse.status(), response.status());
         assertEquals(expectedResponse.message(), response.message());
@@ -91,13 +82,12 @@ public class RequestUtilsTests {
 
     @ParameterizedTest
     @MethodSource
-    public void getResponseShouldReturnAResponseObjectWithCorrectDataIfItExistsAndResponseCode(Map<?,?> data, HttpStatus status){
+    public <T> void getResponseShouldReturnAResponseObjectWithCorrectDataIfItExistsAndResponseCode(T data, HttpStatus status){
 
-        var response = RequestUtils.getResponse(mockHttpServletRequest,data,TEST_MESSAGE,status);
-        var expectedResponse = new Response(
+        var response = RequestUtils.getResponse(data,TEST_MESSAGE,status);
+        var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status.value(),
-                mockHttpServletRequest.getRequestURI(),
                 status,
                 TEST_MESSAGE,
                 EMPTY,
@@ -116,9 +106,9 @@ public class RequestUtilsTests {
     }
 
     @Test
-    public void getResponseShouldReturnEmptyMapIfDataIsNull(){
-        var response = RequestUtils.getResponse(mockHttpServletRequest,null,TEST_MESSAGE,HttpStatus.OK);
-        assertEquals(Collections.EMPTY_MAP, response.data());
+    public void getResponseShouldReturnNullIfDataIsNull(){
+        var response = RequestUtils.getResponse(null,TEST_MESSAGE,HttpStatus.OK);
+        assertNull(response.data());
     }
 
 }

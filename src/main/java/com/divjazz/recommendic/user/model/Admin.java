@@ -55,5 +55,9 @@ public class Admin extends User {
         this.assignment.remove(assignment);
     }
 
-
+    @Override
+    public String toString() {
+        return "Admin{" + "userId="+super.getUserId()+
+                '}';
+    }
 }

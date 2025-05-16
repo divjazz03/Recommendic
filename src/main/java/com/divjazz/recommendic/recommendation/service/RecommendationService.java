@@ -4,9 +4,10 @@ import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.service.SearchService;
+import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -23,13 +24,11 @@ public class RecommendationService {
 
     private final RecommendationRepository recommendationRepository;
     private final ConsultantService consultantService;
-    private final PatientService patientService;
     private final SearchService searchService;
 
-    public RecommendationService(RecommendationRepository recommendationRepository, ConsultantService consultantService, PatientService patientService, SearchService searchService) {
+    public RecommendationService(RecommendationRepository recommendationRepository, ConsultantService consultantService, SearchService searchService) {
         this.recommendationRepository = recommendationRepository;
         this.consultantService = consultantService;
-        this.patientService = patientService;
         this.searchService = searchService;
     }
 
@@ -82,6 +81,7 @@ public class RecommendationService {
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()
+                .map(medicalCategory -> MedicalCategoryEnum.fromValue(medicalCategory.value()))
                 .flatMap(medicalCategory -> consultantService
                         .getConsultantByCategory(medicalCategory)
                         .stream())
@@ -91,9 +91,10 @@ public class RecommendationService {
     private Set<Consultant> retrieveConsultantsBasedOnPatientSearchHistory(Set<Search> searches) {
         Set<MedicalCategory> medicalCategories = new HashSet<>(30);
         for (Search search : searches) {
-            for (MedicalCategory medicalCategory : MedicalCategory.values()) {
-                if (search.getQuery().matches("[" + medicalCategory.toString().toLowerCase() + "]")) {
-                    medicalCategories.add(medicalCategory);
+            for (MedicalCategoryEnum medicalCategoryEnum : MedicalCategoryEnum.values()) {
+                if (search.getQuery().matches("[" + medicalCategoryEnum.toString().toLowerCase() + "]")) {
+                    medicalCategories.add(new MedicalCategory(medicalCategoryEnum.getValue(),
+                            medicalCategoryEnum.getDescription()));
                 }
             }
         }

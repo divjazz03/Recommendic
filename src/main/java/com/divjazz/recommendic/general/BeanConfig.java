@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.general_config;
+package com.divjazz.recommendic.general;
 
 import com.google.maps.GeoApiContext;
 import io.swagger.v3.oas.models.ExternalDocumentation;

@@ -4,6 +4,7 @@ import com.divjazz.recommendic.fileupload.service.FileService;
 import com.divjazz.recommendic.fileupload.utils.FileResponseFile;
 import com.divjazz.recommendic.fileupload.utils.FileResponseMessage;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/file/")
+@Profile("test")
 public class FileController {
 
     private final FileService fileService;

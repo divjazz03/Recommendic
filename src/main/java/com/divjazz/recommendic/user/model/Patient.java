@@ -1,14 +1,16 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import org.hibernate.annotations.Type;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,8 +21,8 @@ import java.util.Set;
 @DiscriminatorValue("Patient")
 public class Patient extends User {
 
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "medical_categories")
+    @Column(name = "medical_categories", columnDefinition = "jsonb")
+    @Type(JsonType.class)
     private Set<MedicalCategory> medicalCategories;
 
     @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
@@ -65,8 +67,7 @@ public class Patient extends User {
 
     @Override
     public String toString() {
-        return "Patient{" +
-                '}';
+        return "Patient{" + "userId="+super.getUserId() + '}';
     }
 
 

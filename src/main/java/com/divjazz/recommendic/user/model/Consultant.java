@@ -1,15 +1,18 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,8 +33,9 @@ public class Consultant extends User implements Serializable {
     private List<Consultation> consultations;
     @Column(columnDefinition = "text")
     private String bio;
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "specialization")
+
+    @Column(name = "specialization", columnDefinition = "jsonb")
+    @Type(JsonType.class)
     private MedicalCategory medicalCategory;
     private boolean certified;
     protected Consultant() {
@@ -43,10 +47,10 @@ public class Consultant extends User implements Serializable {
             String phoneNumber,
             Gender gender,
             Address address,
-            MedicalCategory medicalCategory, Role role, UserCredential userCredential) {
+            MedicalCategoryEnum medicalCategoryEnum, Role role, UserCredential userCredential) {
         super(userName, email, phoneNumber, gender, address, role, userCredential);
         super.setUserType(UserType.CONSULTANT);
-        this.medicalCategory = medicalCategory;
+        this.medicalCategory = new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription());
         certificates = new HashSet<>(30);
         consultations = new ArrayList<>(20);
         certified = false;
@@ -87,20 +91,15 @@ public class Consultant extends User implements Serializable {
 
     @Override
     public String toString() {
-        return "Consultant{" +
-                "name" + getUsername() +
-                "certificates=" + certificates +
-                ", medicalSpecialization=" + medicalCategory +
-                ", certified=" + certified +
-                '}';
+        return "Consultant{" + super.getUserId() + '}';
     }
 
     public MedicalCategory getMedicalCategory() {
         return medicalCategory;
     }
 
-    public void setMedicalCategory(MedicalCategory medicalCategory) {
-        this.medicalCategory = medicalCategory;
+    public void setMedicalCategory(MedicalCategoryEnum medicalCategoryEnum) {
+        this.medicalCategory = new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription());
     }
 
     public String getBio() {

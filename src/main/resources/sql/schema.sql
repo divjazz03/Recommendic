@@ -18,7 +18,6 @@ DROP TABLE IF EXISTS users,
 CREATE TABLE IF NOT EXISTS users
 (
     id                  BIGINT PRIMARY KEY,
-    reference_id        CHARACTER VARYING(54) UNIQUE  NOT NULL,
     user_id             CHARACTER VARYING(54) UNIQUE  NOT NULL,
     dtype               CHARACTER VARYING(54) NOT NULL CHECK ( dtype IN ('Admin','Patient','Consultant')),
     first_name          CHARACTER VARYING(54)         NOT NULL,
@@ -45,10 +44,10 @@ CREATE TABLE IF NOT EXISTS users
     updated_by          BIGINT                        NOT NULL,
 
     /*Patient*/
-    medical_categories CHARACTER VARYING(54)[],
+    medical_categories jsonb,
     recommendation_id  BIGINT,
     /*Consultant*/
-    specialization CHARACTER VARYING(54) ,
+    specialization jsonb ,
     certified      BOOLEAN               DEFAULT FALSE,
     certificate_id BIGINT,
     /*Admin*/
@@ -70,7 +69,6 @@ CREATE TABLE IF NOT EXISTS users_credential
 CREATE TABLE IF NOT EXISTS users_confirmation
 (
     id           BIGINT PRIMARY KEY UNIQUE,
-    reference_id CHARACTER VARYING(54),
     user_id      BIGINT                NOT NULL,
     expiry      TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     key          CHARACTER VARYING(100) NOT NULL,
@@ -85,7 +83,6 @@ CREATE TABLE IF NOT EXISTS users_confirmation
 CREATE TABLE IF NOT EXISTS certification
 (
     id               BIGINT PRIMARY KEY,
-    reference_id     CHARACTER VARYING(54) UNIQUE NOT NULL,
     consultant_id    BIGINT                       NOT NULL,
     assignment_id    BIGINT                       NOT NULL,
     file_name        CHARACTER VARYING(255)        NOT NULL,
@@ -102,7 +99,6 @@ CREATE TABLE IF NOT EXISTS certification
 CREATE TABLE IF NOT EXISTS assignment
 (
     id           BIGINT PRIMARY KEY,
-    reference_id CHARACTER VARYING(54) UNIQUE,
     admin_id     BIGINT,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -122,7 +118,6 @@ CREATE TABLE IF NOT EXISTS search
     id           BIGINT PRIMARY KEY,
     query        CHARACTER VARYING(30) NOT NULL,
     owner_id     BIGINT                NOT NULL,
-    reference_id CHARACTER VARYING(54) UNIQUE,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by   BIGINT                NOT NULL,
@@ -135,7 +130,6 @@ CREATE TABLE IF NOT EXISTS article
     title         CHARACTER VARYING(54) NOT NULL,
     content       TEXT                  NOT NULL,
     consultant_id BIGINT                NOT NULL,
-    reference_id  CHARACTER VARYING(54),
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    BIGINT                NOT NULL,
@@ -147,7 +141,6 @@ CREATE TABLE IF NOT EXISTS article
 CREATE TABLE IF NOT EXISTS consultant_recommendation
 (
     id            BIGINT PRIMARY KEY,
-    reference_id  CHARACTER VARYING(54) UNIQUE NOT NULL,
     patient_id    BIGINT                       NOT NULL,
     consultant_id BIGINT                       NOT NULL,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -159,7 +152,6 @@ CREATE TABLE IF NOT EXISTS consultant_recommendation
 CREATE TABLE IF NOT EXISTS article_recommendation
 (
     id           BIGINT PRIMARY KEY,
-    reference_id CHARACTER VARYING(54) UNIQUE,
     patient_id   BIGINT NOT NULL,
     article_id   BIGINT NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -177,7 +169,6 @@ CREATE TABLE IF NOT EXISTS consultant_patient
 CREATE TABLE IF NOT EXISTS consultation
 (
     id                BIGINT PRIMARY KEY,
-    reference_id      CHARACTER VARYING(54) UNIQUE,
     diagnosis         TEXT,
     consultation_time TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     consultation_id   CHARACTER VARYING(54),
@@ -194,7 +185,6 @@ CREATE TABLE IF NOT EXISTS consultation
 CREATE TABLE IF NOT EXISTS message
 (
     id              BIGINT PRIMARY KEY,
-    reference_id    CHARACTER VARYING(54),
     sender_id       CHARACTER VARYING(54),
     receiver_id     CHARACTER VARYING(54),
     consultation_id CHARACTER VARYING(54),
@@ -209,11 +199,11 @@ CREATE TABLE IF NOT EXISTS message
 );
 
 ALTER TABLE IF EXISTS users
-    ADD FOREIGN KEY (created_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE,
-    ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE ;
+    ADD FOREIGN KEY (created_by) REFERENCES users (id) MATCH SIMPLE,
+    ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE,
+    ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE,
+    ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE,
+    ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id) MATCH SIMPLE;
 
 ALTER TABLE IF EXISTS users_confirmation
     ADD FOREIGN KEY (user_id) REFERENCES users (id),
@@ -263,7 +253,6 @@ ALTER TABLE IF EXISTS consultation
     ADD FOREIGN KEY (consultant_id) REFERENCES users (id);
 
 CREATE SEQUENCE IF NOT EXISTS primary_key_seq;
-
 END;
 
 

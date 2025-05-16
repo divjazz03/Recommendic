@@ -24,8 +24,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -65,7 +67,7 @@ public class AdminController {
                     content = {@Content(mediaType = "application.json", schema = @Schema(implementation = Response.class))})
     })
     @PostMapping("/create")
-    public ResponseEntity<Response> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<AdminCredentialResponse>> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
         RequestContext.reset();
         RequestContext.setUserId(0L);
         AdminDTO adminDTO = new AdminDTO(
@@ -78,13 +80,9 @@ public class AdminController {
                 new Address(requestParams.city(), requestParams.state(), requestParams.country())
         );
         AdminCredentialResponse adminResponse = adminService.createAdmin(adminDTO);
-        var data = Map.of(
-                "email", adminResponse.email(),
-                "password", adminResponse.password());
 
-
-        var response = getResponse(httpServletRequest,
-                data,
+        var response = getResponse(
+                adminResponse,
                 "The Admin Account was Successfully created, Check your Email to enable your Account",
                 HttpStatus.CREATED);
 
@@ -112,7 +110,7 @@ public class AdminController {
     })
 
     @GetMapping("/admins")
-    public ResponseEntity<Response> getAdmins(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<Set<AdminResponse>>> getAdmins(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
 
         var admins = adminService.getAllAdmins(pageable);
         var data = admins.stream()
@@ -123,9 +121,8 @@ public class AdminController {
                         admin.getEmail(),
                         admin.getGender().name(),
                         admin.getAddress()
-                ));
-        var response = getResponse(httpServletRequest,
-                Map.of("admins", data),
+                )).collect(Collectors.toSet());
+        var response = getResponse(data,
                 "Successfully Retrieved all admin entries",
                 HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.OK);

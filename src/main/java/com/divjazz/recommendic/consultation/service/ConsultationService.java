@@ -5,6 +5,7 @@ import com.divjazz.recommendic.consultation.enums.Status;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
+import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
@@ -31,7 +32,7 @@ public class ConsultationService {
     }
 
     public ConsultationResponse initializeConsultation(String consultantId, User currentUser) {
-        var patient = patientService.findPatientByUserId(currentUser.getUserId());
+        var patient = (Patient) currentUser;
         var consultant = consultantService.retrieveConsultantByUserId(consultantId);
         var consultationId = UUID.randomUUID().toString();
         var consultation = new Consultation("",

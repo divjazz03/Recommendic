@@ -7,11 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Optional;
 
 @Configuration
-@Lazy
+@Profile("test")
 public class FileUploadConfig {
 
     @Value("${file.upload.implementation}")
@@ -21,7 +22,7 @@ public class FileUploadConfig {
     FileService fileService() {
         var fileUploadImpl = Optional.ofNullable(fileUploadImplementation);
         return fileUploadImpl.filter(s -> (!s.equals("databaseFileUploadService")))
-                .<FileService>map(s -> new CloudFileUploadService())
+                .<FileService>map(_ -> new CloudFileUploadService())
                 .orElseGet(DatabaseFileUploadService::new);
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Query(value = """ 
-            select a from article a where to_tsvector('english', title) or to_tsvector('english', content) @@ to_tsquery('english', :query)
+            select a from article a left join public.users u on u.id = a.consultant_id where to_tsvector('english', title) or to_tsvector('english', content) @@ to_tsquery('english', :query)
             """, nativeQuery = true)
     Page<Article> queryArticle(@Param("query") String query, Pageable pageable);
 
@@ -21,7 +21,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> findAll(@NotNull Pageable pageable);
 
     @Query(value = """
-            select a from article a inner join consultant c on c.id = a.consultant_id where c.specialization = :medicalCategory
+            select a from article a left join users c on c.id = a.consultant_id where c.specialization = :medicalCategory
             """, nativeQuery = true)
     Page<Article> findAllByMedicalCategoryOfInterest(@Param("medicalCategory") String medicalCategory, Pageable pageable);
 

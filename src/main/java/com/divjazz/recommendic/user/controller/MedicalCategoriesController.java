@@ -1,8 +1,9 @@
 package com.divjazz.recommendic.user.controller;
 
 import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
-import com.divjazz.recommendic.utils.RequestUtils;
+import com.divjazz.recommendic.user.dto.MedicalCategoryResponse;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
+import com.divjazz.recommendic.security.utils.RequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,12 +31,11 @@ public class MedicalCategoriesController {
                     description = "Medical Categories found",
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
     })
-    public Response getAllMedicalCategories(HttpServletRequest request) {
-        var medicalCategories = Arrays.stream(MedicalCategory.values())
+    public Response<Set<MedicalCategoryResponse>> getAllMedicalCategories() {
+        var medicalCategories = Arrays.stream(MedicalCategoryEnum.values())
                 .map(category -> new MedicalCategoryResponse(category.toString(), category.getDescription()))
                 .collect(Collectors.toSet());
-        return RequestUtils.getResponse(request, Map.of("categories", medicalCategories), "found", HttpStatus.OK);
+        return RequestUtils.getResponse( medicalCategories, "found", HttpStatus.OK);
     }
 }
 
-record MedicalCategoryResponse(String name, String description) {}

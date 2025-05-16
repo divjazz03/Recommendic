@@ -37,11 +37,10 @@ public class RecommendicApplication implements CommandLineRunner {
     @Bean
     ObjectMapper objectMapper() {
         return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
                 .findAndRegisterModules()
                 .configure(SerializationFeature.CLOSE_CLOSEABLE, true)
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS, false);
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 }

@@ -1,12 +1,14 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.user.controller.UserCreationResponse;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.dto.UserCreationResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -36,8 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
 
 
 @RestController
@@ -88,7 +91,7 @@ public class PatientController {
                     description = "You do not have the permission to perform this action",
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
     })
-    public ResponseEntity<Response> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams) {
+    public ResponseEntity<Response<PatientInfoResponse>> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams) {
         RequestContext.reset();
         RequestContext.setUserId(0L);
 
@@ -106,27 +109,15 @@ public class PatientController {
 
         var infoResponse = patientService.createPatient(patient);
 
-        var response = new Response(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                HttpStatus.CREATED.value(),
-                "",
-                HttpStatus.CREATED,
-                "The Patient Account was Successfully created",
-                null,
-                Map.of("data", new UserCreationResponse(
-                        infoResponse.patientId(),
-                        infoResponse.firstName(),
-                        infoResponse.lastName(),
-                        infoResponse.phoneNumber(),
-                        infoResponse.address()))
-        );
+        var response =  getResponse(infoResponse, "success", HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/patients")
-    public ResponseEntity<Response> patients(@ParameterObject Pageable pageable,
+    public ResponseEntity<Response<Set<PatientDTO>>> patients(@ParameterObject Pageable pageable,
                                              HttpServletRequest httpServletRequest) {
         var patients = patientService.getAllPatients(pageable);
-        Function<Set<MedicalCategory>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategory> medicalCategories) ->
+        Function<Set<MedicalCategoryEnum>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategoryEnum> medicalCategories) ->
                 medicalCategories
                         .stream()
                         .map(Enum::name)
@@ -141,9 +132,8 @@ public class PatientController {
                         patient.getAddress(),
                         null)
 
-                );
-        var response = getResponse(httpServletRequest,
-                Map.of("patients", patientDTOSet),
+                ).collect(Collectors.toSet());
+        var response = getResponse(patientDTOSet,
                 "Success in retrieving the Patient Users",
                 HttpStatus.OK
         );
@@ -152,21 +142,10 @@ public class PatientController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Response> deletePatient(@RequestParam("patient_id") String patientId) {
-
-        patientService.deletePatientByUserId(patientId);
-        var response = new Response(
-                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                HttpStatus.OK.value(),
-                "",
-                HttpStatus.OK,
-                "Successfully deleted patient",
-                null,
-                null
-
-        );
+    public ResponseEntity<Response<Void>> deletePatient(@RequestParam("patient_id") String patientId) {
         RequestContext.setUserId(0L);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        patientService.deletePatientByUserId(patientId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     //In patient onboarding
@@ -184,18 +163,13 @@ public class PatientController {
         return ResponseEntity.ok().build();
     }
     @GetMapping("/recommendations")
-    public ResponseEntity<Response> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
+    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
 
         Patient patient = patientService.findPatientById(id);
         var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
-        var response = new Response(
-                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                HttpStatus.OK.value(),
-                "",
-                HttpStatus.OK,
-                "Successfully retrieved all Recommendations for user " + patient.getReferenceId(),
-                "",
-                Map.of("recommendations", recommendations)
+        var response = getResponse(recommendations,
+                "Success in retrieving the Patient Users",
+                HttpStatus.OK
         );
         return ResponseEntity.ok().body(response);
     }

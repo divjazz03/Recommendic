@@ -1,11 +1,12 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
-import com.divjazz.recommendic.user.enums.MedicalCategory;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
@@ -151,8 +152,8 @@ public class PatientService {
         try {
 
             Set<MedicalCategory> medicalCategorySet = medicalCategories.stream()
-                    .map(String::toUpperCase)
-                    .map(MedicalCategory::valueOf)
+                    .map(MedicalCategoryEnum::fromValue)
+                    .map(medicalCategoryEnum -> new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
                     .collect(Collectors.toSet());
             Patient patient = patientRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
             patient.setMedicalCategories(medicalCategorySet);
