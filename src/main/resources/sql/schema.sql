@@ -20,16 +20,12 @@ CREATE TABLE IF NOT EXISTS users
     id                  BIGINT PRIMARY KEY,
     user_id             CHARACTER VARYING(54) UNIQUE  NOT NULL,
     dtype               CHARACTER VARYING(54) NOT NULL CHECK ( dtype IN ('Admin','Patient','Consultant')),
-    first_name          CHARACTER VARYING(54)         NOT NULL,
-    last_name           CHARACTER VARYING(54)         NOT NULL,
+    username            jsonb,
     email               CHARACTER VARYING(54) UNIQUE NOT NULL,
     phone_number        CHARACTER VARYING(54)                  DEFAULT NULL,
     bio                 TEXT                                   DEFAULT NULL,
-    image_url           CHARACTER VARYING(54)                  DEFAULT 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-    image_name          CHARACTER VARYING(54)                  DEFAULT '149071.png',
-    country             CHARACTER VARYING(54)        NOT NULL,
-    state               CHARACTER VARYING(54)        NOT NULL,
-    city                CHARACTER VARYING(54)        NOT NULL,
+    profile_picture     jsonb,
+    address             jsonb,
     user_type           CHARACTER VARYING(54)         NOT NULL,
     user_stage          CHARACTER VARYING(54)           NOT NULL,
     enabled             BOOLEAN                       NOT NULL DEFAULT FALSE,
@@ -37,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users
     account_non_locked  BOOLEAN                       NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)         NOT NULL,
     role                CHARACTER VARYING(54)         NOT NULL,
-    last_login          TIMESTAMP                              DEFAULT NULL,
+    last_login          TIMESTAMP(6) WITH TIME ZONE                              DEFAULT NULL,
     updated_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_by          BIGINT                        NOT NULL,
@@ -53,9 +49,7 @@ CREATE TABLE IF NOT EXISTS users
     /*Admin*/
     assignment_id BIGINT DEFAULT NULL,
     /*Credential embed*/
-    password     CHARACTER VARYING(100) NOT NULL,
-    credential_expired      BOOLEAN     DEFAULT FALSE,
-    credential_last_modified    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    user_credential jsonb
 
 );
 

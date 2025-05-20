@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -91,16 +92,20 @@ public class JwtServiceImpl implements JwtService {
                     .filter(cookie -> Objects.equals(cookieName, cookie.getName()))
                     .findAny()).orElse(empty());
 
-    private final Supplier<JwtBuilder> builder = () ->
-            Jwts.builder()
-                    .header().add(Map.of(TYPE, JWT_TYPE))
-                    .and()
-                    .audience().add("RECOMMENDIC")
-                    .and()
-                    .id(String.valueOf(UUID.randomUUID()))
-                    .issuedAt(Date.from(Instant.now()))
-                    .notBefore(new Date())
-                    .signWith(keySupplier.get(), Jwts.SIG.HS256);
+    private final Supplier<JwtBuilder> builder = () -> {
+        var currentDate = Date.from(Instant.now());
+        var expiryDate = Date.from(currentDate.toInstant().plus(20, ChronoUnit.HOURS));
+        return Jwts.builder()
+                .header().add(Map.of(TYPE, JWT_TYPE))
+                .and()
+                .audience().add("RECOMMENDIC")
+                .and()
+                .id(String.valueOf(UUID.randomUUID()))
+                .issuedAt(currentDate)
+                .notBefore(currentDate)
+                .signWith(keySupplier.get(), Jwts.SIG.HS256);
+
+    };
 
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
             Objects.equals(type, ACCESS) ? builder.get()
@@ -109,7 +114,7 @@ public class JwtServiceImpl implements JwtService {
                     .claim(ROLE, user.getRole().getName())
                     .expiration(Date.from(Instant.now().plusSeconds(jwtConfiguration.getExpiration())))
                     .compact() : builder.get()
-                    .subject(user.getEmail())
+                    .subject(user.getUserId())
                     .compact();
 
     private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = (response, user, type) -> {

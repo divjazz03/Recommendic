@@ -1,8 +1,7 @@
-package com.divjazz.recommendic.externalApi.openFDA.count;
+package com.divjazz.recommendic.external.openFDA.count;
 
-import com.divjazz.recommendic.externalApi.openFDA.OpenFDAResult;
+import com.divjazz.recommendic.external.openFDA.OpenFDAResult;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record OpenFDACountResult(String term, long count) implements OpenFDAResult {

@@ -1,14 +1,14 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
-@Embeddable
+
 public class ProfilePicture {
-    @Column(name = "image_name", nullable = false)
     private String name;
-    @Column(name = "image_url", nullable = false)
+    @JsonProperty("picture_url")
     private String pictureUrl;
 
 

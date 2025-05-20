@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,7 +41,7 @@ public class RequestUtils {
         }
     };
 
-    private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, httpStatus) -> {
+    private static final BiFunction<Exception, HttpStatusCode, String> errorReason = (exception, httpStatus) -> {
         if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
             return "You do not have enough permission";
         if (exception instanceof AuthenticationException ||
@@ -58,7 +59,7 @@ public class RequestUtils {
     public static<T> Response<T> getResponse(
                                        T data,
                                        String message,
-                                       HttpStatus status) {
+                                       HttpStatusCode status) {
         return new Response<T>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
@@ -70,7 +71,7 @@ public class RequestUtils {
     }
 
     public static Response<String> getErrorResponse(
-                                            HttpStatus status,
+                                            HttpStatusCode status,
                                             Exception exception) {
         return new Response<>(
                 now().format(ISO_LOCAL_DATE_TIME),

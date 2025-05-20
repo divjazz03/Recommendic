@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,6 +31,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     @Value("${cors.frontend.domain}")
@@ -44,23 +47,22 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    private static final String[] WHITELIST_PATHS = {"/api/v1/patient/create",
+            "/api/v1/consultant/create","/api/v1/search/drug/**", "api/v1/medical_categories/","/error",
+            "/api-docs","/api-docs/*", "/api-docs.yaml","swagger-ui/*", "/actuator/**", "/favicon.ico",
+            "/api/v1/auth/*"
+    };
+
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http,
-                                           LoginAuthenticationFilter loginAuthenticationFilter,
-                                           JwtAuthenticationFilter jwtFilter,
-                                           LogoutAuthenticationFilter logoutFilter) throws Exception {
+                                           JwtAuthenticationFilter jwtFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                       .requestMatchers("/api/v1/patient/create",
-                        "/api/v1/consultant/create").permitAll()
-                        .requestMatchers("/api/v1/search/drug/**", "api/v1/medical_categories/").permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
-                        .requestMatchers("/api-docs","/api-docs/*", "/api-docs.yaml","swagger-ui/*").permitAll()
-                        .requestMatchers("/actuator/**", "/favicon.ico").permitAll()
+                        .requestMatchers(WHITELIST_PATHS).permitAll()
                         .requestMatchers("/api/v1/patient/delete").
                         hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN, SYSTEM")
                         .requestMatchers("/api/v1/patient/patients").
@@ -72,9 +74,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/admin/create").hasAuthority("SUPER_ADMIN")
                         .requestMatchers("/api/v1/admin/admins").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated())
-                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(logoutFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -92,23 +92,10 @@ public class WebSecurityConfig {
         return new CustomUserDetailsService(userService);
     }
 
-    @Bean
-    LoginAuthenticationFilter authenticationFilter(JwtService service,
-                                                   AuthenticationManager authenticationManager,
-                                                   GeneralUserService userService,
-                                                   ObjectMapper objectMapper,
-                                                   UserLoginRetryHandler userLoginRetryHandler) {
-        return new LoginAuthenticationFilter(authenticationManager, service, userService, objectMapper, userLoginRetryHandler);
-    }
 
     @Bean
     JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
         return new JwtAuthenticationFilter(jwtService, userDetailsService);
-    }
-
-    @Bean
-    LogoutAuthenticationFilter logoutAuthenticationFilter(JwtService jwtService) {
-        return new LogoutAuthenticationFilter(jwtService);
     }
 
     @Bean

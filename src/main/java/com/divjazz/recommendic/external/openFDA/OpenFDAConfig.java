@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.externalApi.openFDA;
+package com.divjazz.recommendic.external.openFDA;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +12,8 @@ public class OpenFDAConfig {
     private String openFDAAdverseEffectEndpoint;
     @Value("${api.drug.drugs_endpoint}")
     private String openFDADrugsEndPoint;
+    @Value("${api.drug.label_endpoint}")
+    private String openFDALabelEndPoint;
 
 
     public String getOpenFDABaseUrl() {
@@ -24,5 +26,9 @@ public class OpenFDAConfig {
 
     public String getOpenFDADrugsEndPoint() {
         return openFDADrugsEndPoint;
+    }
+
+    public String getOpenFDALabelEndPoint() {
+        return openFDALabelEndPoint;
     }
 }

@@ -7,7 +7,7 @@ VERIFY_EMAIL_HOST: localhost
 JWT_EXPIRATION: 400000000
 JWT_SECRET: MadukaDivineAkachukwuBasedInIbadanOyoStateNigeriaAlumniOfRoseBud
 
-FILE_UPLOAD_IMPL: databaseFileUploadService
+FILE_UPLOAD_IMPL: database
 OPEN_FDA_API_KEY: smdskfskfpspf9s9fs9f9s9f
 OPEN_FDA_API_BASE_URL: https://api.fda.gov
 ADVERSE_EFFECT_END_POINT: /drug/event.json?api_key=${OPEN_FDA_API_KEY}

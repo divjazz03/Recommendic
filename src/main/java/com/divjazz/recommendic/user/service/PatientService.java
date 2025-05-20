@@ -88,15 +88,13 @@ public class PatientService {
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
-            transactionTemplate.execute( status -> {
+            transactionTemplate.executeWithoutResult( status -> {
                 try {
-                    patientRepository.save(user);
+                    userRepository.save(user);
                     userConfirmationRepository.save(userConfirmation);
-                } catch (Exception e) {
+                } catch (IllegalArgumentException e) {
                     status.setRollbackOnly();
                 }
-                return null;
-
             });
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);

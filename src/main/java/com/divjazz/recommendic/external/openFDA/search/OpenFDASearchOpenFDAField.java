@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.externalApi.openFDA.search;
+package com.divjazz.recommendic.external.openFDA.search;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -16,5 +16,5 @@ public record OpenFDASearchOpenFDAField(
         List<String> product_type,
         List<String> route,
         List<String> substance_name
-) {
+){
 }

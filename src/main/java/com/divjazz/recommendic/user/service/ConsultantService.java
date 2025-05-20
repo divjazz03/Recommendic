@@ -22,6 +22,7 @@ import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.google.common.collect.ImmutableSet;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,6 +79,23 @@ public class ConsultantService {
     @Transactional
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
+        Consultant user = getConsultant(consultantDTO, userCredential);
+
+        if (userService.isUserNotExists(user.getEmail())) {
+            RequestContext.setUserId(user.getId());
+            var userConfirmation = new UserConfirmation(user);
+            var savedConsultant = consultantRepository.save(user);
+            userConfirmationRepository.save(userConfirmation);
+            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
+            applicationEventPublisher.publishEvent(userEvent);
+            return consultantToConsultantInfoResponse(savedConsultant);
+        } else {
+            throw new UserAlreadyExistsException(user.getEmail());
+        }
+    }
+
+    @NotNull
+    private static Consultant getConsultant(ConsultantDTO consultantDTO, UserCredential userCredential) {
         Consultant user = new Consultant(
                 consultantDTO.userName(),
                 consultantDTO.email(),
@@ -96,24 +114,7 @@ public class ConsultantService {
         profilePicture.setName("149071.png");
         user.setProfilePicture(profilePicture);
         user.setUserType(UserType.CONSULTANT);
-
-        if (userService.isUserNotExists(user.getEmail())) {
-            RequestContext.setUserId(user.getId());
-            var userConfirmation = new UserConfirmation(user);
-            userRepository.save(user);
-            consultantRepository.save(user);
-            userConfirmationRepository.save(userConfirmation);
-            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
-            applicationEventPublisher.publishEvent(userEvent);
-            return new ConsultantInfoResponse(user.getUserId(),
-                    user.getUserNameObject().getLastName(),
-                    user.getUserNameObject().getFirstName(),
-                    user.getGender().toString(),
-                    user.getPhoneNumber(),
-                    user.getAddress());
-        } else {
-            throw new UserAlreadyExistsException(user.getEmail());
-        }
+        return user;
     }
 
     @Transactional(readOnly = true)
@@ -128,12 +129,6 @@ public class ConsultantService {
                         consultantRepository.findByMedicalCategory(new MedicalCategory(category.getValue(), category.getDescription()))
                                 .orElseThrow(UserNotFoundException::new)
                 );
-    }
-
-    @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantsByName(String name) {
-
-        return consultantRepository.findConsultantByName(name);
     }
 
     public Set<ConsultantInfoResponse> searchSomeConsultantsByQuery(String query) {
@@ -152,17 +147,10 @@ public class ConsultantService {
                 .collect(Collectors.toSet());
     }
 
-    public Set<Consultation> getAllConsultations(String consultantId) {
-        return consultationRepository.findAllByConsultantId(consultantId);
-    }
-
     public Consultant retrieveConsultantByUserId(String userId) {
         return consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
     }
 
-    public Optional<Consultant> retrieveConsultantByEmail(String email) {
-        return consultantRepository.findByEmail(email);
-    }
 
     public Set<Consultant> getAllUnCertifiedConsultants() {
         return consultantRepository.findUnCertifiedConsultant();

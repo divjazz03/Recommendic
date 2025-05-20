@@ -3,12 +3,12 @@ package com.divjazz.recommendic.search.controller;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.service.ArticleService;
-import com.divjazz.recommendic.externalApi.openFDA.OpenFDAQuery;
-import com.divjazz.recommendic.externalApi.openFDA.OpenFDAResult;
+import com.divjazz.recommendic.external.openFDA.OpenFDAQuery;
+import com.divjazz.recommendic.external.openFDA.OpenFDAResult;
+import com.divjazz.recommendic.external.openFDA.OpenFdaSearchType;
 import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.service.SearchService;
-import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,13 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
-import static com.divjazz.recommendic.externalApi.openFDA.OpenFDAQuery.Sort.valueOf;
-import static com.divjazz.recommendic.security.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.external.openFDA.OpenFDAQuery.Sort.valueOf;
 import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
 
 
@@ -37,15 +33,12 @@ import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
 public class SearchController {
 
     private final SearchService searchService;
-    private final GeneralUserService userService;
     private final OpenFDAQuery openFDAQuery;
     private final ArticleService articleService;
 
     public SearchController(SearchService searchService,
-                            GeneralUserService userService,
                             OpenFDAQuery openFDAQuery, ArticleService articleService) {
         this.searchService = searchService;
-        this.userService = userService;
         this.openFDAQuery = openFDAQuery;
         this.articleService = articleService;
     }
@@ -60,67 +53,24 @@ public class SearchController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("drug/")
-    public ResponseEntity<Response<OpenFDAResult>> search(@RequestParam("search_param") String searchParam,
-                                                          @RequestParam("search_term") String searchTerm,
-                                                          @RequestParam("limit") String limit,
-                                                          @RequestParam("count") String count,
-                                                          @RequestParam("sort") String sort, HttpServletRequest httpServletRequest) {
-            //search terms are separated by ':'
-            boolean sortIsNullButLimitIsNot = Objects.isNull(sort) && Objects.nonNull(limit);
-            boolean sortAndLimitAreNotNull = Objects.nonNull(sort) && Objects.nonNull(limit);
-            if (Objects.isNull(count)) {
+    @GetMapping("/drug")
+    public ResponseEntity<Response<OpenFDAResult>> search(@RequestParam(value = "search_term", required = false, defaultValue = "") String searchTerm,
+                                                          @RequestParam(value = "limit", required = false, defaultValue = "10") String limit,
+                                                          @RequestParam(value = "count", required = false) String count,
+                                                          @RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+                                                          @RequestParam(value = "type", defaultValue = "label") String type) {
 
-                if (sortAndLimitAreNotNull) {
-                    var result = getResponse(openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
-                                    splitSearchTerms(searchTerm)),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
+        var openFdaSearchType = OpenFdaSearchType.fromValue(type);
+        OpenFDAQuery.Sort sortEnum = sort.isEmpty() || sort.isBlank() ? null : OpenFDAQuery.Sort.valueOf(sort);
+        Map<String, String> searchFieldTerm = splitSearchTerms(searchTerm);
+        var queryResponse = switch (openFdaSearchType) {
+            case DRUG -> openFDAQuery.queryDrugs(sortEnum, Integer.parseInt(limit), searchFieldTerm, count);
+            case LABEL -> openFDAQuery.queryLabels(sortEnum, Integer.parseInt(limit), searchFieldTerm,count);
+            case ADVERSE_EFFECT -> null;
+        };
 
-                } else if (sortIsNullButLimitIsNot) {
-                    var result = getResponse(openFDAQuery.queryDrugs(Integer.parseInt(limit), searchParam,
-                            splitSearchTerms(searchTerm)),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-                } else if (Objects.nonNull(sort)) {
-                    var result = getResponse(openFDAQuery.queryDrugs(valueOf(sort), searchParam, splitSearchTerms(searchTerm)),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-                } else {
-                    var result = getResponse(openFDAQuery.queryDrugs(searchParam,
-                                    splitSearchTerms(searchTerm)),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-                }
-            } else {
-                if (sortAndLimitAreNotNull) {
-                    var result = getResponse(openFDAQuery.queryDrugs(valueOf(sort), Integer.parseInt(limit), searchParam,
-                                    splitSearchTerms(searchTerm)),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-
-                } else if (sortIsNullButLimitIsNot) {
-                    var result = getResponse(openFDAQuery.queryDrugs(Integer.parseInt(limit), searchParam, splitSearchTerms(searchTerm), count),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-                } else if (Objects.nonNull(sort)) {
-                    var result = getResponse( openFDAQuery.queryDrugs(valueOf(sort),
-                                    searchParam,
-                                    splitSearchTerms(searchTerm),
-                                    count),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-                } else {
-                    var result = getResponse(openFDAQuery.queryDrugs(searchParam,
-                                    splitSearchTerms(searchTerm), count),
-                            "query was successful", HttpStatus.OK);
-                    return new ResponseEntity<>(result, HttpStatus.OK);
-
-                }
-
-            }
-
-
+        var response = getResponse( queryResponse ,"success", HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     // Should be pageable
@@ -133,13 +83,17 @@ public class SearchController {
 
     }
 
-    private boolean isValidUser(String userId, Authentication authentication) {
-        var authUserId = userService.retrieveUserByEmail(((UserDetails) authentication.getPrincipal()).getUsername()).getUserId();
-        return (userId.equals(authUserId) && authentication.isAuthenticated());
-    }
-
-    private List<String> splitSearchTerms(String searchTerm) {
-        return List.of(searchTerm.split(":"));
+    private Map<String, String> splitSearchTerms(String searchTerm) {
+        if (searchTerm.isEmpty() || searchTerm.isBlank()) {
+            return null;
+        }
+        Map<String, String> map = new HashMap<>();
+        var intermediate =  List.of(searchTerm.split("AND"));
+        for (String s : intermediate) {
+            var finalSplit = s.split(":");
+            map.put(finalSplit[0], finalSplit[1]);
+        }
+        return map;
     }
 
 

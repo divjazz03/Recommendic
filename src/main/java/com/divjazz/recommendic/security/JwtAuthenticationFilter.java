@@ -36,10 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userService;
     public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(?:/[\\w.-]+)*$");
+    public static final Pattern AUTH_PATHS = Pattern.compile("^/api/v1/auth/(login|logout)$");
     public static final Pattern FAVICON = Pattern.compile("^/favicon.ico");
     public static final Pattern USER_PATH = Pattern.compile("^/api/v1/(patient|consultant|admin)/create$");
     public static final Pattern MEDICAL_PATH = Pattern.compile("^/api/v1/medical_categories/$");
-    public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/drug/\\w+");
+    public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/.*$");
     public static final Pattern LOGIN_PATH= Pattern.compile("^/user/login");
     public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userService) {
         this.jwtService = jwtService;
@@ -49,38 +50,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         var requestURI = request.getRequestURI();
-        var shouldBeIgnored = !(FAVICON.matcher(requestURI).matches() ||
-                ACTUATOR_PATHS.matcher(requestURI).matches() ||
-                USER_PATH.matcher(requestURI).matches() ||
-                DRUG_API_PATH.matcher(requestURI).matches() ||
-                LOGIN_PATH.matcher(requestURI).matches() ||
-                MEDICAL_PATH.matcher(requestURI).matches());
+        var shouldBeIgnored = !(FAVICON.matcher(requestURI).find() ||
+                ACTUATOR_PATHS.matcher(requestURI).find() ||
+                USER_PATH.matcher(requestURI).find() ||
+                DRUG_API_PATH.matcher(requestURI).find() ||
+                LOGIN_PATH.matcher(requestURI).find() ||
+                AUTH_PATHS.matcher(requestURI).find() ||
+                MEDICAL_PATH.matcher(requestURI).find());
         try {
             if (shouldBeIgnored) {
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
-                String username = null;
+                String userId = null;
                 String jwtToken = null;
                 if (authorizationAccessToken.isPresent()) {
 
                     jwtToken = authorizationAccessToken.get();
-                    username = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
+                    userId = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
 
                 } else if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                     jwtToken = authorizationHeader.substring(7);
-                    username = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
+                    userId = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
                 } else throw new TokenNotFoundException();
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userService.loadUserByUsername(username);
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userService.loadUserByUserId(userId);
 
                     if (jwtService.validateToken(request)) {
                         var userPermissions = jwtService.getTokenData(jwtToken, TokenData::getGrantedAuthorities);
                         logger.debug("granted authority for current user is {}", userPermissions);
-                        var authentication = ApiAuthentication.authenticated(userDetails, userPermissions);
+                        var authentication = ApiAuthentication.authenticated(userDetails);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        logger.info("authenticated user with email :{}", username);
+                        logger.info("authenticated user with userId :{}", userId);
 
                     } else {
                         throw new InvalidTokenException();

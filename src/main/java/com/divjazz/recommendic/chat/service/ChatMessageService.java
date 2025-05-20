@@ -19,12 +19,10 @@ public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final GeneralUserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
 
-    public ChatMessageService(ChatMessageRepository chatMessageRepository, GeneralUserService userService, SimpMessagingTemplate messagingTemplate) {
+    public ChatMessageService(ChatMessageRepository chatMessageRepository, GeneralUserService userService) {
         this.chatMessageRepository = chatMessageRepository;
         this.userService = userService;
-        this.messagingTemplate = messagingTemplate;
     }
 
     public void saveMessage(ChatMessage chatMessage) {
@@ -36,11 +34,6 @@ public class ChatMessageService {
     public void sendMessage(ChatMessage chatMessage) {
         var message = new Message(chatMessage.getSenderId(), chatMessage.getReceiverId(), chatMessage.getConsultationId(), chatMessage.getContent());
         try {
-            messagingTemplate.convertAndSendToUser(
-                    chatMessage.getReceiverId(),
-                    "/queue/messages",
-                    chatMessage
-            );
             message.setDelivered(true);
             chatMessageRepository.save(message);
         } catch (MessagingException e) {
@@ -51,13 +44,7 @@ public class ChatMessageService {
 
     public void handleReconnection(String userId) {
         List<Message> undeliveredMessages = chatMessageRepository.findByReceiverIdAndDeliveredFalse(userId);
-        for (var message : undeliveredMessages) {
-            messagingTemplate.convertAndSendToUser(
-                    userId,
-                    "/queue/messages",
-                    message
-            );
-        }
+
     }
 
     public List<ChatResponseMessage> getAllOfflineMessages(User recipient) {

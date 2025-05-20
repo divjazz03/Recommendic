@@ -10,8 +10,12 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,8 +33,9 @@ import java.util.UUID;
 @Table(name = "users")
 public abstract class User extends Auditable implements UserDetails, Serializable {
 
-    @Column(nullable = false)
-    @Embedded
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "username", nullable = false, columnDefinition = "jsonb")
     private UserName userName;
 
     @Column(nullable = false)
@@ -45,20 +50,25 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Embedded
-    @Column(nullable = false)
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "address", nullable = false, columnDefinition = "jsonb")
     private Address address;
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-
-    @Embedded
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "profile_picture", nullable = false, columnDefinition = "jsonb")
     private ProfilePicture profilePicture;
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
-    @Embedded
+
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
     private UserCredential userCredential;
 
     @Column(name = "user_type", nullable = false)
@@ -209,17 +219,10 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         return accountNonExpired;
     }
 
-    public void setAccountNonExpired(boolean accountNonExpired) {
-        this.accountNonExpired = accountNonExpired;
-    }
 
     @Override
     public boolean isAccountNonLocked() {
         return accountNonLocked;
-    }
-
-    public void setAccountNonLocked(boolean accountNonLocked) {
-        this.accountNonLocked = accountNonLocked;
     }
 
     @Override
@@ -232,9 +235,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     public UserCredential getUserCredential() {
         return userCredential;

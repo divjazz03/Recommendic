@@ -1,44 +1,46 @@
 package com.divjazz.recommendic.user.model.userAttributes.credential;
 
-import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.model.User;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.time.format.DateTimeFormatter;
 
-@Embeddable
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserCredential {
-    @Column(name = "password")
+
     private String password;
+    private final String expiry;
 
-    @Column(name = "credential_expired")
-    private boolean expired;
-    @Column(name = "credential_last_modified")
-    private LocalDateTime last_modified;
-
-    protected UserCredential() {
-    }
+    @JsonProperty("last_modified")
+    private String lastModified;
 
     public UserCredential(String password) {
         this.password = password;
-        this.last_modified = LocalDateTime.now();
-        expired = LocalDateTime.now().isAfter(last_modified.plusMonths(9));
+        this.lastModified = LocalDateTime.now().toString();
+        this.expiry = LocalDateTime.now().plusMonths(9).toString();
     }
 
     public String getPassword() {
         return password;
     }
 
-    public LocalDateTime getLast_modified() {
-        return last_modified;
-    }
 
     public void setPassword(String password) {
         this.password = password;
     }
+    public LocalDateTime getLastModifiedLocalDateTime() {
+        return LocalDateTime.parse(lastModified, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+
+    public void setLastModified(String lastModified) {
+        this.lastModified = lastModified;
+    }
+    public void setLastModified(LocalDateTime last_modified) {
+        this.lastModified = last_modified.toString();
+    }
 
     public boolean isExpired() {
-        return expired;
+        return LocalDateTime.now().isAfter(LocalDateTime.parse(expiry, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
 }

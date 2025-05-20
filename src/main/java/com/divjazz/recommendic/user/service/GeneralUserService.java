@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 public class GeneralUserService {
 
@@ -57,6 +59,7 @@ public class GeneralUserService {
             }
             case LOGIN_SUCCESS -> {
                 userLoginRetryHandler.handleSuccessFulAttempt(user.getEmail());
+                user.setLastLogin(LocalDateTime.now());
                 userRepository.save(user);
             }
         }

@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.externalApi.openFDA.search;
+package com.divjazz.recommendic.external.openFDA.search;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

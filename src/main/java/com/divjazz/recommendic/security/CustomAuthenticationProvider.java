@@ -14,27 +14,9 @@ import java.util.function.Consumer;
 
 public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
-    private final PasswordEncoder passwordEncoder;
-    private final Consumer<User> validAccount = user -> {
-        if (!user.isAccountNonLocked()) {
-            throw new LockedException("Your account is currently locked");
-        }
-        if (!user.isEnabled()) {
-            throw new DisabledException("Your account is currently disabled");
-        }
-        if (!user.isCredentialsNonExpired()) {
-            throw new CredentialsExpiredException("Your password has expired. Please update your password");
-        }
-        if (!user.isAccountNonExpired()) {
-            throw new AccountExpiredException("Your account has expired. Please contact administrator");
-        }
-
-    };
-
     public CustomAuthenticationProvider( PasswordEncoder passwordEncoder,UserDetailsService userDetailsService) {
         super(passwordEncoder);
         super.setUserDetailsService(userDetailsService);
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -44,12 +26,7 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
         if (credential.isExpired()) {
             throw new CredentialsExpiredException("Credentials are expired, please reset your password");
         }
-        validAccount.accept(user);
-        if (passwordEncoder.matches(((ApiAuthentication) authentication).getPassword(), credential.getPassword())) {
-            user.setLastLogin(LocalDateTime.now());
-            return ApiAuthentication.authenticated(user, user.getAuthorities());
-        } else
-            throw new BadCredentialsException("Unable to login due to invalid credentials. Please try again");
+        return super.authenticate(authentication);
 
     }
 

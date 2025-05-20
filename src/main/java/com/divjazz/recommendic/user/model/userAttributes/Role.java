@@ -23,10 +23,10 @@ public enum Role {
         this.name = name;
         this.permissions = permissions;
     }
-
     public String getName() {
         return name;
     }
+
 
 
     public String getPermissions() {
