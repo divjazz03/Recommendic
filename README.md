@@ -27,7 +27,7 @@
 
 ## 🤖 Introduction
 
-This application was inspired by the challenges people face in accessing medical consultations due to distance or unfamiliarity with their surroundings. It connects patients with certified medical practitioners from various specialties—whether globally or locally—enabling virtual consultations and seamless scheduling of in-person checkups.
+This application was inspired by the challenges people face in accessing medical consultations due to distance or unfamiliarity with their surroundings. It connects patients with certified medical practitioners from various specialties whether globally or locally enabling virtual consultations and seamless scheduling of in-person checkups.
 
 The platform is designed to simplify the process of finding trusted healthcare professionals, especially in unfamiliar regions, and places a strong emphasis on ease of use and a smooth experience for both patients and medical practitioners
 </p>
