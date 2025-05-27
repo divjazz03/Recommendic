@@ -26,10 +26,11 @@
 
 
 ## 🤖 Introduction
-The idea of this application is inspired by the idea and observation of the hassles encountered in medical consultations due to distance and or location.
-This application brings the patients to certified medical practitioners of various disciplines from anywhere from around the world or even from their own communities for physical consultation and check-up scheduling.
-This solves the problem of finding certified medical practitioners especially in an area where the admin is unfamiliar with.
-This app emphasises on ease and great admin experiences for all our users.</p>
+
+This application was inspired by the challenges people face in accessing medical consultations due to distance or unfamiliarity with their surroundings. It connects patients with certified medical practitioners from various specialties—whether globally or locally—enabling virtual consultations and seamless scheduling of in-person checkups.
+
+The platform is designed to simplify the process of finding trusted healthcare professionals, especially in unfamiliar regions, and places a strong emphasis on ease of use and a smooth experience for both patients and medical practitioners
+</p>
 
 ## 🔋 Features
 - 👉 **User**: This encapsulates all the users of the platform of which include the `patients`, `admins`,`super_admins` and certified `consultants`.
