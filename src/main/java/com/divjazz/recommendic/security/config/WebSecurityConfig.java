@@ -1,5 +1,8 @@
-package com.divjazz.recommendic.security;
+package com.divjazz.recommendic.security.config;
 
+import com.divjazz.recommendic.security.CustomAuthenticationProvider;
+import com.divjazz.recommendic.security.CustomUserDetailsService;
+import com.divjazz.recommendic.security.JwtAuthenticationFilter;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
@@ -7,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -19,6 +24,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -42,9 +48,15 @@ public class WebSecurityConfig {
         this.userService = userService;
     }
 
-    @Bean
+    @Bean("mainPasswordEncoder")
+    @Primary
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean("seedPasswordEncoder")
+    public PasswordEncoder seedPasswordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
     }
 
     private static final String[] WHITELIST_PATHS = {"/api/v1/patient/create",
@@ -63,24 +75,16 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(WHITELIST_PATHS).permitAll()
-                        .requestMatchers("/api/v1/patient/delete").
-                        hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN, SYSTEM")
-                        .requestMatchers("/api/v1/patient/patients").
-                        hasAnyAuthority("PATIENT", "ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/api/v1/patient/recommendations").
-                        hasAuthority("PATIENT")
-                        .requestMatchers("/api/v1/consultant/consultants")
-                        .hasAnyAuthority("PATIENT","ADMIN","SUPER_ADMIN")
-                        .requestMatchers("/api/v1/admin/create").hasAuthority("SUPER_ADMIN")
-                        .requestMatchers("/api/v1/admin/admins").hasAuthority("SUPER_ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder){
-        return new CustomAuthenticationProvider(passwordEncoder, userDetailsService);
+    CustomAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService,
+                                                           PasswordEncoder passwordEncoder,
+                                                           GeneralUserService generalUserService){
+        return new CustomAuthenticationProvider(passwordEncoder, userDetailsService, generalUserService);
     }
 
     @Bean

@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.article.repository;
 
 import com.divjazz.recommendic.article.model.Article;
+import com.divjazz.recommendic.user.model.Consultant;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,5 +25,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             select a from article a left join users c on c.id = a.consultant_id where c.specialization = :medicalCategory
             """, nativeQuery = true)
     Page<Article> findAllByMedicalCategoryOfInterest(@Param("medicalCategory") String medicalCategory, Pageable pageable);
+
+    Page<Article> queryArticleByConsultant(Consultant consultant, Pageable pageable);
 
 }

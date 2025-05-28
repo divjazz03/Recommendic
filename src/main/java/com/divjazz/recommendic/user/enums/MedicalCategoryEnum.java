@@ -45,6 +45,6 @@ public enum MedicalCategoryEnum {
             }
             throw new IllegalArgumentException("Invalid medical category: %s".formatted(value));
         }
-        throw new IllegalArgumentException("value cannot be null");
+        throw new IllegalArgumentException("name cannot be null");
     }
 }

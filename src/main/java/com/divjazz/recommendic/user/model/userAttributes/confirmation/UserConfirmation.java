@@ -16,7 +16,7 @@ public class UserConfirmation extends Auditable {
     @Column(name = "key")
     private String key;
 
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 

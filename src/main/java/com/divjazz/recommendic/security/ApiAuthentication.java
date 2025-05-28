@@ -17,12 +17,11 @@ public class ApiAuthentication extends UsernamePasswordAuthenticationToken {
     private final String password;
 
 
-    private ApiAuthentication(User user) {
-        super(user, PASSWORD_PROTECTED,user.getAuthorities());
-        this.user = user;
+    private ApiAuthentication(UserDetails user, Object credentials, Collection<? extends  GrantedAuthority> authorities) {
+        super(user, PASSWORD_PROTECTED,authorities);
+        this.user = (User) user;
         this.email = EMAIL_PROTECTED;
         this.password = PASSWORD_PROTECTED;
-        super.setAuthenticated(true);
     }
 
     private ApiAuthentication(String email, String password) {
@@ -31,24 +30,22 @@ public class ApiAuthentication extends UsernamePasswordAuthenticationToken {
         this.password = password;
     }
 
+
     public static ApiAuthentication unAuthenticated(String email, String password) {
         return new ApiAuthentication(email, password);
     }
-    public static ApiAuthentication authenticated(UserDetails user) {
-        return new ApiAuthentication((User) user);
+    public static ApiAuthentication authenticated(Object principal, Object credentials,
+                                                  Collection<? extends GrantedAuthority> authorities) {
+        return new ApiAuthentication((User) principal, credentials, authorities);
     }
     @Override
     public Object getCredentials() {
         return password;
     }
-    @Override
-    public void setAuthenticated(boolean authenticated) {
-        throw new RuntimeException("You cannot explicitly set authentication");
-    }
 
     @Override
     public Object getPrincipal() {
-        return user;
+        return isAuthenticated() ? user : email;
     }
 
     public String getPassword() {

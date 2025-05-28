@@ -9,14 +9,12 @@ import com.divjazz.recommendic.external.openFDA.OpenFdaSearchType;
 import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.service.SearchService;
-import com.divjazz.recommendic.user.service.GeneralUserService;
-import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,11 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.*;
 
 import static com.divjazz.recommendic.external.openFDA.OpenFDAQuery.Sort.valueOf;
-import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.RequestUtils.getResponse;
 
 
 @RestController
 @RequestMapping("/api/v1/search")
+@Tag(name = "Search API")
 public class SearchController {
 
     private final SearchService searchService;
@@ -44,6 +43,7 @@ public class SearchController {
     }
 
     @GetMapping("/")
+    @Operation(summary = "Execute a global search")
     public ResponseEntity<Response<Set<SearchResult>>> search(
                                            @RequestParam(name = "category") String category,
                                            @RequestParam(name = "query") String query) {
@@ -54,6 +54,7 @@ public class SearchController {
     }
 
     @GetMapping("/drug")
+    @Operation(summary = "Search for drugs")
     public ResponseEntity<Response<OpenFDAResult>> search(@RequestParam(value = "search_term", required = false, defaultValue = "") String searchTerm,
                                                           @RequestParam(value = "limit", required = false, defaultValue = "10") String limit,
                                                           @RequestParam(value = "count", required = false) String count,
@@ -75,6 +76,7 @@ public class SearchController {
 
     // Should be pageable
     @GetMapping("/article")
+    @Operation(summary = "Search for Article")
     public ResponseEntity<Response<PageResponse<Article>>> searchArticle(@RequestParam(name = "query", defaultValue = "") String query,
                                                   @PageableDefault Pageable pageable) {
         PageResponse<Article> results = articleService.searchArticle(query,

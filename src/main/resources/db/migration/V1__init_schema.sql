@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS users
     last_login          TIMESTAMP(6) WITH TIME ZONE                              DEFAULT NULL,
     updated_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
-    created_by          BIGINT                        NOT NULL,
-    updated_by          BIGINT                        NOT NULL,
+    created_by          CHARACTER VARYING(54)   ,
+    updated_by          CHARACTER VARYING(54)   ,
 
     /*Patient*/
     medical_categories jsonb,
@@ -64,12 +64,12 @@ CREATE TABLE IF NOT EXISTS users_confirmation
 (
     id           BIGINT PRIMARY KEY UNIQUE,
     user_id      BIGINT                NOT NULL,
-    expiry      TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    expiry       TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     key          CHARACTER VARYING(100) NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   BIGINT                NOT NULL,
-    updated_by   BIGINT                NOT NULL
+    created_by   CHARACTER VARYING(54)                NOT NULL,
+    updated_by   CHARACTER VARYING(54)                NOT NULL
 );
 
 
@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS certification
     confirmed        BOOLEAN                     DEFAULT TRUE,
     updated_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by       BIGINT                       NOT NULL,
-    updated_by       BIGINT                       NOT NULL
+    created_by       CHARACTER VARYING(54)                       NOT NULL,
+    updated_by       CHARACTER VARYING(54)                      NOT NULL
 
 );
 
@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS assignment
     admin_id     BIGINT,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   BIGINT NOT NULL,
-    updated_by   BIGINT NOT NULL
+    created_by   CHARACTER VARYING(54),
+    updated_by   CHARACTER VARYING(54)
 );
 
 CREATE TABLE IF NOT EXISTS admin_assignment
@@ -114,8 +114,8 @@ CREATE TABLE IF NOT EXISTS search
     owner_id     BIGINT                NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   BIGINT                NOT NULL,
-    updated_by   BIGINT                NOT NULL
+    created_by   CHARACTER VARYING(54)                NOT NULL,
+    updated_by   CHARACTER VARYING(54)                NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS article
@@ -126,8 +126,8 @@ CREATE TABLE IF NOT EXISTS article
     consultant_id BIGINT                NOT NULL,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    BIGINT                NOT NULL,
-    updated_by    BIGINT                NOT NULL
+    created_by    CHARACTER VARYING(54)                NOT NULL,
+    updated_by    CHARACTER VARYING(54)                NOT NULL
 
 );
 
@@ -139,8 +139,8 @@ CREATE TABLE IF NOT EXISTS consultant_recommendation
     consultant_id BIGINT                       NOT NULL,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    BIGINT                       NOT NULL,
-    updated_by    BIGINT                       NOT NULL
+    created_by    CHARACTER VARYING(54)                       NOT NULL,
+    updated_by    CHARACTER VARYING(54)                       NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS article_recommendation
@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS article_recommendation
     article_id   BIGINT NOT NULL,
     updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   BIGINT NOT NULL,
-    updated_by   BIGINT NOT NULL
+    created_by   CHARACTER VARYING(54),
+    updated_by   CHARACTER VARYING(54)
 );
 
 CREATE TABLE IF NOT EXISTS consultant_patient
@@ -172,8 +172,8 @@ CREATE TABLE IF NOT EXISTS consultation
     status            CHARACTER VARYING(10)       DEFAULT 'NOT_STARTED',
     updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by        BIGINT NOT NULL,
-    updated_by        BIGINT NOT NULL
+    created_by        CHARACTER VARYING(54),
+    updated_by        CHARACTER VARYING(54)
 );
 
 CREATE TABLE IF NOT EXISTS message
@@ -187,56 +187,40 @@ CREATE TABLE IF NOT EXISTS message
     delivered       BOOLEAN                     DEFAULT FALSE,
     updated_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by      BIGINT NOT NULL,
-    updated_by      BIGINT NOT NULL
+    created_by      CHARACTER VARYING(54),
+    updated_by      CHARACTER VARYING(54)
 
 );
 
 ALTER TABLE IF EXISTS users
-    ADD FOREIGN KEY (created_by) REFERENCES users (id) MATCH SIMPLE,
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id) MATCH SIMPLE,
     ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE,
     ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE,
     ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id) MATCH SIMPLE;
 
 ALTER TABLE IF EXISTS users_confirmation
-    ADD FOREIGN KEY (user_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (user_id) REFERENCES users (id);
 
 
 ALTER TABLE IF EXISTS certification
     ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id),
-    ADD FOREIGN KEY (consultant_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (consultant_id) REFERENCES users (id);
 
 ALTER TABLE IF EXISTS assignment
-    ADD FOREIGN KEY (admin_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (admin_id) REFERENCES users (id);
 
 ALTER TABLE IF EXISTS search
-    ADD FOREIGN KEY (owner_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (owner_id) REFERENCES users (id);
 
 ALTER TABLE IF EXISTS article
-    ADD FOREIGN KEY (consultant_id) references users (id),
-    ADD FOREIGN KEY (created_by) references users (id),
-    ADD FOREIGN KEY (updated_by) references users (id);
+    ADD FOREIGN KEY (consultant_id) references users (id);
 
 ALTER TABLE IF EXISTS consultant_recommendation
     ADD FOREIGN KEY (consultant_id) REFERENCES users (id),
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (patient_id) REFERENCES users (id);
 
 ALTER TABLE IF EXISTS article_recommendation
     ADD FOREIGN KEY (article_id) REFERENCES users (id),
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id),
-    ADD FOREIGN KEY (created_by) REFERENCES users (id),
-    ADD FOREIGN KEY (updated_by) REFERENCES users (id);
+    ADD FOREIGN KEY (patient_id) REFERENCES users (id);
 
 ALTER TABLE IF EXISTS consultant_patient
     ADD FOREIGN KEY (patient_id) REFERENCES users (id),

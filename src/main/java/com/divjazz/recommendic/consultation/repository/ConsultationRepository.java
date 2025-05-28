@@ -18,8 +18,8 @@ import java.util.Set;
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     Optional<Consultation> findByPatientAndConsultant(Patient patient, Consultant consultant);
 
-    @Query(value = "SELECT DISTINCT FROM consultation c where c.consultant_id = :consultantId", nativeQuery = true)
-    Set<Consultation> findAllByConsultantId(String consultantId);
+    @Query(value = "SELECT DISTINCT FROM consultation c where c.consultant_id = :consultantId and accepted = :accepted", nativeQuery = true)
+    Page<Consultation> findAllByConsultantIdAndAccepted(String consultantId, boolean accepted, Pageable pageable);
 
     @Query(value = "SELECT DISTINCT from consultation c where c.patient_id = :userId or c.consultant_id = :userId"
             , nativeQuery = true)

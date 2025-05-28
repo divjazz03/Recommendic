@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
@@ -23,15 +24,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin")
-
+@Tag(name = "Admin API")
 public class AdminController {
 
     private static final String VALID_REQUEST = """
@@ -58,13 +58,13 @@ public class AdminController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
                     description = "Admin successfully created",
-                    content = {@Content(mediaType = "application.json", schema = @Schema(implementation = Response.class))}),
+                    content = {@Content(mediaType = "application.json")}),
             @ApiResponse(responseCode = "401",
                     description = "Authentication failed",
-                    content = {@Content(mediaType = "application.json", schema = @Schema(implementation = Response.class))}),
+                    content = {@Content(mediaType = "application.json")}),
             @ApiResponse(responseCode = "403",
                     description = "You do not have the permission to perform this action",
-                    content = {@Content(mediaType = "application.json", schema = @Schema(implementation = Response.class))})
+                    content = {@Content(mediaType = "application.json")})
     })
     @PostMapping("/create")
     public ResponseEntity<Response<AdminCredentialResponse>> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
@@ -89,7 +89,7 @@ public class AdminController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Get all Admins",
+    @Operation(summary = "Get Paginated Admins",
             description = "Must be a user with super admin access",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(examples = {
@@ -110,7 +110,7 @@ public class AdminController {
     })
 
     @GetMapping("/admins")
-    public ResponseEntity<Response<Set<AdminResponse>>> getAdmins(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<Set<AdminResponse>>> getAdmins(@ParameterObject Pageable pageable) {
 
         var admins = adminService.getAllAdmins(pageable);
         var data = admins.stream()

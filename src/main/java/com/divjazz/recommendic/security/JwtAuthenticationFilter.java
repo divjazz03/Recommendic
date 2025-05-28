@@ -7,7 +7,7 @@ import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
-import static com.divjazz.recommendic.security.utils.RequestUtils.getErrorResponse;
+import static com.divjazz.recommendic.RequestUtils.getErrorResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -48,8 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request,
+                                    @NotNull HttpServletResponse response,
+                                    @NotNull FilterChain filterChain) throws ServletException, IOException {
+
         var requestURI = request.getRequestURI();
+
         var shouldBeIgnored = !(FAVICON.matcher(requestURI).find() ||
                 ACTUATOR_PATHS.matcher(requestURI).find() ||
                 USER_PATH.matcher(requestURI).find() ||
@@ -57,17 +61,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 LOGIN_PATH.matcher(requestURI).find() ||
                 AUTH_PATHS.matcher(requestURI).find() ||
                 MEDICAL_PATH.matcher(requestURI).find());
+
         try {
+
             if (shouldBeIgnored) {
+
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
                 String userId = null;
                 String jwtToken = null;
-                if (authorizationAccessToken.isPresent()) {
 
+                if (authorizationAccessToken.isPresent()) {
                     jwtToken = authorizationAccessToken.get();
                     userId = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
-
                 } else if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                     jwtToken = authorizationHeader.substring(7);
                     userId = jwtService.getClaimsValue(jwtToken, Claims::getSubject);
@@ -79,7 +85,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (jwtService.validateToken(request)) {
                         var userPermissions = jwtService.getTokenData(jwtToken, TokenData::getGrantedAuthorities);
                         logger.debug("granted authority for current user is {}", userPermissions);
-                        var authentication = ApiAuthentication.authenticated(userDetails);
+                        var authentication = ApiAuthentication.authenticated(userDetails,userDetails.getPassword(),userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         logger.info("authenticated user with userId :{}", userId);
@@ -96,6 +102,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request,response);
             }
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
+
             filterChain.doFilter(request,response);
             var errorResponse = getErrorResponse(
                     HttpStatus.EXPECTATION_FAILED,

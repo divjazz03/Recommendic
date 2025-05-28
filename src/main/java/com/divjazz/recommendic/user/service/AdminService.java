@@ -15,7 +15,6 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.github.javafaker.Faker;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -87,9 +86,10 @@ public class AdminService {
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword() {
-        Faker faker = new Faker();
-        String password = faker.internet().password(8, 15, true);
-        return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
+//        Faker faker = new Faker();
+//        String password = faker.internet().password(8, 15, true);
+//        return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
+        return null;
 
     }
 

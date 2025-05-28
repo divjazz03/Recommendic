@@ -5,7 +5,11 @@ import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
+import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,16 +20,18 @@ import java.time.LocalDateTime;
 public class GeneralUserService {
 
     private final UserRepository userRepository;
-
-
     private final UserLoginRetryHandler userLoginRetryHandler;
+
+    private final ObjectMapper objectMapper;
 
     public GeneralUserService(
             UserRepository userRepository,
-            UserLoginRetryHandler userLoginRetryHandler) {
+            UserLoginRetryHandler userLoginRetryHandler,
+            ObjectMapper objectMapper) {
 
         this.userRepository = userRepository;
         this.userLoginRetryHandler = userLoginRetryHandler;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -33,6 +39,21 @@ public class GeneralUserService {
         return userRepository
                 .findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
+    }
+    public UserSecurityProjection retrieveUserDetailInfoByEmail(String email){
+        var result = userRepository.findByEmail_Security_Projection(email)
+                .orElseThrow(UserNotFoundException::new);
+        var credential = objectMapper.convertValue(result.userCredential(), UserCredential.class);
+
+        return new UserSecurityProjection(result.id(),result.email(),result.userId(), credential);
+
+    }
+    public UserCredential retrieveUserCredentials(String email){
+        return objectMapper
+                .convertValue(userRepository
+                        .findByEmail_ReturningCredentialsJsonB(email)
+                        .orElseThrow(UserNotFoundException::new),
+                        UserCredential.class);
     }
 
 
@@ -44,10 +65,6 @@ public class GeneralUserService {
 
     public User retrieveUserByUserId(String id) {
         return userRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
-    }
-
-    public User retrieveUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 
     @Transactional

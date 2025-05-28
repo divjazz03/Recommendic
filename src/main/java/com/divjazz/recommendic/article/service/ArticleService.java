@@ -8,8 +8,6 @@ import com.divjazz.recommendic.general.Sort;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.service.ConsultantService;
-import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +43,10 @@ public class ArticleService {
         return PageResponse.from(result);
     }
 
+    public PageResponse<Article> getConsultantArticle(Consultant consultant, Pageable pageable) {
+        return PageResponse.from(articleRepository.queryArticleByConsultant(consultant, pageable));
+    }
+
     @Cacheable(value = "articleRecommendationResponse", keyGenerator = "customCacheKeyGenerator")
     public PageResponse<Article> recommendArticles(Pageable pageable,Patient patient) {
         List<Article> result = new ArrayList<>(10);
@@ -60,7 +62,7 @@ public class ArticleService {
         int numberOfElements = 0;
 
         for (MedicalCategory category : patient.getMedicalCategories()) {
-            var tempResult = articleRepository.findAllByMedicalCategoryOfInterest(category.value(), pageable);
+            var tempResult = articleRepository.findAllByMedicalCategoryOfInterest(category.name(), pageable);
             totalPages = tempResult.getTotalPages();
             totalElements = tempResult.getTotalElements();
             last = tempResult.isLast();

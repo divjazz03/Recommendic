@@ -50,11 +50,10 @@ public class Consultant extends User implements Serializable {
             String email,
             String phoneNumber,
             Gender gender,
-            Address address,
-            MedicalCategoryEnum medicalCategoryEnum, Role role, UserCredential userCredential) {
+            Address address, Role role, UserCredential userCredential) {
         super(userName, email, phoneNumber, gender, address, role, userCredential);
         super.setUserType(UserType.CONSULTANT);
-        this.medicalCategory = new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription());
+        this.medicalCategory = null;
         certificates = new HashSet<>(30);
         consultations = new ArrayList<>(20);
         certified = false;

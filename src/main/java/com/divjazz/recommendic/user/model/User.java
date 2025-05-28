@@ -31,6 +31,7 @@ import java.util.UUID;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype",discriminatorType = DiscriminatorType.STRING)
 @Table(name = "users")
+@DynamicUpdate
 public abstract class User extends Auditable implements UserDetails, Serializable {
 
     @Type(JsonBinaryType.class)
@@ -78,11 +79,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     @Column(name = "user_stage", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserStage userStage;
-
-    @OneToOne(mappedBy = "user",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.REMOVE)
-    private UserConfirmation userConfirmation;
 
     private boolean accountNonExpired;
 
@@ -206,7 +202,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
 
     @Override
     public String getPassword() {
-        return null;
+        return getUserCredential().getPassword();
     }
 
     @Override
@@ -244,17 +240,10 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         this.userCredential = userCredential;
     }
 
-    public UserConfirmation getUserConfirmation() {
-        return userConfirmation;
-    }
-
     public UserStage getUserStage() {
         return userStage;
     }
 
-    public void setUserConfirmation(UserConfirmation userConfirmation) {
-        this.userConfirmation = userConfirmation;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -264,16 +253,12 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         User user = (User) o;
 
         return Objects.equals(email, user.email)
-                && Objects.equals(userId, user.userId)
-                && Objects.equals(getId(), user.getId());
+                && Objects.equals(userId, user.userId);
     }
 
     @Override
     public int hashCode() {
-        var id = getId();
-        var res = email != null ? email.hashCode() : 0;
-        res = userId != null ? userId.hashCode() : 0;
-        return (int) (31 * res + id ^ (id >>> 31));
+       return Objects.hash(this.getUserId(), this.getEmail());
     }
 
     public void setUserStage(UserStage userStage) {

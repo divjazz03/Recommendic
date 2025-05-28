@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.cache.service.CacheService;
 import com.divjazz.recommendic.security.exception.LoginFailedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -12,14 +13,15 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class UserLoginRetryHandler {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     @Value("${auth.maxAttempts}")
     private int MAX_ATTEMPTS;
     @Value("${auth.lockoutDuration_minutes}")
     private int LOCKOUT_DURATION_MINUTES;
 
-    public UserLoginRetryHandler(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    private final CacheService<Object, Object> cacheService;
+
+    public UserLoginRetryHandler(CacheService<Object, Object> cacheService) {
+        this.cacheService = cacheService;
     }
 
     public void handleFailedAttempts(String email) {
@@ -27,9 +29,14 @@ public class UserLoginRetryHandler {
         var remainingAttempts = MAX_ATTEMPTS - Math.min(MAX_ATTEMPTS, failedAttempts);
         if (failedAttempts >= MAX_ATTEMPTS) {
             lockAccount(email);
-            throw new LockedException("Your account has been locked due to too many failed attempts. Please try again in " + getRemainingLockTime(email) + " minutes");
+            throw new LockedException(
+                    "Your account has been locked due to too many failed attempts. Please try again in "
+                            + getRemainingLockTime(email) + " minutes");
         }
-        throw new LoginFailedException("You have " + remainingAttempts + " attempts left");
+        throw new LoginFailedException(
+                "Invalid credentials: You have failed %s times, %s attempts left"
+                        .formatted(failedAttempts,
+                        remainingAttempts));
     }
 
     public void handleSuccessFulAttempt(String email) {
@@ -38,40 +45,41 @@ public class UserLoginRetryHandler {
 
     private void resetFailedAttempts(String email) {
         String attemptKey = getAttemptKey(email);
-        redisTemplate.delete(attemptKey);
+        cacheService.evict(attemptKey);
     }
 
     private int incrementFailedAttempt(String email) {
         String attemptKey = getAttemptKey(email);
-        Long currentAttempts = redisTemplate.opsForValue().increment(attemptKey);
-
-        if (currentAttempts != null && currentAttempts == 1L) {
-            redisTemplate.expire(attemptKey, 24, TimeUnit.HOURS);
+        Long currentAttempts = (Long) cacheService.get(attemptKey);
+        if (currentAttempts == null) {
+            currentAttempts = 1L;
+            cacheService.put(attemptKey, currentAttempts);
+            return currentAttempts.intValue();
         }
-        return currentAttempts != null ? currentAttempts.intValue() : 1;
+        cacheService.put(attemptKey,++currentAttempts);
+        return currentAttempts.intValue();
     }
 
     private int getFailedAttempts(String email) {
-        String attemptKeys = getAttemptKey(email);
-        Object attempts = redisTemplate.opsForValue().get(attemptKeys);
-        return attempts != null ? (int) attempts : 0;
+        String attemptKey = getAttemptKey(email);
+        Long attempts = (Long) cacheService.get(attemptKey);
+        return attempts != null ? attempts.intValue() : 0;
     }
 
     private long getRemainingLockTime(String email) {
         String lockKey = getLockKey(email);
-        Long expiry = redisTemplate.getExpire(lockKey, TimeUnit.MINUTES);
+        Long expiry = cacheService.getRemainingTime(lockKey, TimeUnit.MINUTES);
         return expiry != null ? expiry : 0L;
     }
 
     public boolean isAccountLocked(String email) {
         String lockKey = getLockKey(email);
-        return Boolean.TRUE.equals(redisTemplate.hasKey(lockKey));
+        return Boolean.TRUE.equals(cacheService.hasKey(lockKey));
     }
 
     private void lockAccount(String email) {
         String lockKey = getLockKey(email);
-        redisTemplate.opsForValue().set(lockKey, Instant.now().toString());
-        redisTemplate.expire(lockKey, LOCKOUT_DURATION_MINUTES, TimeUnit.MINUTES);
+        cacheService.put(lockKey, Instant.now().getEpochSecond());
     }
 
     private String getAttemptKey(String email) {

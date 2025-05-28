@@ -25,6 +25,6 @@ public enum OpenFdaSearchType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Invalid value: %s".formatted(value));
+        throw new IllegalArgumentException("Invalid name: %s".formatted(value));
     }
 }

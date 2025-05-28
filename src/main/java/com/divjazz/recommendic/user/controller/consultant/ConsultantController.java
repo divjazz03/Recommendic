@@ -2,8 +2,6 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.general.PageResponse;
-import com.divjazz.recommendic.user.dto.UserCreationResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
@@ -17,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
@@ -27,18 +26,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/consultant")
+@Tag(name = "Consultant API")
 public class ConsultantController {
 
     private static final String VALID_REQUEST = """
@@ -58,11 +53,8 @@ public class ConsultantController {
             """;
     private final ConsultantService consultantService;
 
-    private final RestTemplate restTemplate;
-
-    public ConsultantController(ConsultantService consultantService, RestTemplate restTemplate) {
+    public ConsultantController(ConsultantService consultantService) {
         this.consultantService = consultantService;
-        this.restTemplate = restTemplate;
     }
 
     private static ConsultantDTO getConsultantDTO(@NotNull ConsultantRegistrationParams requestParams) {
@@ -91,17 +83,17 @@ public class ConsultantController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
                     description = "Admin successfully created",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+                    content = {@Content(mediaType = "application/json")}),
             @ApiResponse(responseCode = "401",
                     description = "Authentication failed",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+                    content = {@Content(mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "Invalid id supplied",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403",
                     description = "You do not have the permission to perform this action",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
+                    content = {@Content(mediaType = "application/json")})
     })
-    public ResponseEntity<Response<ConsultantInfoResponse>> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Response<ConsultantInfoResponse>> createConsultant(@RequestBody @Valid ConsultantRegistrationParams requestParams) {
         RequestContext.reset();
         RequestContext.setUserId(0L);
 
@@ -116,7 +108,8 @@ public class ConsultantController {
     }
 
     @GetMapping("/consultants")
-    public ResponseEntity<Response<Set<ConsultantInfoResponse>>> getConsultants(@ParameterObject Pageable pageable, HttpServletRequest httpServletRequest) {
+    @Operation(summary = "Get Paginated Consultants")
+    public ResponseEntity<Response<Set<ConsultantInfoResponse>>> getConsultants(@ParameterObject Pageable pageable) {
 
         var data = consultantService.getAllConsultants(pageable).stream()
                 .map(consultant -> new ConsultantInfoResponse(
@@ -132,17 +125,22 @@ public class ConsultantController {
         return new ResponseEntity<>(response, HttpStatus.FOUND);
     }
 
-    @GetMapping("/onboarding")
-    public ResponseEntity<Response> onboardingGetListOfMedicalInterests() throws URISyntaxException {
-        return restTemplate.getForEntity(new URI("api/v1/medical_categories"), Response.class);
+    @DeleteMapping("/delete")
+    @Operation(summary = "Delete Consultant by id")
+    public ResponseEntity<Response<Void>> deleteConsultant(@RequestParam("consultant_id") String consultantId) {
+        consultantService.deleteConsultantById(consultantId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("/onboarding/{userId}")
-    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
-            @PathVariable("userId") String userId, @RequestBody String medicalSpecialization
+    @Operation(summary = "Set Consultant Area of Specialization")
+    public ResponseEntity<Boolean> onboardingSetListOfMedicalInterests(
+            @PathVariable("userId") String userId, @RequestBody ConsultantOnboardingRequest request
     ) {
-        boolean value = consultantService.handleOnboarding(userId, medicalSpecialization);
+        boolean value = consultantService.handleOnboarding(userId, request.medicalSpecialization());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(value);
     }
+
+    public record ConsultantOnboardingRequest(String medicalSpecialization) {}
 }

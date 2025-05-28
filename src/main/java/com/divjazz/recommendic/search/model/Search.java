@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.search.model;
 
 import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
@@ -12,6 +13,9 @@ public class Search extends Auditable {
 
     @Column(name = "query")
     private String query;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -23,12 +27,16 @@ public class Search extends Auditable {
     protected Search() {
     }
 
-    public Search(String query, User ownerOfSearch) {
+    public Search(String query, Category category, User ownerOfSearch) {
         this.query = query;
     }
 
     public String getQuery() {
         return query;
+    }
+
+    public Category getCategory() {
+        return category;
     }
 
     public User getOwnerOfSearch() {

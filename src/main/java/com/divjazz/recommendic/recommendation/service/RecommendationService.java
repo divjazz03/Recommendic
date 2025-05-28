@@ -11,7 +11,6 @@ import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
-import com.divjazz.recommendic.user.service.PatientService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -81,7 +80,7 @@ public class RecommendationService {
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()
-                .map(medicalCategory -> MedicalCategoryEnum.fromValue(medicalCategory.value()))
+                .map(medicalCategory -> MedicalCategoryEnum.fromValue(medicalCategory.name()))
                 .flatMap(medicalCategory -> consultantService
                         .getConsultantByCategory(medicalCategory)
                         .stream())

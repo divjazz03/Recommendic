@@ -1,33 +1,32 @@
 package com.divjazz.recommendic.security;
 
-import com.divjazz.recommendic.user.model.User;
-import org.springframework.security.authentication.*;
+import com.divjazz.recommendic.user.service.GeneralUserService;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
-import java.util.function.Consumer;
-
 
 public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
-    public CustomAuthenticationProvider( PasswordEncoder passwordEncoder,UserDetailsService userDetailsService) {
+    private final GeneralUserService generalUserService;
+
+    public CustomAuthenticationProvider(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService, GeneralUserService userService) {
         super(passwordEncoder);
         super.setUserDetailsService(userDetailsService);
+        this.generalUserService = userService;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        var user =(User) getUserDetailsService().loadUserByUsername(((ApiAuthentication) authentication).getEmail());
-        var credential = user.getUserCredential();
-        if (credential.isExpired()) {
+        var userCredentials = generalUserService.retrieveUserCredentials((String) authentication.getPrincipal());
+        if (userCredentials.isExpired()) {
             throw new CredentialsExpiredException("Credentials are expired, please reset your password");
         }
-        return super.authenticate(authentication);
 
+        return super.authenticate(authentication);
     }
 
     @Override

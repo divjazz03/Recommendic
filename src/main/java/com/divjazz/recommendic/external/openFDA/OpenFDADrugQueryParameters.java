@@ -37,6 +37,6 @@ public enum OpenFDADrugQueryParameters {
                 return params;
             }
         }
-        throw new IllegalArgumentException("Invalid value: %s".formatted(value));
+        throw new IllegalArgumentException("Invalid name: %s".formatted(value));
     }
 }

@@ -4,7 +4,6 @@ import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
-import com.divjazz.recommendic.user.dto.UserCreationResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -14,11 +13,13 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -30,21 +31,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.security.utils.RequestUtils.getResponse;
+import static com.divjazz.recommendic.RequestUtils.getResponse;
 
 
 @RestController
 @RequestMapping("/api/v1/patient")
+@Tag(name = "Patient API")
 public class PatientController {
 
     private static final String VALID_REQUEST = """
@@ -63,13 +60,11 @@ public class PatientController {
             """;
     private final PatientService patientService;
     private final RecommendationService recommendationService;
-    private final RestTemplate restTemplate;
     Logger logger = LoggerFactory.getLogger(PatientController.class);
 
-    public PatientController(PatientService patientService, RecommendationService recommendationService, RestTemplate restTemplate) {
+    public PatientController(PatientService patientService, RecommendationService recommendationService) {
         this.patientService = patientService;
         this.recommendationService = recommendationService;
-        this.restTemplate = restTemplate;
     }
 
     @PostMapping("/create")
@@ -81,15 +76,15 @@ public class PatientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
                     description = "Patient successfully created",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401",
                     description = "Authentication failed",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "Invalid body supplied",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403",
                     description = "You do not have the permission to perform this action",
-                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))})
+                    content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<Response<PatientInfoResponse>> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams) {
         RequestContext.reset();
@@ -114,15 +109,9 @@ public class PatientController {
     }
 
     @GetMapping("/patients")
-    public ResponseEntity<Response<Set<PatientDTO>>> patients(@ParameterObject Pageable pageable,
-                                             HttpServletRequest httpServletRequest) {
+    @Operation(summary = "Get Paginated Patients")
+    public ResponseEntity<Response<Set<PatientDTO>>> patients(@ParameterObject Pageable pageable) {
         var patients = patientService.getAllPatients(pageable);
-        Function<Set<MedicalCategoryEnum>, String[]> medicalCategoriesToStringArrayFunction = (Set<MedicalCategoryEnum> medicalCategories) ->
-                medicalCategories
-                        .stream()
-                        .map(Enum::name)
-                        .toArray(String[]::new);
-
         var patientDTOSet = patients.stream()
                 .map(patient -> new PatientDTO(
                         patient.getUserNameObject(),
@@ -142,30 +131,27 @@ public class PatientController {
     }
 
     @DeleteMapping("/delete")
+    @Operation(summary = "Delete Patient by id")
     public ResponseEntity<Response<Void>> deletePatient(@RequestParam("patient_id") String patientId) {
         RequestContext.setUserId(0L);
         patientService.deletePatientByUserId(patientId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    //In patient onboarding
-    @GetMapping("/onboarding")
-    public ResponseEntity<Response> onboardingGetListOfMedicalInterests() throws URISyntaxException {
-        return restTemplate.getForEntity(new URI("api/v1/medical_categories"), Response.class);
-    }
-
     @PutMapping("/onboarding/{userId}")
+    @Operation(summary = "Set Patient Area of Interest")
     public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
-            @PathVariable("userId") String userId, @RequestBody List<String> medicalCategories
+            @PathVariable("userId") @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
             ) {
 
-        boolean value = patientService.handleOnboarding(userId, medicalCategories);
+        boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
         return ResponseEntity.ok().build();
     }
     @GetMapping("/recommendations")
-    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") Long id) {
+    @Operation(summary = "Get Consultant Recommendations for this particular user")
+    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String userId) {
 
-        Patient patient = patientService.findPatientById(id);
+        Patient patient = patientService.findPatientByUserId(userId);
         var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
         var response = getResponse(recommendations,
                 "Success in retrieving the Patient Users",
@@ -173,5 +159,7 @@ public class PatientController {
         );
         return ResponseEntity.ok().body(response);
     }
+
+    public record PatientOnboardingRequest(List<String> medicalCategories){}
 
 }

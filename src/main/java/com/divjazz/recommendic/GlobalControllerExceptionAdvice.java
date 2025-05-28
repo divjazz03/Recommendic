@@ -1,5 +1,6 @@
 package com.divjazz.recommendic;
 
+import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.LoginFailedException;
 import com.divjazz.recommendic.security.exception.TokenNotFoundException;
@@ -7,13 +8,14 @@ import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
 import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
-import com.divjazz.recommendic.security.utils.RequestUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
+
+import javax.security.auth.login.CredentialExpiredException;
 
 @RestControllerAdvice
 public class GlobalControllerExceptionAdvice {
@@ -59,6 +61,18 @@ public class GlobalControllerExceptionAdvice {
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Response<String>> handleHttpClientError(HttpClientErrorException ex) {
         return new ResponseEntity<>(RequestUtils.getResponse(ex.getResponseBodyAsString(), "failed", ex.getStatusCode()), ex.getStatusCode());
+    }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Response<String>> handleHttpClientError(AuthenticationException ex) {
+        return new ResponseEntity<>(RequestUtils.getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(CredentialExpiredException.class)
+    public ResponseEntity<Response<String>> handleHttpClientError(CredentialExpiredException ex) {
+        return new ResponseEntity<>(RequestUtils.getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<Response<String>> handleHttpClientError(LockedException ex) {
+        return new ResponseEntity<>(RequestUtils.getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
     }
 
 

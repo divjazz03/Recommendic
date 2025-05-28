@@ -6,6 +6,7 @@ import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
+import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
@@ -46,14 +47,13 @@ public class SearchService {
      * The Search is determined by the 0th index of String Array of the query after it has been split
      *
      * @param query  This represents the query string which could either be "category" or the consultant name
-     * @param userId This represents the user's id who made the search
      * @return Returns a Set of Consultant Objects
      */
     public Set<SearchResult> executeQueryForAuthorizedUsers(String query, String category) {
         if (Objects.nonNull(authUtils.getCurrentUser())) {
             return handleSearchForAuthorizedUsers(query, authUtils.getCurrentUser(), category);
         }
-        return handleSearchForUnauthorizedUsers(query, category);
+        throw new AuthenticationException("Couldn't get current user");
     }
 
     public Set<Search> retrieveSearchesByUserId(String userId) {
@@ -86,8 +86,10 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
-                        results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult)
+                        var consultants = consultantService.searchSomeConsultantsByQuery(query);
+                        results.addAll(Set.of(
+                                new SearchResult(Category.CONSULTATION,consultationsResult),
+                                new SearchResult(Category.CONSULTANTS, consultants)
                         ));
                     }
                     case CONSULTATION -> {
@@ -104,17 +106,14 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
-                        var consultants = consultantService.searchSomeConsultantsByQuery(query);
 
-                        results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult,
-                                        "consultantsByQuery", consultants)
-                        ));
+
+                        results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
 
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
-                    default -> results.add(new SearchResult(Collections.emptyMap()));
+                    default -> results.add(new SearchResult(Category.ALL, Collections.EMPTY_SET));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
                 }
 
@@ -137,12 +136,9 @@ public class SearchService {
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
                         }
-                        var consultant = consultantService.retrieveConsultantByUserId(currentUser.getUserId());
-                        var patients = patientService.findPatientsByMedicalCategories(Collections.singleton(consultant.getMedicalCategory()));
-                        results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult,
-                                        "patients", patients)
-                        ));
+
+                        results.add(
+                                new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationsByUserId(currentUser.getUserId());
@@ -159,14 +155,13 @@ public class SearchService {
                             )).collect(Collectors.toSet());
                         }
 
-                        results.add(new SearchResult(
-                                Map.of("consultations", consultationsResult)
-                        ));
+                        results.add(
+                                new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
 
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
-                    default -> results.add(new SearchResult(Collections.emptyMap()));
+                    default -> results.add(new SearchResult(Category.CONSULTATION,Collections.emptySet()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
 
                 }
@@ -182,60 +177,43 @@ public class SearchService {
                         var consultants = consultantService.getAllUnCertifiedConsultants();
                         var assignments = adminService.getAllAssignmentsAssigned(currentUser.getUserId());
                         if (!consultants.isEmpty() && !assignments.isEmpty()) {
-                            results.add(new SearchResult(
-                                    Map.of("assignments", assignments,
-                                            "unCertifiedConsultants", consultants)
+                            results.addAll(Set.of(
+                                    new SearchResult(Category.ASSIGNMENT, assignments),
+                                    new SearchResult(Category.CONSULTANTS, consultants)
                             ));
                         } else if (!consultants.isEmpty()) {
-                            results.add(new SearchResult(
-                                    Map.of("unCertifiedConsultants", consultants)
-                            ));
+                            results.add(new SearchResult(Category.CONSULTANTS, consultants));
                         } else if (!assignments.isEmpty()) {
-                            results.add(new SearchResult(
-                                    Map.of("assignments", assignments)
-                            ));
+                            results.add(new SearchResult(Category.ASSIGNMENT, assignments));
                         }
 
                     }
                     case ASSIGNMENT -> {
                         var assignments = adminService.getAllAssignmentsAssigned(currentUser.getUserId());
                         if (!assignments.isEmpty()) {
-                            results.add(new SearchResult(
-                                    Map.of("assignments", assignments)
-                            ));
+                            results.add(new SearchResult(Category.ASSIGNMENT, assignments));
                         }
                     }
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
-                    default -> results.add(new SearchResult(Collections.emptyMap()));
+                    default -> results.add(new SearchResult(Category.ALL, Collections.emptySet()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
 
                 }
 
             }
         }
-        searchRepository.save(new Search(query, currentUser));
+        searchRepository.save(new Search(query,searchCategoryEnum, currentUser));
         return results;
     }
 
-    private Set<SearchResult> handleSearchForUnauthorizedUsers(String query, String category) {
-//        var categoryEnum = Category.valueOf(category.toUpperCase().trim());
-//
-//        switch (categoryEnum){
-//            case ALL ->
-//        }
-        return Collections.emptySet();
-    }
-
     private Set<SearchResult> handleSearchBasedOnHistory(String userId) {
-        var temporarySearchResults = new HashSet<SearchResult>(20);
         var searches = retrieveSearchesByUserId(userId);
-        searches.stream()
-                .map(search -> consultantService.searchSomeConsultantsByQuery(search.getQuery()))
-                .map(consultantInfoResponses -> new SearchResult(Map.of("consultantsByHistory", consultantInfoResponses)))
-                .forEach(temporarySearchResults::add);
-
-        return temporarySearchResults;
-
+        return searches.stream()
+                .flatMap(search ->
+                        executeQueryForAuthorizedUsers(search.getQuery(),
+                            search.getCategory().name()).stream())
+                .limit(20)
+                .collect(Collectors.toSet());
     }
 }

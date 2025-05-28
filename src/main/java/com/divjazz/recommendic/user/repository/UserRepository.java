@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
+import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -11,22 +11,32 @@ import java.util.Optional;
 public interface UserRepository extends UserBaseRepository<User> {
 
     @Query(value = """
-                select u.id as id,
-                u.email as email,
-                u.userId as userId,
-                u.userCredential as userCredential
+                select
+                u.id,
+                u.email,
+                u.userId,
+                u.userCredential
                 from User u
                 where u.email=?1
             """)
-    Optional<UserSecurityProjection> findByEmail_Security_Projection(String email);
+    Optional<UserSecurityProjectionDTO> findByEmail_Security_Projection(String email);
 
     @Query(value = """
-                select u.id as id,
-                u.email as email,
-                u.userId as userId,
-                u.userCredential as userCredential
+            select
+            u.user_credential
+            from users u
+            where u.email=?1
+        """, nativeQuery = true)
+    Optional<String> findByEmail_ReturningCredentialsJsonB(String email);
+
+    @Query(value = """
+                select
+                u.id,
+                u.email,
+                u.userId,
+                u.userCredential
                 from User u
                 where u.userId=?1
             """)
-    Optional<UserSecurityProjection> findById_Security_Projection(String userId);
+    Optional<UserSecurityProjectionDTO> findById_Security_Projection(String userId);
 }

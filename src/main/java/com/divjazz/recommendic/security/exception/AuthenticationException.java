@@ -1,6 +1,8 @@
 package com.divjazz.recommendic.security.exception;
 
-public class AuthenticationException extends RuntimeException {
+import org.springframework.security.authentication.BadCredentialsException;
+
+public class AuthenticationException extends BadCredentialsException {
 
     public AuthenticationException(String message) {
         super(message);

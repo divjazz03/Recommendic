@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.security.utils;
+package com.divjazz.recommendic;
 
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
@@ -30,16 +30,6 @@ import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMess
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class RequestUtils {
-
-    private static final BiConsumer<HttpServletResponse, Response<?>> writeResponse = (httpServletResponse,  response) -> {
-        try {
-            var outputStream = httpServletResponse.getOutputStream();
-            new ObjectMapper().writeValue(outputStream, response);
-            outputStream.flush();
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    };
 
     private static final BiFunction<Exception, HttpStatusCode, String> errorReason = (exception, httpStatus) -> {
         if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
@@ -81,21 +71,5 @@ public class RequestUtils {
                 getRootCauseMessage(exception),
                 exception.getMessage()
         );
-    }
-
-    public static void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception e) {
-        switch (e) {
-            case AccessDeniedException _ -> {
-                writeResponse.accept(response, getErrorResponse(HttpStatus.FORBIDDEN, e));
-            }
-            case UserNotFoundException _ -> {
-                writeResponse.accept(response, getErrorResponse(HttpStatus.NOT_FOUND, e));
-            }
-            case AuthenticationException _ ->
-                    writeResponse.accept(response, getErrorResponse(HttpStatus.UNAUTHORIZED, e));
-            case null, default -> {
-                writeResponse.accept(response, getErrorResponse(HttpStatus.EXPECTATION_FAILED, e));
-            }
-        }
     }
 }

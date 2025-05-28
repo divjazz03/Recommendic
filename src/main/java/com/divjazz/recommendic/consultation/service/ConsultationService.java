@@ -4,11 +4,15 @@ import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.enums.Status;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.exception.UserNotFoundException;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,13 +26,15 @@ public class ConsultationService {
     private final ConsultationRepository consultationRepository;
     private final ConsultantService consultantService;
     private final PatientService patientService;
+    private final AuthUtils authUtils;
 
     public ConsultationService(ConsultationRepository consultationRepository,
                                ConsultantService consultantService,
-                               PatientService patientService) {
+                               PatientService patientService, AuthUtils authUtils) {
         this.consultationRepository = consultationRepository;
         this.consultantService = consultantService;
         this.patientService = patientService;
+        this.authUtils = authUtils;
     }
 
     public ConsultationResponse initializeConsultation(String consultantId, User currentUser) {
@@ -66,6 +72,21 @@ public class ConsultationService {
 
     }
 
+    public PageResponse<ConsultationResponse> retrieveConsultationsOfConsultant(Pageable pageable) throws UserNotFoundException {
+        Consultant consultant = (Consultant) authUtils.getCurrentUser();
+        var consultations = consultationRepository.findAllByConsultantIdAndAccepted(consultant.getUserId(),false, pageable);
+        return PageResponse.from(consultations.map(consultation ->
+                new ConsultationResponse(
+                        consultation.getDiagnosis(),
+                        consultation.getConsultationTime().toString(),
+                        consultation.getPatient().getUserName().getFullName(),
+                        consultant.getUserName().getFullName(),
+                        String.valueOf(consultation.getId()),
+                        consultation.getStatus().name(),
+                        consultation.isAccepted()
+                        )));
+
+    }
     public Set<Consultation> retrieveConsultationsByUserId(String userId) {
         return consultationRepository.getAllConsultationsWhichContainsTheUserId(userId);
     }

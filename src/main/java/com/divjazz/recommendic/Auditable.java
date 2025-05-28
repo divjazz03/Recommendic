@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class})
 public abstract class Auditable {
 
     @Id
@@ -27,11 +27,11 @@ public abstract class Auditable {
     @NotNull
     @Column(name = "created_by", updatable = false, nullable = false)
     @CreatedBy
-    private long createdBy;
+    private String createdBy;
     @NotNull
     @Column(name = "updated_by", nullable = false)
     @LastModifiedBy
-    private long updatedBy;
+    private String updatedBy;
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     @NotNull
@@ -52,18 +52,18 @@ public abstract class Auditable {
     public void setId(long id) {
         this.id = id;
     }
-    public long getCreatedBy() {
+    public String  getCreatedBy() {
         return createdBy;
     }
-    public void setCreatedBy(long createdBy) {
+    public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
 
-    public long getUpdatedBy() {
+    public String  getUpdatedBy() {
         return updatedBy;
     }
 
-    public void setUpdatedBy(long updatedBy) {
+    public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }
 
@@ -81,22 +81,6 @@ public abstract class Auditable {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    @PrePersist
-    public void beforePersist() {
-        long userId = RequestContext.getUserId();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        setCreatedBy(userId);
-        setUpdatedBy(userId);
-    }
-
-    @PreUpdate
-    public void beforeUpdate() {
-        long userId = RequestContext.getUserId();
-        setUpdatedBy(userId);
-        setUpdatedAt(LocalDateTime.now());
     }
 
     @Override

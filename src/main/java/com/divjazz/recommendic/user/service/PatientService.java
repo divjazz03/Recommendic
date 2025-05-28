@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     private final Logger log = LoggerFactory.getLogger(PatientService.class);
-    public static final int DEFAULT_PAGE_SIZE = 50;
-
     private final UserRepository userRepository;
     private final UserConfirmationRepository userConfirmationRepository;
     private final GeneralUserService userService;
@@ -51,15 +49,12 @@ public class PatientService {
 
     private final TransactionTemplate transactionTemplate;
 
-    private final ConsultationRepository consultationRepository;
-
-
     public PatientService(
             PatientRepository patientRepository,
             UserRepository userRepository,
             UserConfirmationRepository userConfirmationRepository, GeneralUserService userService,
             PasswordEncoder encoder,
-            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate, ConsultationRepository consultationRepository) {
+            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate) {
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
         this.userConfirmationRepository = userConfirmationRepository;
@@ -67,7 +62,6 @@ public class PatientService {
         this.encoder = encoder;
         this.applicationEventPublisher = applicationEventPublisher;
         this.transactionTemplate = transactionTemplate;
-        this.consultationRepository = consultationRepository;
     }
 
 
@@ -115,21 +109,11 @@ public class PatientService {
         return patientRepository.findAll(pageable);
     }
 
-    @Transactional
     public void deletePatientByUserId(String patient_Id) {
         patientRepository.deleteByUserId(patient_Id);
     }
 
-    @Transactional
-    public void modifyPatient(Patient patient) {
-        patientRepository.save(patient);
-    }
 
-    @Transactional(readOnly = true)
-    public Patient findPatientById(long id) {
-        return patientRepository.findById(id)
-                .orElseThrow(UserNotFoundException::new);
-    }
 
     @Transactional(readOnly = true)
     public Patient findPatientByUserId(String id) {
@@ -144,15 +128,8 @@ public class PatientService {
         return patientRepository.findAllConsultationByPatientId(patientId);
     }
 
-    public Page<Consultation> getConsultations(String patient_id, int page) {
-        var pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
-        return consultationRepository.findConsultationsByPatientIdOrderByCreatedAtAsc(patient_id, pageable);
-    }
-
     @Transactional
     public boolean handleOnboarding(String userId, List<String> medicalCategories) {
-        try {
-
             Set<MedicalCategory> medicalCategorySet = medicalCategories.stream()
                     .map(MedicalCategoryEnum::fromValue)
                     .map(medicalCategoryEnum -> new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
@@ -160,10 +137,6 @@ public class PatientService {
             Patient patient = patientRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
             patient.setMedicalCategories(medicalCategorySet);
             patient.setUserStage(UserStage.ACTIVE_USER);
-            patientRepository.save(patient);
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
         return true;
     }
 

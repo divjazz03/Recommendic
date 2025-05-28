@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,8 +70,7 @@ public class ConsultantService {
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
                 consultant.getPhoneNumber(),
-                consultant.getAddress(),
-                consultant.getMedicalCategory().toString());
+                consultant.getAddress(),"");
     }
 
     @Transactional
@@ -84,7 +81,7 @@ public class ConsultantService {
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
-            var savedConsultant = consultantRepository.save(user);
+            var savedConsultant = userRepository.save(user);
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
@@ -102,7 +99,6 @@ public class ConsultantService {
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                null,
                 Role.CONSULTANT, userCredential
         );
 
@@ -149,6 +145,10 @@ public class ConsultantService {
 
     public Consultant retrieveConsultantByUserId(String userId) {
         return consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+    }
+
+    public void deleteConsultantById(String userId) {
+        consultantRepository.deleteByUserId(userId);
     }
 
 

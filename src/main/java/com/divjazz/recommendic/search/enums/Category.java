@@ -5,5 +5,9 @@ public enum Category {
     ALL,
     CONSULTATION,
     ASSIGNMENT,
+    DRUG,
+    ARTICLE,
+    CONSULTANTS,
+    PATIENTS,
     SEARCH_HISTORY
 }
