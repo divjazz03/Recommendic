@@ -2,6 +2,7 @@ package com.divjazz.recommendic.article.controller;
 
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
+import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.dto.ArticleUpload;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.service.ArticleService;
@@ -38,16 +39,14 @@ public class ArticleController {
     @PostMapping("/")
     @PreAuthorize("hasRole('CONSULTANT')")
     public ResponseEntity<Response<Article>> uploadArticle(@RequestBody ArticleUpload articleUpload) {
-
-        var user = authUtils.getCurrentUser();
-        var result = articleService.uploadArticle(new ArticleDTO(articleUpload.title(), articleUpload.content(), user));
+        var result = articleService.uploadArticle(new ArticleDTO(articleUpload.title(), articleUpload.subtitle(), articleUpload.content(), articleUpload.tags()));
 
         return new ResponseEntity<>(getResponse(result,"successful", HttpStatus.OK), HttpStatus.OK);
     }
 
     @GetMapping("/")
     @Operation(summary = "Get paged articles")
-    public ResponseEntity<Response<PageResponse<Article>>> retrieveArticle(@PageableDefault Pageable pageable) {
+    public ResponseEntity<Response<PageResponse<ArticleSearchResponse>>> retrieveArticle(@PageableDefault Pageable pageable) {
         var user = authUtils.getCurrentUser();
         var results = switch (user.getUserType()) {
             case PATIENT -> articleService.recommendArticles(pageable,(Patient) user);

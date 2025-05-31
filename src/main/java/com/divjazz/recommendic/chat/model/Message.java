@@ -3,10 +3,12 @@ package com.divjazz.recommendic.chat.model;
 import com.divjazz.recommendic.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "message")
 public class Message extends Auditable {
     @Column(name = "sender_id", updatable = false, nullable = false)
     private String senderId;

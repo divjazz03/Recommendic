@@ -62,7 +62,11 @@ public class RecommendationService {
     }
 
     public void createRecommendationForPatient(Patient patient) {
-        var medicalCategories = patient.getMedicalCategories();
+        var medicalCategories = patient.getMedicalCategories().stream()
+                .map(MedicalCategoryEnum::fromValue)
+                .map(medicalCategoryEnum ->
+                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
+                .collect(Collectors.toSet());
         var searchHistory = searchService.retrieveSearchesByUserId(patient.getUserId());
         var consultantsBasedOnMedicalCategories = retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
 

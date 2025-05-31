@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.search.controller;
 
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.external.openFDA.OpenFDAQuery;
@@ -42,7 +43,7 @@ public class SearchController {
         this.articleService = articleService;
     }
 
-    @GetMapping("/")
+    @GetMapping
     @Operation(summary = "Execute a global search")
     public ResponseEntity<Response<Set<SearchResult>>> search(
                                            @RequestParam(name = "category") String category,
@@ -77,9 +78,9 @@ public class SearchController {
     // Should be pageable
     @GetMapping("/article")
     @Operation(summary = "Search for Article")
-    public ResponseEntity<Response<PageResponse<Article>>> searchArticle(@RequestParam(name = "query", defaultValue = "") String query,
-                                                  @PageableDefault Pageable pageable) {
-        PageResponse<Article> results = articleService.searchArticle(query,
+    public ResponseEntity<Response<PageResponse<ArticleSearchResponse>>> searchArticle(@RequestParam(name = "query", defaultValue = "") String query,
+                                                                                       @PageableDefault Pageable pageable) {
+        PageResponse<ArticleSearchResponse> results = articleService.searchArticle(query,
                 pageable);
         return ResponseEntity.ok(getResponse(results, "Success", HttpStatus.OK));
 

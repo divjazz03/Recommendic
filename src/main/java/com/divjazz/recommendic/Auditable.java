@@ -21,8 +21,7 @@ public abstract class Auditable {
 
     @Id
     @Column(name = "id", updatable = false)
-    @SequenceGenerator(name = "primary_key_seq", sequenceName = "primary_key_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "primary_key_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @NotNull
     @Column(name = "created_by", updatable = false, nullable = false)
@@ -40,11 +39,6 @@ public abstract class Auditable {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    protected Auditable() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
     public long getId() {
         return id;
     }
@@ -52,37 +46,6 @@ public abstract class Auditable {
     public void setId(long id) {
         this.id = id;
     }
-    public String  getCreatedBy() {
-        return createdBy;
-    }
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String  getUpdatedBy() {
-        return updatedBy;
-    }
-
-    public void setUpdatedBy(String updatedBy) {
-        this.updatedBy = updatedBy;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @Override
     public int hashCode() {
         return (int) (id ^ (id >>> 32));

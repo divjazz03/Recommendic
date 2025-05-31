@@ -18,9 +18,6 @@ public class Assignment extends Auditable implements Serializable {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "admin_id")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    @JsonProperty("admin_id")
     private Admin adminAssigned;
 
     protected Assignment() {

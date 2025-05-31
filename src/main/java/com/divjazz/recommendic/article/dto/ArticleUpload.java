@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.article.dto;
 
-public record ArticleUpload(String title, String content) {
+import java.util.List;
+
+public record ArticleUpload(String title,String subtitle, String[] tags, String content) {
 
 }

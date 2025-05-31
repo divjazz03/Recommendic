@@ -8,96 +8,100 @@ DROP TABLE IF EXISTS users,
     assignment,
     consultant_recommendation,
     article,
+    comment,
     article_recommendation,
     certification,
     search,
-    roles,message,
+    message,
     consultation CASCADE;
+DROP TYPE IF EXISTS article_search_result, message_search_result CASCADE ;
+
+DROP INDEX IF EXISTS
+    article_search_idx,
+    idx_users_email,
+    idx_users_user_id,
+    idx_search_owner_id,
+    consultation_search_idx,
+    message_search_idx CASCADE;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS users
 (
-    id                  BIGINT PRIMARY KEY,
-    user_id             CHARACTER VARYING(54) UNIQUE  NOT NULL,
-    dtype               CHARACTER VARYING(54) NOT NULL CHECK ( dtype IN ('Admin','Patient','Consultant')),
+    id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id             CHARACTER VARYING(54) UNIQUE NOT NULL,
+    dtype               CHARACTER VARYING(54)        NOT NULL CHECK ( dtype IN ('Admin', 'Patient', 'Consultant')),
     username            jsonb,
     email               CHARACTER VARYING(54) UNIQUE NOT NULL,
-    phone_number        CHARACTER VARYING(54)                  DEFAULT NULL,
-    bio                 TEXT                                   DEFAULT NULL,
+    phone_number        CHARACTER VARYING(54)                 DEFAULT NULL,
+    bio                 TEXT                                  DEFAULT NULL,
     profile_picture     jsonb,
     address             jsonb,
-    user_type           CHARACTER VARYING(54)         NOT NULL,
-    user_stage          CHARACTER VARYING(54)           NOT NULL,
-    enabled             BOOLEAN                       NOT NULL DEFAULT FALSE,
-    account_non_expired BOOLEAN                       NOT NULL DEFAULT TRUE,
-    account_non_locked  BOOLEAN                       NOT NULL DEFAULT TRUE,
-    gender              CHARACTER VARYING(54)         NOT NULL,
-    role                CHARACTER VARYING(54)         NOT NULL,
-    last_login          TIMESTAMP(6) WITH TIME ZONE                              DEFAULT NULL,
-    updated_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP(6) WITH TIME ZONE            DEFAULT CURRENT_TIMESTAMP,
-    created_by          CHARACTER VARYING(54)   ,
-    updated_by          CHARACTER VARYING(54)   ,
+    user_type           CHARACTER VARYING(54)        NOT NULL,
+    user_stage          CHARACTER VARYING(54)        NOT NULL,
+    enabled             BOOLEAN                      NOT NULL DEFAULT FALSE,
+    account_non_expired BOOLEAN                      NOT NULL DEFAULT TRUE,
+    account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
+    gender              CHARACTER VARYING(54)        NOT NULL,
+    role                CHARACTER VARYING(54)        NOT NULL,
+    last_login          TIMESTAMP(6) WITH TIME ZONE           DEFAULT NULL,
+    updated_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
+    created_by          CHARACTER VARYING(54),
+    updated_by          CHARACTER VARYING(54),
 
     /*Patient*/
-    medical_categories jsonb,
-    recommendation_id  BIGINT,
+    medical_categories  TEXT[],
+    recommendation_id   BIGINT,
     /*Consultant*/
-    specialization jsonb ,
-    certified      BOOLEAN               DEFAULT FALSE,
-    certificate_id BIGINT,
-    /*Admin*/
-    assignment_id BIGINT DEFAULT NULL,
+    specialization      jsonb,
+    certified           BOOLEAN                               DEFAULT FALSE,
+    certificate_id      BIGINT,
     /*Credential embed*/
-    user_credential jsonb
+    user_credential     jsonb
 
 );
-
-
 /*                                             PATIENT TABLES                                                          */
-CREATE TABLE IF NOT EXISTS users_credential
-(
-
-);
-
 CREATE TABLE IF NOT EXISTS users_confirmation
 (
-    id           BIGINT PRIMARY KEY UNIQUE,
-    user_id      BIGINT                NOT NULL,
-    expiry       TIMESTAMP(6) WITH TIME ZONE NOT NULL,
-    key          CHARACTER VARYING(100) NOT NULL,
-    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   CHARACTER VARYING(54)                NOT NULL,
-    updated_by   CHARACTER VARYING(54)                NOT NULL
+    id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id    BIGINT REFERENCES users (id) NOT NULL,
+    expiry     TIMESTAMP(6) WITH TIME ZONE  NOT NULL,
+    key        CHARACTER VARYING(100)       NOT NULL,
+    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by CHARACTER VARYING(54)        NOT NULL,
+    updated_by CHARACTER VARYING(54)        NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS assignment
+(
+    id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    admin_id   BIGINT REFERENCES users (id),
+    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by CHARACTER VARYING(54) NOT NULL,
+    updated_by CHARACTER VARYING(54) NOT NULL
 );
 
 
 
 CREATE TABLE IF NOT EXISTS certification
 (
-    id               BIGINT PRIMARY KEY,
-    consultant_id    BIGINT                       NOT NULL,
-    assignment_id    BIGINT                       NOT NULL,
-    file_name        CHARACTER VARYING(255)        NOT NULL,
-    file_url         CHARACTER VARYING(255)        NOT NULL,
-    certificate_type CHARACTER VARYING(30)        NOT NULL,
+    id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    consultant_id    BIGINT                            NOT NULL,
+    assignment_id    BIGINT REFERENCES assignment (id) NOT NULL,
+    file_name        CHARACTER VARYING(255)            NOT NULL,
+    file_url         CHARACTER VARYING(255)            NOT NULL,
+    certificate_type CHARACTER VARYING(30)             NOT NULL,
     confirmed        BOOLEAN                     DEFAULT TRUE,
     updated_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by       CHARACTER VARYING(54)                       NOT NULL,
-    updated_by       CHARACTER VARYING(54)                      NOT NULL
+    created_by       CHARACTER VARYING(54)             NOT NULL,
+    updated_by       CHARACTER VARYING(54)             NOT NULL
 
-);
-
-CREATE TABLE IF NOT EXISTS assignment
-(
-    id           BIGINT PRIMARY KEY,
-    admin_id     BIGINT,
-    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   CHARACTER VARYING(54),
-    updated_by   CHARACTER VARYING(54)
 );
 
 CREATE TABLE IF NOT EXISTS admin_assignment
@@ -106,70 +110,80 @@ CREATE TABLE IF NOT EXISTS admin_assignment
     assignment_id BIGINT NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS search
 (
-    id           BIGINT PRIMARY KEY,
-    query        CHARACTER VARYING(30) NOT NULL,
-    owner_id     BIGINT                NOT NULL,
-    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   CHARACTER VARYING(54)                NOT NULL,
-    updated_by   CHARACTER VARYING(54)                NOT NULL
+    id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    query      CHARACTER VARYING(30)        NOT NULL,
+    owner_id   BIGINT REFERENCES users (id) NOT NULL,
+    category   CHARACTER VARYING(30)       DEFAULT 'ALL',
+    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by CHARACTER VARYING(54)        NOT NULL,
+    updated_by CHARACTER VARYING(54)        NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS article
 (
-    id            BIGINT PRIMARY KEY,
-    title         CHARACTER VARYING(54) NOT NULL,
-    content       TEXT                  NOT NULL,
-    consultant_id BIGINT                NOT NULL,
-    updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54)                NOT NULL,
-    updated_by    CHARACTER VARYING(54)                NOT NULL
+    id             BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title          CHARACTER VARYING(54)        NOT NULL,
+    subtitle       CHARACTER VARYING(54)        NOT NULL,
+    content        TEXT                         NOT NULL,
+    like_ids       BIGINT[],
+    tags           CHARACTER VARYING(50)[],
+    writer_id      BIGINT REFERENCES users (id) NOT NULL,
+    no_of_reads    BIGINT                      DEFAULT 0,
+    article_status CHARACTER VARYING(10)        NOT NULL,
+    search_vector  TSVECTOR GENERATED ALWAYS AS (
+                               setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+                               setweight(to_tsvector('english', coalesce(content, '')), 'B') ||
+                               setweight(to_tsvector('english', coalesce(subtitle, '')), 'C')
+                       ) STORED,
+    updated_at     TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at     TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    published_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
+    created_by     CHARACTER VARYING(54)        NOT NULL,
+    updated_by     CHARACTER VARYING(54)        NOT NULL
 
 );
 
 
 CREATE TABLE IF NOT EXISTS consultant_recommendation
-(
-    id            BIGINT PRIMARY KEY,
-    patient_id    BIGINT                       NOT NULL,
-    consultant_id BIGINT                       NOT NULL,
+(   id BIGINT PRIMARY KEY GENERATED ALWAYS AS  IDENTITY,
+    patient_id    BIGINT REFERENCES users (id) NOT NULL,
+    consultant_id BIGINT REFERENCES users (id) NOT NULL,
     updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54)                       NOT NULL,
-    updated_by    CHARACTER VARYING(54)                       NOT NULL
+    created_by    CHARACTER VARYING(54)        NOT NULL,
+    updated_by    CHARACTER VARYING(54)        NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS article_recommendation
 (
-    id           BIGINT PRIMARY KEY,
-    patient_id   BIGINT NOT NULL,
-    article_id   BIGINT NOT NULL,
-    updated_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by   CHARACTER VARYING(54),
-    updated_by   CHARACTER VARYING(54)
-);
-
-CREATE TABLE IF NOT EXISTS consultant_patient
-(
-    consultant_id BIGINT NOT NULL,
-    patient_id    BIGINT NOT NULL
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    patient_id BIGINT REFERENCES users (id) NOT NULL,
+    article_id BIGINT REFERENCES users (id) NOT NULL,
+    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by CHARACTER VARYING(54),
+    updated_by CHARACTER VARYING(54)
 );
 
 CREATE TABLE IF NOT EXISTS consultation
 (
-    id                BIGINT PRIMARY KEY,
+    id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     diagnosis         TEXT,
     consultation_time TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    consultation_id   CHARACTER VARYING(54),
-    patient_id        BIGINT NOT NULL,
-    consultant_id     BIGINT NOT NULL,
+    consultation_id   CHARACTER VARYING(54) UNIQUE,
+    patient_id        BIGINT REFERENCES users (id) NOT NULL,
+    consultant_id     BIGINT REFERENCES users (id) NOT NULL,
     accepted          BOOLEAN                     DEFAULT FALSE,
     status            CHARACTER VARYING(10)       DEFAULT 'NOT_STARTED',
+    search_vector     TSVECTOR GENERATED ALWAYS AS (
+                              setweight(to_tsvector('english', coalesce(diagnosis, '')), 'A') ||
+                              setweight(to_tsvector('english', coalesce(status, '')), 'B')
+                          ) STORED,
     updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by        CHARACTER VARYING(54),
@@ -178,12 +192,15 @@ CREATE TABLE IF NOT EXISTS consultation
 
 CREATE TABLE IF NOT EXISTS message
 (
-    id              BIGINT PRIMARY KEY,
+    id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     sender_id       CHARACTER VARYING(54),
     receiver_id     CHARACTER VARYING(54),
-    consultation_id CHARACTER VARYING(54),
+    consultation_id CHARACTER VARYING(54) REFERENCES consultation (consultation_id),
     content         TEXT,
     timestamp       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    search_vector   tsvector GENERATED ALWAYS AS (
+                        setweight(to_tsvector('english', coalesce(content, '')), 'C')
+                        ) STORED,
     delivered       BOOLEAN                     DEFAULT FALSE,
     updated_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -192,45 +209,258 @@ CREATE TABLE IF NOT EXISTS message
 
 );
 
+CREATE TABLE IF NOT EXISTS comment
+(
+    id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id           BIGINT REFERENCES users (id),
+    article_id        BIGINT REFERENCES article (id),
+    parent_comment_id BIGINT REFERENCES comment (id),
+    updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by        CHARACTER VARYING(54),
+    updated_by        CHARACTER VARYING(54)
+);
+
 ALTER TABLE IF EXISTS users
-    ADD FOREIGN KEY (certificate_id) REFERENCES certification (id) MATCH SIMPLE,
-    ADD FOREIGN KEY (recommendation_id) REFERENCES consultant_recommendation (id) MATCH SIMPLE,
-    ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id) MATCH SIMPLE;
+    ADD FOREIGN KEY (certificate_id) REFERENCES certification (id);
 
-ALTER TABLE IF EXISTS users_confirmation
-    ADD FOREIGN KEY (user_id) REFERENCES users (id);
+CREATE INDEX idx_search_owner_id ON public.search (owner_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users (email);
+CREATE INDEX IF NOT EXISTS idx_users_user_id ON public.users (user_id);
+CREATE INDEX IF NOT EXISTS article_search_idx ON article USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS consultation_search_idx ON consultation USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS article_status_idx on article (article_status);
+CREATE INDEX IF NOT EXISTS message_search_idx ON message USING GIN (search_vector);
+
+CREATE TYPE article_search_result AS
+(
+    id           BIGINT,
+    title        CHARACTER VARYING(54),
+    subtitle     CHARACTER VARYING(54),
+    authorFirstName  TEXT,
+    authorLastName  TEXT,
+    published_at TIMESTAMP WITH TIME ZONE,
+    rank         float4,
+    highlight    TEXT,
+    total        BIGINT
+);
+
+CREATE OR REPLACE FUNCTION search_articles(
+    search_query TEXT,
+    tag_filter CHARACTER VARYING(50)[] DEFAULT NULL,
+    author_filter BIGINT[] DEFAULT NULL,
+    min_date TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
+    max_date TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
+    page_size INTEGER DEFAULT 20,
+    page_number INTEGER DEFAULT 1
+)
+    RETURNS setof article_search_result
+AS
+$$
+DECLARE
+    tsquery_var tsquery;
+    total       BIGINT;
+BEGIN
+    -- CONVERT SEARCH QUERY TO TS-QUERY, HANDLING MULTIPLE WORDS
+    SELECT array_to_string(array_agg(lexeme || ':*'), ' & ')
+    FROM unnest(regexp_split_to_array(trim(search_query), '\s+')) lexeme
+    INTO search_query;
+
+    tsquery_var := to_tsquery('english', search_query);
+
+    -- GET TOTAL COUNT FOR PAGINATION
+    SELECT COUNT(DISTINCT a.id)
+    FROM article a
+             JOIN users u on a.writer_id = u.id
+    WHERE a.article_status = 'PUBLISHED'
+      AND a.search_vector @@ tsquery_var
+      AND (tag_filter IS NULL OR a.tags @> tag_filter)
+      AND (author_filter IS NULL OR u.id = any (author_filter))
+      AND (min_date IS NULL OR a.published_at >= min_date)
+      AND (max_date IS NULL OR a.published_at <= max_date)
+    INTO total;
+
+    RETURN QUERY
+        WITH ranked_articles AS
+                 (SELECT DISTINCT ON (a.id) a.id,
+                                            a.title,
+                                            a.subtitle,
+                                            u.username ->> 'full_name'                     as firstName,
+                                            u.username ->> 'full_name'                     as lastName,
+                                            a.published_at,
+                                            a.no_of_reads                                  as reads,
+                                            a.tags                                         as tags,
+                                            cardinality(a.like_ids)                        as upvotes,
+                                            ts_rank(a.search_vector, tsquery_var) *
+                                            CASE
+                                                WHEN a.published_at > now() - INTERVAL '7 days'
+                                                    THEN 1.5 -- boost more recent articles
+                                                WHEN a.published_at > now() - INTERVAL '30 days' THEN 1.2
+                                                ELSE 1.0
+                                                END                                        as rank,
+                                            ts_headline('english', a.content, tsquery_var) as highlight,
+                                            (SELECT count(c.article_id)
+                                             FROM comment c
+                                             where c.article_id = a.id)                    as no_of_comments
+                  FROM article a
+                           LEFT JOIN users u on u.id = a.writer_id
+                  WHERE a.article_status = 'PUBLISHED'
+                    AND a.search_vector @@ tsquery_var
+                    AND (tag_filter IS NULL OR a.tags @> tag_filter)
+                    AND (author_filter IS NULL OR u.id = any (author_filter))
+                    AND (min_date IS NULL OR a.published_at >= min_date)
+                    AND (max_date IS NULL OR a.published_at <= max_date))
+        SELECT ra.id             as id,
+               ra.title          as title,
+               ra.subtitle       as subtitle,
+               ra.firstName     as authorFirstName,
+               ra.lastName     as authorLastName,
+               ra.published_at   as publishedAt,
+               ra.tags           as tags,
+               ra.rank           as rank,
+               ra.highlight      as highlighted,
+               ra.upvotes        as upvotes,
+               ra.no_of_comments as numberOfComment,
+               ra.reads          as reads,
+               total
+        FROM ranked_articles ra
+        ORDER BY ra.rank DESC
+        LIMIT page_size OFFSET ((page_number) - 1 * page_size);
+END
+$$ language plpgsql;
 
 
-ALTER TABLE IF EXISTS certification
-    ADD FOREIGN KEY (assignment_id) REFERENCES assignment (id),
-    ADD FOREIGN KEY (consultant_id) REFERENCES users (id);
+CREATE TYPE message_search_result AS
+(
+    id                  BIGINT,
+    receiver_first_name TEXT,
+    receiver_last_name TEXT,
+    content_highlight   TEXT,
+    rank                float4,
+    total               BIGINT
+);
 
-ALTER TABLE IF EXISTS assignment
-    ADD FOREIGN KEY (admin_id) REFERENCES users (id);
+CREATE OR REPLACE FUNCTION search_messages(
+    query text,
+    page_size INTEGER DEFAULT 20,
+    page_number INTEGER DEFAULT 0
+) RETURNS SETOF message_search_result
+AS
+$$
+DECLARE
+    tsquery_var tsquery;
+    total       BIGINT;
+BEGIN
+    SELECT array_to_string(array_agg(lexeme || ':*'), ' & ')
+    FROM unnest(regexp_split_to_array(trim(query), '\s+')) lexeme
+    INTO query;
 
-ALTER TABLE IF EXISTS search
-    ADD FOREIGN KEY (owner_id) REFERENCES users (id);
+    tsquery_var := to_tsquery('english', query);
 
-ALTER TABLE IF EXISTS article
-    ADD FOREIGN KEY (consultant_id) references users (id);
+    SELECT COUNT(DISTINCT m.id)
+    FROM message m
+             JOIN users u ON u.id = receiver_id
+    WHERE m.search_vector ||
+          setweight(to_tsvector('english', coalesce(u.username ->> 'first_name', '')), 'A') ||
+          setweight(to_tsvector('english', coalesce(u.username ->> 'last_name', '')), 'B') @@ tsquery_var
+    INTO total;
 
-ALTER TABLE IF EXISTS consultant_recommendation
-    ADD FOREIGN KEY (consultant_id) REFERENCES users (id),
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id);
+    RETURN QUERY
+        WITH ranked_messages AS (SELECT DISTINCT on (m2.id) m2.id                                           as id,
+                                                            u2.username ->> 'first_name'                    as firstname,
+                                                            u2.username ->> 'last_name'                     as lastname,
+                                                            ts_rank(m2.search_vector, tsquery_var) *
+                                                            CASE
+                                                                WHEN m2.created_at > now() - INTERVAL '7 days'
+                                                                    THEN 1.5 -- boost more recent articles
+                                                                WHEN m2.created_at > now() - INTERVAL '30 days' THEN 1.2
+                                                                ELSE 1.0
+                                                                END                                         as rank,
+                                                            ts_headline('english', m2.content, tsquery_var) as highlight
+                                 FROM message m2
+                                          JOIN users u2 on u2.id = receiver_id
+                                 WHERE m2.search_vector @@ tsquery_var
+                                 )
+    SELECT
+        rm.id as id,
+        rm.rank as rank,
+        rm.highlight as content_highlight,
+        rm.firstname as receiver_first_name,
+        rm.lastname as receiver_last_name,
+        total
+    FROM ranked_messages rm
+    ORDER BY rm.rank DESC
+    LIMIT page_size OFFSET ((page_number - 1 )* page_size);
 
-ALTER TABLE IF EXISTS article_recommendation
-    ADD FOREIGN KEY (article_id) REFERENCES users (id),
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id);
+END
+$$ LANGUAGE plpgsql;
 
-ALTER TABLE IF EXISTS consultant_patient
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id),
-    ADD FOREIGN KEY (consultant_id) REFERENCES users (id);
+CREATE OR REPLACE FUNCTION recommendArticlesForPatient(
+    patient_id BIGINT,
+    page_size INTEGER,
+    page_number INTEGER
+) RETURNS SETOF article_search_result AS $$
+    DECLARE
+        query text;
+        tsquery_var tsquery;
+    BEGIN
 
-ALTER TABLE IF EXISTS consultation
-    ADD FOREIGN KEY (patient_id) REFERENCES users (id),
-    ADD FOREIGN KEY (consultant_id) REFERENCES users (id);
+        SELECT array_to_string(array_agg(DISTINCT tag || ':*'), ' & ')
+        FROM users u, (
+                    SELECT unnest(a.tags) as tag
+                    FROM article a
+                    ) as rtag
+        WHERE u.id = patient_id
+        INTO query;
 
-CREATE SEQUENCE IF NOT EXISTS primary_key_seq;
+        tsquery_var := to_tsquery('english', query);
+
+        RETURN QUERY
+            WITH ranked_articles AS (SELECT DISTINCT ON (a.id) a.id,
+                                     a.title as title,
+                                                               a.subtitle,
+                                                               u.username ->> 'full_name'                     as firstName,
+                                                               u.username ->> 'full_name'                     as lastName,
+                                                               a.published_at,
+                                                               a.no_of_reads                                  as reads,
+                                                               a.tags                                         as tags,
+                                                               cardinality(a.like_ids)                        as upvotes,
+                                                               ts_rank(to_tsvector('english', array_to_string(tags, ' ')), tsquery_var) *
+                                                               CASE
+                                                                   WHEN a.published_at > now() - INTERVAL '7 days'
+                                                                       THEN 1.5 -- boost more recent articles
+                                                                   WHEN a.published_at > now() - INTERVAL '30 days' THEN 1.2
+                                                                   ELSE 1.0
+                                                                   END                                        as rank,
+                                                               (SELECT count(c.article_id)
+                                                                FROM comment c
+                                                                where c.article_id = a.id)                    as no_of_comments
+                                     FROM article a
+                                     JOIN users u ON a.writer_id = u.id
+                                     )
+            SELECT ra.id             as id,
+                   ra.title          as title,
+                   ra.subtitle       as subtitle,
+                   ra.firstName     as authorFirstName,
+                   ra.lastName     as authorLastName,
+                   ra.published_at   as publishedAt,
+                   ra.tags           as tags,
+                   ra.rank           as rank,
+                   ra.upvotes        as upvotes,
+                   ra.no_of_comments as numberOfComment,
+                   ra.reads          as reads,
+                   total
+            FROM ranked_articles ra
+            ORDER BY ra.rank DESC
+            LIMIT page_size OFFSET ((page_number) - 1 * page_size);
+    END;
+    $$ language plpgsql;
+
+
+
+
+
+
 END;
 
 

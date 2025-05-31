@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -31,8 +32,15 @@ public class Consultant extends User implements Serializable {
             mappedBy = "ownerOfCertification", orphanRemoval = true)
     private Set<Certification> certificates;
 
+    @OneToMany(fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            orphanRemoval = true,
+            mappedBy = "consultant"
+    )
+    private Set<Article> articles;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "consultant")
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "consultant", orphanRemoval = true)
     private List<Consultation> consultations;
     @Column(columnDefinition = "text")
     private String bio;

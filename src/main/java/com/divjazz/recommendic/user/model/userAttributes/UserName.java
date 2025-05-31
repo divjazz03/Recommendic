@@ -9,10 +9,10 @@ import jakarta.persistence.Embeddable;
 public class UserName {
 
 
-    @JsonProperty("firstname")
+    @JsonProperty("first_name")
     private String firstName;
 
-    @JsonProperty("lastname")
+    @JsonProperty("last_name")
     private String lastName;
 
 
@@ -32,6 +32,7 @@ public class UserName {
         return lastName;
     }
 
+    @JsonProperty("full_name")
     public String getFullName() {
         return String.format("%s %s", firstName, lastName);
     }

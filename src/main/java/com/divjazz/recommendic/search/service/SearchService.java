@@ -1,7 +1,10 @@
 package com.divjazz.recommendic.search.service;
 
+import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
+import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
+import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
@@ -13,6 +16,7 @@ import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.PatientService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -29,16 +33,19 @@ public class SearchService {
     private final ConsultationService consultationService;
     private final PatientService patientService;
 
+    private final ArticleService articleService;
+
     private final AdminService adminService;
 
     private final AuthUtils authUtils;
 
-    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, GeneralUserService userService, ConsultationService consultationService, PatientService patientService, AdminService adminService, AuthUtils authUtils) {
+    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, GeneralUserService userService, ConsultationService consultationService, PatientService patientService, ArticleService articleService, AdminService adminService, AuthUtils authUtils) {
         this.searchRepository = searchRepository;
         this.consultantService = consultantService;
         this.userService = userService;
         this.consultationService = consultationService;
         this.patientService = patientService;
+        this.articleService = articleService;
         this.adminService = adminService;
         this.authUtils = authUtils;
     }
@@ -105,14 +112,19 @@ public class SearchService {
                                     consultation.getConsultationId(),
                                     consultation.isAccepted()
                             )).collect(Collectors.toSet());
+                            results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                         }
-
-
-                        results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
 
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
+                    case ARTICLE -> {
+                        PageResponse<ArticleSearchResponse> articles = articleService.searchArticle(query, Pageable.ofSize(10));
+                        if (!articles.empty()) {
+                            var articlesSet = new HashSet<>(articles.content());
+                            results.add(new SearchResult(Category.ARTICLE, articlesSet));
+                        }
+                    }
                     default -> results.add(new SearchResult(Category.ALL, Collections.EMPTY_SET));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
                 }
@@ -158,7 +170,6 @@ public class SearchService {
                         results.add(
                                 new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
-
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
                     default -> results.add(new SearchResult(Category.CONSULTATION,Collections.emptySet()));

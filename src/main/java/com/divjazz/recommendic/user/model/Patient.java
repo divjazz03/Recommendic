@@ -8,26 +8,23 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
-import io.hypersistence.utils.hibernate.type.json.JsonType;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @DiscriminatorValue("Patient")
 public class Patient extends User {
 
     @Column(name = "medical_categories", columnDefinition = "jsonb")
-    @Type(JsonBinaryType.class)
+    @Type(StringArrayType.class)
     @JdbcTypeCode(SqlTypes.JSON)
-    private Set<MedicalCategory> medicalCategories;
+    private String[] medicalCategories;
 
     @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
     private List<Consultation> consultations;
@@ -44,20 +41,25 @@ public class Patient extends User {
             Address address, Role role, UserCredential userCredential) {
 
         super(userName, email, phoneNumber, gender, address, role, userCredential);
-        super.setUserType(UserType.PATIENT);
-        medicalCategories = new HashSet<>(30);
+        super.setUserType(UserType.PATIENT);;
     }
 
 
-    public Set<MedicalCategory> getMedicalCategories() {
-        return medicalCategories;
+    public Set<String> getMedicalCategories() {
+        return Set.of(this.medicalCategories);
     }
 
-    public void setMedicalCategories(Set<MedicalCategory> medicalCategories) {
-        if (this.medicalCategories == null) {
-            this.medicalCategories = Objects.requireNonNull(medicalCategories);
-        } else {
-            this.medicalCategories.addAll(Objects.requireNonNull(medicalCategories));
+    public void setMedicalCategories(String[] medicalCategories) {
+
+        if (this.medicalCategories.length == 0){
+            this.medicalCategories = medicalCategories;
+            return;
+        }
+        Arrays.sort(medicalCategories);
+        Arrays.sort(this.medicalCategories);
+
+        if(Arrays.compare(medicalCategories,this.medicalCategories) != 0) {
+            this.medicalCategories = ArrayUtils.addAll(this.medicalCategories, medicalCategories);
         }
     }
 

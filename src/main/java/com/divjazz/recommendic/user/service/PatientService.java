@@ -130,12 +130,12 @@ public class PatientService {
 
     @Transactional
     public boolean handleOnboarding(String userId, List<String> medicalCategories) {
-            Set<MedicalCategory> medicalCategorySet = medicalCategories.stream()
+            Set<String> medicalCategorySet = medicalCategories.stream()
                     .map(MedicalCategoryEnum::fromValue)
-                    .map(medicalCategoryEnum -> new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
+                    .map(MedicalCategoryEnum::getValue)
                     .collect(Collectors.toSet());
             Patient patient = patientRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
-            patient.setMedicalCategories(medicalCategorySet);
+            patient.setMedicalCategories(medicalCategorySet.toArray(String[]::new));
             patient.setUserStage(UserStage.ACTIVE_USER);
         return true;
     }
