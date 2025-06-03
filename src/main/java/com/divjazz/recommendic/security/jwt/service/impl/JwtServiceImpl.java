@@ -30,6 +30,7 @@ import static org.springframework.boot.web.server.Cookie.SameSite.NONE;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -109,7 +110,7 @@ public class JwtServiceImpl implements JwtService {
 
     private final BiFunction<User, TokenType, String> buildToken = (user, type) ->
             Objects.equals(type, ACCESS) ? builder.get()
-                    .subject(user.getEmail())
+                    .subject(user.getUserId())
                     .claim(PERMISSIONS, user.getRole().getPermissions())
                     .claim(ROLE, user.getRole().getName())
                     .expiration(Date.from(Instant.now().plusSeconds(jwtConfiguration.getExpiration())))
@@ -181,16 +182,16 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public <T> T getTokenData(String token, Function<TokenData, T> tokenFunction) {
+    public <T> T getTokenData(String token,UserDetails user, Function<TokenData, T> tokenFunction) {
         return tokenFunction.apply(
                 TokenData.builder()
                         .valid(
-                                Objects.equals(userService.retrieveUserByEmail(subject.apply(token)).getEmail(), claimsFunction.apply(token).getSubject())
+                                Objects.equals(((User)user).getUserId(), claimsFunction.apply(token).getSubject())
                         )
                         .expired(Instant.now().isAfter(getClaimsValue(token, Claims::getExpiration).toInstant()))
                         .authorities(List.of(new SimpleGrantedAuthority((String) claimsFunction.apply(token).get("permissions"))))
                         .claims(claimsFunction.apply(token))
-                        .user(userService.retrieveUserByEmail(subject.apply(token)))
+                        .user(user)
                         .build()
         );
     }
@@ -206,19 +207,19 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public boolean validateToken(HttpServletRequest request) {
+    public boolean validateToken(HttpServletRequest request, UserDetails userDetails) {
         var token = extractToken(request , ACCESS.getValue());
         if (token.isPresent()) {
-            return getTokenData(token.get(), TokenData::isValid) ;
+            return getTokenData(token.get(),userDetails, TokenData::isValid) ;
         }
         return false;
     }
 
     @Override
-    public boolean validateTokenInHeader(HttpServletRequest request) {
+    public boolean validateTokenInHeader(HttpServletRequest request, UserDetails userDetails) {
         var token = extractToken(request);
         if (token.isPresent()) {
-            return getTokenData(token.get(), TokenData::isValid);
+            return getTokenData(token.get(),userDetails, TokenData::isValid);
         }
         return false;
     }

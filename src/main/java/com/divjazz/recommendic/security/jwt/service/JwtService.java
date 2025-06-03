@@ -18,10 +18,10 @@ public interface JwtService {
     Optional<String> extractToken(HttpServletRequest httpServletRequest);
     void addCookie(HttpServletResponse response, User user, TokenType type);
     void addHeader(HttpServletResponse response, User user, TokenType type);
-    <T> T getTokenData(String token, Function<TokenData, T> tokenFunction);
+    <T> T getTokenData(String token, UserDetails user, Function<TokenData, T> tokenFunction);
     <T> T getClaimsValue(String token, Function<Claims, T> claimsTFunction);
 
     void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName);
-    boolean validateToken(HttpServletRequest request);
-    boolean validateTokenInHeader(HttpServletRequest request);
+    boolean validateToken(HttpServletRequest request, UserDetails userDetails);
+    boolean validateTokenInHeader(HttpServletRequest request, UserDetails userDetails);
 }

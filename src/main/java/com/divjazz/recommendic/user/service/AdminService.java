@@ -12,7 +12,7 @@ import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
+import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import org.springframework.context.ApplicationEventPublisher;

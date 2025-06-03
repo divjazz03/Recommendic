@@ -32,7 +32,7 @@ public class MedicalCategoriesController {
     })
     public Response<Set<MedicalCategory>> getAllMedicalCategories() {
         var medicalCategories = Arrays.stream(MedicalCategoryEnum.values())
-                .map(category -> new MedicalCategory(category.toString(), category.getDescription()))
+                .map(category -> new MedicalCategory(category.getValue(), category.getDescription()))
                 .collect(Collectors.toSet());
         return RequestUtils.getResponse( medicalCategories, "found", HttpStatus.OK);
     }

@@ -9,14 +9,14 @@ public enum MedicalCategoryEnum {
     CARDIOLOGY("cardiology","Dealing with treatment of the heart"),
     ONCOLOGY("oncology","Dealing with treatment of Cancer"),
     DERMATOLOGY("dermatology","Dealing with treatment of the skin"),
-    ORTHOPEDIC_SURGERY("orthopedic_surgery","Dealing with surgery relating to the bones"),
+    ORTHOPEDIC_SURGERY("orthopedic surgery","Dealing with surgery relating to the bones"),
     NEUROSURGERY("neurosurgery","Dealing with surgery relating to the brain"),
-    CARDIOVASCULAR_SURGERY("cardiovascular_surgery","Dealing with surgery relating to the heart"),
+    CARDIOVASCULAR_SURGERY("cardiovascular surgery","Dealing with surgery relating to the heart"),
     GYNECOLOGY("gynecology","Dealing with women's reproductive health"),
     PSYCHIATRY("psychiatry","Dealing with mental health disorders"),
     DENTISTRY("dentistry","Dealing with oral health"),
     OPHTHALMOLOGY("ophthalmology","Dealing with eye care"),
-    PHYSICAL_THERAPY("physical_therapy","Dealing with recovery of patients rom injuries or surgeries");
+    PHYSICAL_THERAPY("physical therapy","Dealing with recovery of patients rom injuries or surgeries");
 
     private final String description;
 

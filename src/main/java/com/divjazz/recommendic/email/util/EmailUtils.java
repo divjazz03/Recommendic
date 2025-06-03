@@ -42,10 +42,10 @@ public class EmailUtils {
     }
 
     private static String getVerificationUrl(String host, String key) {
-        return host + "/verify/account?token=" + key;
+        return host + "/api/v1/auth/email-token?token=" + key;
     }
 
     private static String getResetPasswordUrl(String host, String key) {
-        return host + "/verify/password?token=" + key;
+        return host + "/api/v1/auth/email-token?token=" + key;
     }
 }

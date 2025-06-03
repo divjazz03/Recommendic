@@ -9,6 +9,7 @@ import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import static com.divjazz.recommendic.security.TokenType.*;
 import static com.divjazz.recommendic.RequestUtils.getErrorResponse;
 
+import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -36,12 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userService;
     public static final Pattern ACTUATOR_PATHS = Pattern.compile("^/actuator(?:/[\\w.-]+)*$");
-    public static final Pattern AUTH_PATHS = Pattern.compile("^/api/v1/auth/(login|logout)$");
+    public static final Pattern AUTH_PATHS = Pattern.compile("^/api/v1/auth/(login|logout|email-token)$");
     public static final Pattern FAVICON = Pattern.compile("^/favicon.ico");
     public static final Pattern USER_PATH = Pattern.compile("^/api/v1/(patient|consultant|admin)/create$");
     public static final Pattern MEDICAL_PATH = Pattern.compile("^/api/v1/medical_categories/$");
     public static final Pattern DRUG_API_PATH = Pattern.compile("^/api/v1/search/.*$");
     public static final Pattern LOGIN_PATH= Pattern.compile("^/user/login");
+    public static final Pattern SWAGGER_PATH = Pattern.compile("^/swagger-ui/.*|/api-docs(?:/[\\w.-]+)*$");
     public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
@@ -54,17 +56,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var requestURI = request.getRequestURI();
 
-        var shouldBeIgnored = !(FAVICON.matcher(requestURI).find() ||
+        var shouldNotBeIgnored = !(FAVICON.matcher(requestURI).find() ||
                 ACTUATOR_PATHS.matcher(requestURI).find() ||
                 USER_PATH.matcher(requestURI).find() ||
                 DRUG_API_PATH.matcher(requestURI).find() ||
                 LOGIN_PATH.matcher(requestURI).find() ||
                 AUTH_PATHS.matcher(requestURI).find() ||
+                SWAGGER_PATH.matcher(requestURI).find() ||
                 MEDICAL_PATH.matcher(requestURI).find());
 
         try {
 
-            if (shouldBeIgnored) {
+            if (shouldNotBeIgnored) {
 
                 final Optional<String> authorizationAccessToken = jwtService.extractToken(request, ACCESS.getValue());
                 final String authorizationHeader = request.getHeader("Authorization");
@@ -82,28 +85,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userService.loadUserByUserId(userId);
 
-                    if (jwtService.validateToken(request)) {
-                        var userPermissions = jwtService.getTokenData(jwtToken, TokenData::getGrantedAuthorities);
+                    if (jwtService.validateToken(request,userDetails) || jwtService.validateTokenInHeader(request,userDetails)) {
+                        var userPermissions = jwtService.getTokenData(jwtToken, userDetails, TokenData::getGrantedAuthorities);
                         logger.debug("granted authority for current user is {}", userPermissions);
                         var authentication = ApiAuthentication.authenticated(userDetails,userDetails.getPassword(),userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         logger.info("authenticated user with userId :{}", userId);
-
+                        filterChain.doFilter(request,response);
                     } else {
                         throw new InvalidTokenException();
                     }
-
                 } else {
                     throw new AuthenticationException("No user found in authentication context");
                 }
-                filterChain.doFilter(request,response);
             } else {
                 filterChain.doFilter(request,response);
             }
         } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
-
-            filterChain.doFilter(request,response);
             var errorResponse = getErrorResponse(
                     HttpStatus.EXPECTATION_FAILED,
                     e

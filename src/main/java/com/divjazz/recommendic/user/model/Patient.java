@@ -29,7 +29,6 @@ public class Patient extends User {
     @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
     private List<Consultation> consultations;
 
-
     protected Patient() {
     }
 
@@ -51,7 +50,7 @@ public class Patient extends User {
 
     public void setMedicalCategories(String[] medicalCategories) {
 
-        if (this.medicalCategories.length == 0){
+        if (this.medicalCategories == null){
             this.medicalCategories = medicalCategories;
             return;
         }

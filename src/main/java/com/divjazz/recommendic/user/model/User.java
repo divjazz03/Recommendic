@@ -8,7 +8,6 @@ import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
-import com.divjazz.recommendic.user.model.userAttributes.confirmation.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -105,7 +104,7 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         this.userId = UUID.randomUUID().toString();
         this.accountNonLocked = true;
         this.accountNonExpired = true;
-        this.enabled = true;
+        this.enabled = false;
     }
 
 
@@ -244,6 +243,9 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         return userStage;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     @Override
     public boolean equals(Object o) {

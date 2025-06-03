@@ -11,6 +11,7 @@ import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class GeneralUserService {
 
     public User retrieveCurrentUser() {
         ApiAuthentication authentication = (ApiAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return retrieveUserByEmail(authentication.getEmail());
+        return (User) authentication.getPrincipal();
 
     }
 

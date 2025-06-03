@@ -10,10 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.divjazz.recommendic.RequestUtils.getResponse;
 
@@ -36,8 +33,15 @@ public class LoginLogoutController {
     }
     @PostMapping("/logout")
     @Operation(summary = "Log user out")
-    public ResponseEntity<Void> login(HttpServletRequest request, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse httpServletResponse) {
         loginService.handleLogout(request, httpServletResponse);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/email-token")
+    @Operation(summary = "Confirm token got from email send after account creation")
+    public ResponseEntity<Response<String>> verifyEmailConfirmationToken(@RequestParam("token") String token) {
+        String response = loginService.handleConfirmationTokenValidation(token);
+        return ResponseEntity.ok(getResponse(response, "success", HttpStatus.OK));
     }
 }

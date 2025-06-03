@@ -1,13 +1,11 @@
-package com.divjazz.recommendic.user.model.userAttributes.confirmation;
+package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.model.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 
 @Entity
@@ -16,7 +14,7 @@ public class UserConfirmation extends Auditable {
     @Column(name = "key")
     private String key;
 
-    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
+    @ManyToOne(optional = false, cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
