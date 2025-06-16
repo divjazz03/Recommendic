@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS users
     medical_categories  TEXT[],
     recommendation_id   BIGINT,
     /*Consultant*/
-    specialization      jsonb,
+    specialization      CHARACTER VARYING(54),
     certified           BOOLEAN                               DEFAULT FALSE,
     certificate_id      BIGINT,
     /*Credential embed*/

@@ -45,10 +45,8 @@ public class Consultant extends User implements Serializable {
     @Column(columnDefinition = "text")
     private String bio;
 
-    @Column(name = "specialization", columnDefinition = "jsonb")
-    @Type(JsonBinaryType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
-    private MedicalCategory medicalCategory;
+    @Column(name = "specialization")
+    private String medicalCategory;
     private boolean certified;
     protected Consultant() {
     }
@@ -106,11 +104,12 @@ public class Consultant extends User implements Serializable {
     }
 
     public MedicalCategory getMedicalCategory() {
-        return medicalCategory;
+        var categoryEnum =  MedicalCategoryEnum.fromValue(medicalCategory);
+        return new MedicalCategory(categoryEnum.getValue(),categoryEnum.getDescription());
     }
 
     public void setMedicalCategory(MedicalCategoryEnum medicalCategoryEnum) {
-        this.medicalCategory = new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription());
+        this.medicalCategory = medicalCategoryEnum.getValue();
     }
 
     public String getBio() {
