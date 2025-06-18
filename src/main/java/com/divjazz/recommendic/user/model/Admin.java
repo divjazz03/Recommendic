@@ -7,12 +7,13 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@Getter
 @Entity
-@DiscriminatorValue("Admin")
 public class Admin extends User {
     @OneToMany(mappedBy = "adminAssigned",
             fetch = FetchType.LAZY,
@@ -36,15 +37,6 @@ public class Admin extends User {
         super.setUserType(UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
-
-    public Set<Assignment> getAssignment() {
-        return assignment;
-    }
-
-    public void setAssignment(Set<Assignment> assignment) {
-        this.assignment.addAll(assignment);
-    }
-
     public void addAssignment(Assignment assignment) {
         this.assignment.add(assignment);
         assignment.setAdminAssigned(this);

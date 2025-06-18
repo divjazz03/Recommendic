@@ -11,6 +11,7 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
@@ -26,12 +27,13 @@ import java.util.Set;
 import java.util.UUID;
 
 
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "dtype",discriminatorType = DiscriminatorType.STRING)
-@Table(name = "users")
-@DynamicUpdate
-public abstract class User extends Auditable implements UserDetails, Serializable {
+@MappedSuperclass
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
+public class User extends Auditable implements UserDetails {
 
     @Type(JsonBinaryType.class)
     @JdbcTypeCode(SqlTypes.JSON)
@@ -84,9 +86,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     private boolean accountNonLocked;
     private boolean enabled;
 
-    protected User() {
-    }
-
     public User(UserName userName,
                 String email,
                 String phoneNumber,
@@ -107,92 +106,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         this.enabled = false;
     }
 
-
-    public UserName getUserNameObject() {
-        return userName;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public UserType getUserType() {
-        return userType;
-    }
-
-    public void setUserType(UserType userType) {
-        this.userType = userType;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public Gender getGender() {
-        return gender;
-    }
-
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public UserName getUserName() {
-        return userName;
-    }
-
-    public void setUserName(UserName userName) {
-        this.userName = userName;
-    }
-
-    public ProfilePicture getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(ProfilePicture profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public LocalDateTime getLastLogin() {
-        return lastLogin;
-    }
-
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-
-
     @Override
     public Set<? extends GrantedAuthority> getAuthorities() {
 
@@ -208,6 +121,8 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
     public String getUsername() {
         return email;
     }
+
+    public UserName getUserNameObject() {return userName;}
 
     @Override
     public boolean isAccountNonExpired() {
@@ -230,23 +145,6 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
         return enabled;
     }
 
-
-    public UserCredential getUserCredential() {
-        return userCredential;
-    }
-
-    public void setUserCredential(UserCredential userCredential) {
-        this.userCredential = userCredential;
-    }
-
-    public UserStage getUserStage() {
-        return userStage;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -260,10 +158,8 @@ public abstract class User extends Auditable implements UserDetails, Serializabl
 
     @Override
     public int hashCode() {
-       return Objects.hash(this.getUserId(), this.getEmail());
-    }
-
-    public void setUserStage(UserStage userStage) {
-        this.userStage = userStage;
+        return Objects.hash(this.getUserId(), this.getEmail());
     }
 }
+
+

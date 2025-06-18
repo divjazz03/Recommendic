@@ -4,7 +4,9 @@ package com.divjazz.recommendic.user.model.userAttributes;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
+@Getter
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class Address {
     private String city;
@@ -20,24 +22,12 @@ public class Address {
         this.country = country;
     }
 
-    public String getCity() {
-        return city;
-    }
-
     public void setCity(String city) {
         this.city = city;
     }
 
-    public String getState() {
-        return state;
-    }
-
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getCountry() {
-        return country;
     }
 
     public void setCountry(String country) {

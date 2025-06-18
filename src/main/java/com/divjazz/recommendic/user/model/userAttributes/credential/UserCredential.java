@@ -3,10 +3,12 @@ package com.divjazz.recommendic.user.model.userAttributes.credential;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserCredential {
 
@@ -25,18 +27,6 @@ public class UserCredential {
         this.password = password;
         this.lastModified = LocalDateTime.now().toString();
         this.expiry = LocalDateTime.now().plusMonths(9).toString();
-    }
-
-    public String getExpiry() {
-        return expiry;
-    }
-
-    public String getLastModified() {
-        return lastModified;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
 

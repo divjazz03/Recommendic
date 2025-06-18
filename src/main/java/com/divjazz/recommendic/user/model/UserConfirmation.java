@@ -2,6 +2,9 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.Auditable;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -10,35 +13,27 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users_confirmation")
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserConfirmation extends Auditable {
     @Column(name = "key")
     private String key;
 
-    @ManyToOne(optional = false, cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    private User user;
+    @Column(name = "user_id")
+    private String userId;
 
     @Column(name = "expiry", nullable = false, updatable = false)
     private LocalDateTime expiry;
 
 
-    protected UserConfirmation() {
-    }
-
     public UserConfirmation(User user) {
         super();
         this.key = UUID.randomUUID().toString();
-        this.user = user;
+        this.userId = user.getUserId();
         this.expiry = LocalDateTime.now().plusHours(24);
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public Boolean isExpired() {
         return LocalDateTime.now().isAfter(expiry);
@@ -53,15 +48,6 @@ public class UserConfirmation extends Auditable {
 
         return Objects.equals(key, that.key) && Objects.equals(getId(), that.getId());
     }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     @Override
     public int hashCode() {
         var id = getId();

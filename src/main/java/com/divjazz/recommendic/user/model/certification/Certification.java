@@ -7,6 +7,8 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -14,6 +16,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "certification")
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@Getter
+@Setter
 public class Certification extends Auditable implements Serializable {
     @ManyToOne(targetEntity = Consultant.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id", nullable = false)
@@ -47,56 +51,6 @@ public class Certification extends Auditable implements Serializable {
         this.fileName = fileName;
         this.fileUrl = fileUrl;
     }
-
-
-    public User getOwnerOfCertification() {
-        return ownerOfCertification;
-    }
-
-    public void setOwnerOfCertification(Consultant ownerOfCertification) {
-        this.ownerOfCertification = ownerOfCertification;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public CertificateType getCertificateType() {
-        return certificateType;
-    }
-
-    public void setCertificateType(CertificateType certificateType) {
-        this.certificateType = certificateType;
-    }
-
-    public boolean isConfirmed() {
-        return confirmed;
-    }
-
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
-    }
-
-    public Assignment getAssignment() {
-        return assignment;
-    }
-
-    public void setAssignment(Assignment assignment) {
-        this.assignment = assignment;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

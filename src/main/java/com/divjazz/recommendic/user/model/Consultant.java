@@ -14,6 +14,8 @@ import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredenti
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
@@ -25,8 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@DiscriminatorValue("Consultant")
-public class Consultant extends User implements Serializable {
+@Getter
+@Setter
+public class Consultant extends User{
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
             mappedBy = "ownerOfCertification", orphanRemoval = true)
@@ -64,40 +67,14 @@ public class Consultant extends User implements Serializable {
         consultations = new ArrayList<>(20);
         certified = false;
     }
-
-    public List<Consultation> getConsultations() {
-        return consultations;
-    }
-
-    public void setConsultations(List<Consultation> consultations) {
-        this.consultations = consultations;
-    }
-
-    public boolean isCertified() {
-        return certified;
-    }
-
-    public void setCertified(boolean certified) {
-        this.certified = certified;
-    }
-
     /**
      * Checks if both the resume attached to the consultant has been confirmed
      */
-    private void setCertified() {
+    public void setCertified() {
         if (certificates.stream().allMatch(Certification::isConfirmed)) {
             certified = true;
         }
     }
-
-    public Set<Certification> getCertificates() {
-        return certificates;
-    }
-
-    public void setCertificates(Set<Certification> certificates) {
-        this.certificates = certificates;
-    }
-
     @Override
     public String toString() {
         return "Consultant{" + super.getUserId() + '}';
@@ -112,11 +89,4 @@ public class Consultant extends User implements Serializable {
         this.medicalCategory = medicalCategoryEnum.getValue();
     }
 
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
 }

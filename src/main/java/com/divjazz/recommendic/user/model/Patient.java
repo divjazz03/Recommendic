@@ -10,6 +10,8 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
@@ -18,7 +20,9 @@ import org.hibernate.type.SqlTypes;
 import java.util.*;
 
 @Entity
-@DiscriminatorValue("Patient")
+@Table(name = "patient", schema = "patient_schema")
+@Getter
+@Setter
 public class Patient extends User {
 
     @Column(name = "medical_categories", columnDefinition = "jsonb")
@@ -61,15 +65,6 @@ public class Patient extends User {
             this.medicalCategories = ArrayUtils.addAll(this.medicalCategories, medicalCategories);
         }
     }
-
-    public List<Consultation> getConsultations() {
-        return consultations;
-    }
-
-    public void setConsultations(List<Consultation> consultations) {
-        this.consultations = consultations;
-    }
-
     @Override
     public String toString() {
         return "Patient{" + "userId="+super.getUserId() + '}';

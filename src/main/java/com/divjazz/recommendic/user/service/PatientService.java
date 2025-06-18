@@ -82,7 +82,7 @@ public class PatientService {
             var userConfirmation = new UserConfirmation(user);
             transactionTemplate.executeWithoutResult( status -> {
                 try {
-                    userRepository.save(user);
+                    patientRepository.save(user);
                     userConfirmationRepository.save(userConfirmation);
                 } catch (IllegalArgumentException e) {
                     status.setRollbackOnly();
@@ -119,7 +119,7 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Patient> findPatientsByMedicalCategories(Set<MedicalCategory> medicalCategories) {
+    public Set<Patient> findPatientsByMedicalCategories(String[] medicalCategories) {
         return patientRepository.findPatientByMedicalCategories(medicalCategories);
     }
     public Set<Consultation> findAllConsultationForaGivenPatient(String patientId) {

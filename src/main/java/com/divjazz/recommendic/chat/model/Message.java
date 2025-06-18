@@ -4,9 +4,12 @@ import com.divjazz.recommendic.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "message")
 public class Message extends Auditable {
@@ -15,6 +18,7 @@ public class Message extends Auditable {
     @Column(name = "receiver_id", updatable = false, nullable = false)
     private String receiverId;
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Setter
     private String content;
 
     @Column(name = "consultation_id", nullable = false)
@@ -22,6 +26,7 @@ public class Message extends Auditable {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timeStamp;
     @Column(name = "delivered", nullable = false)
+    @Setter
     private boolean delivered;
 
     protected Message() {
@@ -34,39 +39,5 @@ public class Message extends Auditable {
         this.consultationId = consultationId;
         this.timeStamp = LocalDateTime.now();
         delivered = false;
-    }
-
-    public String getSenderId() {
-        return senderId;
-    }
-
-
-    public String getReceiverId() {
-        return receiverId;
-    }
-
-    public String getConsultationId() {
-        return consultationId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public LocalDateTime getTimeStamp() {
-        return timeStamp;
-    }
-
-
-    public boolean isDelivered() {
-        return delivered;
-    }
-
-    public void setDelivered(boolean delivered) {
-        this.delivered = delivered;
     }
 }

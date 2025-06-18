@@ -47,7 +47,7 @@ public class ConsultationService {
                 consultant
         );
         consultationRepository.save(consultation);
-        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserName().getFullName(), consultant.getUserName().getFullName(), Status.NOT_STARTED.toString(), consultation.getConsultationId(), false);
+        return new ConsultationResponse("", LocalDateTime.now().toString(), patient.getUserNameObject().getFullName(), consultant.getUserNameObject().getFullName(), Status.NOT_STARTED.toString(), consultation.getConsultationId(), false);
     }
 
     public ConsultationResponse acknowledgeConsultation(String consultationId) {
@@ -58,8 +58,8 @@ public class ConsultationService {
 
         return new ConsultationResponse("",
                 LocalDateTime.now().toString(),
-                consultation.getPatient().getUserName().getFullName(),
-                consultation.getConsultant().getUserName().getFullName(),
+                consultation.getPatient().getUserNameObject().getFullName(),
+                consultation.getConsultant().getUserNameObject().getFullName(),
                 consultation.getStatus().toString(),
                 consultation.getConsultationId(),
                 consultation.isAccepted());
@@ -79,8 +79,8 @@ public class ConsultationService {
                 new ConsultationResponse(
                         consultation.getDiagnosis(),
                         consultation.getConsultationTime().toString(),
-                        consultation.getPatient().getUserName().getFullName(),
-                        consultant.getUserName().getFullName(),
+                        consultation.getPatient().getUserNameObject().getFullName(),
+                        consultant.getUserNameObject().getFullName(),
                         String.valueOf(consultation.getId()),
                         consultation.getStatus().name(),
                         consultation.isAccepted()

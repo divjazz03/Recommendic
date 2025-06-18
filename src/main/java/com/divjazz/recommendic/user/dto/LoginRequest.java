@@ -2,7 +2,10 @@ package com.divjazz.recommendic.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
+import lombok.Getter;
 
+@Data
 public class LoginRequest {
     @NotEmpty(message = "Email cannot be empty or null")
     @Email(message = "Invalid email address")
@@ -11,11 +14,4 @@ public class LoginRequest {
     private String password;
 
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
 }

@@ -5,10 +5,14 @@ import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "search")
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@Getter
+@Setter
 public class Search extends Auditable {
 
     @Column(name = "query")
@@ -17,33 +21,15 @@ public class Search extends Auditable {
     @Column(name = "category")
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    @JsonProperty("user_id")
-    private User ownerOfSearch;
+    @Column(name = "owner_id")
+    private String ownerOfSearchId;
 
     protected Search() {
     }
 
     public Search(String query, Category category, User ownerOfSearch) {
         this.query = query;
-    }
-
-    public String getQuery() {
-        return query;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public User getOwnerOfSearch() {
-        return ownerOfSearch;
-    }
-
-    public void setOwnerOfSearch(User ownerOfSearch) {
-        this.ownerOfSearch = ownerOfSearch;
+        this.ownerOfSearchId = ownerOfSearch.getUserId();
+        this.category = category;
     }
 }

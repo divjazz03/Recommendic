@@ -81,7 +81,7 @@ public class ConsultantService {
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
-            var savedConsultant = userRepository.save(user);
+            var savedConsultant = consultantRepository.save(user);
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
@@ -122,7 +122,7 @@ public class ConsultantService {
     public Set<Consultant> getConsultantByCategory(MedicalCategoryEnum category) {
         return ImmutableSet.
                 copyOf(
-                        consultantRepository.findByMedicalCategory(new MedicalCategory(category.getValue(), category.getDescription()))
+                        consultantRepository.findByMedicalCategory(new MedicalCategory(category.getValue(), category.getDescription()).name())
                                 .orElseThrow(UserNotFoundException::new)
                 );
     }

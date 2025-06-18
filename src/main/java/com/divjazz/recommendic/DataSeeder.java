@@ -61,9 +61,9 @@ public class DataSeeder implements ApplicationRunner {
                     String userCredential;
                     try {
                         usernameObj = objectMapper.writeValueAsString(Map.of(
-                                "first_name", patient.getUserName().getFirstName(),
-                                "last_name", patient.getUserName().getLastName(),
-                                "full_name", patient.getUserName().getFullName()
+                                "first_name", patient.getUserNameObject().getFirstName(),
+                                "last_name", patient.getUserNameObject().getLastName(),
+                                "full_name", patient.getUserNameObject().getFullName()
                         ));
                         addressObj = objectMapper.writeValueAsString(Map.of(
                                 "city", patient.getAddress().getCity(),
@@ -85,7 +85,6 @@ public class DataSeeder implements ApplicationRunner {
                     }
                     patients.add(new Object[]{
                             patient.getUserId(),
-                            "Patient",
                             asJsonb(usernameObj),
                             patient.getEmail(),
                             patient.getPhoneNumber(),
@@ -108,8 +107,8 @@ public class DataSeeder implements ApplicationRunner {
                    if (i % BATCH_SIZE == 0) {
                        jdbcTemplate.batchUpdate(
                                """
-                       INSERT INTO users(user_id, dtype, username, email,phone_number, profile_picture, address, user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, medical_categories, user_credential)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                       INSERT INTO patient_schema.patient(user_id, username, email,phone_number, profile_picture, address, user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, medical_categories, user_credential)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                        """
                                , patients
                        );
@@ -126,9 +125,9 @@ public class DataSeeder implements ApplicationRunner {
                     String userCredential;
                     try {
                         usernameObj = objectMapper.writeValueAsString(Map.of(
-                                "first_name", consultant.getUserName().getFirstName(),
-                                "last_name", consultant.getUserName().getLastName(),
-                                "full_name", consultant.getUserName().getFullName()
+                                "first_name", consultant.getUserNameObject().getFirstName(),
+                                "last_name", consultant.getUserNameObject().getLastName(),
+                                "full_name", consultant.getUserNameObject().getFullName()
                         ));
                         addressObj = objectMapper.writeValueAsString(Map.of(
                                 "city", consultant.getAddress().getCity(),
@@ -150,7 +149,6 @@ public class DataSeeder implements ApplicationRunner {
                     }
                     consultants.add(new Object[]{
                             consultant.getUserId(),
-                            "Consultant",
                             asJsonb(usernameObj),
                             consultant.getEmail(),
                             consultant.getPhoneNumber(),
@@ -174,8 +172,8 @@ public class DataSeeder implements ApplicationRunner {
                     if (i % BATCH_SIZE == 0) {
                         jdbcTemplate.batchUpdate(
                                 """
-                        INSERT INTO users(user_id, dtype, username, email,phone_number, profile_picture, address, user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, specialization, user_credential,bio)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        INSERT INTO consultant(user_id, username, email,phone_number, profile_picture, address, user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, specialization, user_credential,bio)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                         """
                                 , consultants
                         );

@@ -82,8 +82,9 @@ public class LoginService {
         if (userConfirmation.isExpired()) {
             throw new ConfirmationTokenExpiredException();
         }
-        User user = userConfirmation.getUser();
-        user.setEnabled(true);
+        String userId = userConfirmation.getUserId();
+        generalUserService.enableUser(userId);
+
         return "confirmed";
     }
 }

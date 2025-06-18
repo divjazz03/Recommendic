@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface SearchRepository extends JpaRepository<Search, UUID> {
-    Set<Search> findByOwnerOfSearch(User patient);
+    Set<Search> findByOwnerOfSearchId(String id);
 
 
 }

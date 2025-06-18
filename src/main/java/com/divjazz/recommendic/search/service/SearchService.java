@@ -66,7 +66,7 @@ public class SearchService {
     public Set<Search> retrieveSearchesByUserId(String userId) {
         var currentUser = userService.retrieveUserByUserId(userId);
 
-        return searchRepository.findByOwnerOfSearch(currentUser);
+        return searchRepository.findByOwnerOfSearchId(currentUser.getUserId());
     }
 
     private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category) {

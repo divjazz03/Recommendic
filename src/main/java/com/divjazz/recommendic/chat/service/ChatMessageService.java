@@ -50,7 +50,7 @@ public class ChatMessageService {
     public List<ChatResponseMessage> getAllOfflineMessages(User recipient) {
         var offlineMessages = chatMessageRepository.findByReceiverId(recipient.getUserId());
         return offlineMessages.stream().map(message -> new ChatResponseMessage(
-                userService.retrieveUserByUserId(message.getSenderId()).getUserName().getFullName(),
+                userService.retrieveUserByUserId(message.getSenderId()).getUserNameObject().getFullName(),
                 userService.retrieveUserByUserId(recipient.getUserId()).getUserNameObject().getFullName(),
                 message.getConsultationId(),
                 message.getContent(),

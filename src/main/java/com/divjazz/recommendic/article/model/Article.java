@@ -8,6 +8,8 @@ import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
@@ -17,6 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "article")
 public class Article extends Auditable {
@@ -72,80 +76,9 @@ public class Article extends Auditable {
         this.status = ArticleStatus.DRAFT;
     }
 
-    public String getSubtitle() {
-        return subtitle;
-    }
-
-    public LocalDateTime getPublished_at() {
-        return published_at;
-    }
-
-    public ArticleStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ArticleStatus status) {
-        this.status = status;
-    }
-
-    public long getNumberOfReads() {
-        return numberOfReads;
-    }
-
-    public void setNumberOfReads(long numberOfReads) {
-        this.numberOfReads = numberOfReads;
-    }
 
     public long incrementReads() {
         return new AtomicLong(numberOfReads).incrementAndGet();
-    }
-
-    public String[] getTags() {
-        return tags;
-    }
-
-    public void setTags(String[] tags) {
-        this.tags = tags;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public long[] getLikeUserIds() {
-        return likeUserIds;
-    }
-
-    public void setLikeUserIds(long[] likeUserIds) {
-        this.likeUserIds = likeUserIds;
-    }
-
-    public Set<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
-    }
-
-    public Consultant getConsultant() {
-        return consultant;
-    }
-
-    public void setConsultant(Consultant consultant) {
-        this.consultant = consultant;
     }
 
     public void addComment(Comment comment) {
