@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS schedule_slot CASCADE;
+DROP TABLE IF EXISTS schedule_slot, appointment CASCADE;
 
 CREATE TABLE schedule_slot
 (
