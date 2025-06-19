@@ -4,7 +4,7 @@ package com.divjazz.recommendic.user.controller.admin;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.AdminDTO;
-import com.divjazz.recommendic.user.dto.AdminResponse;
+import com.divjazz.recommendic.user.dto.AdminInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -110,11 +110,11 @@ public class AdminController {
     })
 
     @GetMapping("/admins")
-    public ResponseEntity<Response<Set<AdminResponse>>> getAdmins(@ParameterObject Pageable pageable) {
+    public ResponseEntity<Response<Set<AdminInfoResponse>>> getAdmins(@ParameterObject Pageable pageable) {
 
         var admins = adminService.getAllAdmins(pageable);
         var data = admins.stream()
-                .map(admin -> new AdminResponse(
+                .map(admin -> new AdminInfoResponse(
                         admin.getUserId(),
                         admin.getUserNameObject().getLastName(),
                         admin.getUserNameObject().getFirstName(),

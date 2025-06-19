@@ -4,11 +4,16 @@ import com.divjazz.recommendic.Auditable;
 import com.divjazz.recommendic.consultation.enums.Status;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "consultation")
 public class Consultation extends Auditable {
@@ -33,6 +38,9 @@ public class Consultation extends Auditable {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "type_id")
+    private ConsultationType consultationType;
 
     protected Consultation() {
     }
@@ -45,57 +53,6 @@ public class Consultation extends Auditable {
         this.consultant = consultant;
     }
 
-    public String getDiagnosis() {
-        return diagnosis;
-    }
-
-    public void setDiagnosis(String diagnosis) {
-        this.diagnosis = diagnosis;
-    }
-
-    public LocalDateTime getConsultationTime() {
-        return consultationTime;
-    }
-
-    public void setConsultationTime(LocalDateTime consultationTime) {
-        this.consultationTime = consultationTime;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public Consultant getConsultant() {
-        return consultant;
-    }
-
-    public void setConsultant(Consultant consultant) {
-        this.consultant = consultant;
-    }
-
-    public String getConsultationId() {
-        return consultationId;
-    }
-
-    public boolean isAccepted() {
-        return accepted;
-    }
-
-    public void setAccepted(boolean accepted) {
-        this.accepted = accepted;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
 
     @Override
     public boolean equals(Object o) {

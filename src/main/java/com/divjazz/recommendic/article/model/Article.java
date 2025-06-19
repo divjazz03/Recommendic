@@ -5,7 +5,6 @@ import com.divjazz.recommendic.article.ArticleStatus;
 import com.divjazz.recommendic.user.model.Consultant;
 import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

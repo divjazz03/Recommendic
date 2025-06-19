@@ -3,11 +3,9 @@ package com.divjazz.recommendic.user.controller.patient;
 import com.divjazz.recommendic.Response;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
-import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -16,24 +14,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.RequestUtils.getResponse;
@@ -60,7 +52,6 @@ public class PatientController {
             """;
     private final PatientService patientService;
     private final RecommendationService recommendationService;
-    Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     public PatientController(PatientService patientService, RecommendationService recommendationService) {
         this.patientService = patientService;
@@ -87,9 +78,6 @@ public class PatientController {
                     content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<Response<PatientInfoResponse>> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams) {
-        RequestContext.reset();
-        RequestContext.setUserId(0L);
-
         PatientDTO patient = new PatientDTO(
                 new UserName(requestParams.firstName(), requestParams.lastName()),
                 requestParams.email(), requestParams.phoneNumber(),
@@ -104,7 +92,7 @@ public class PatientController {
 
         var infoResponse = patientService.createPatient(patient);
 
-        var response =  getResponse(infoResponse, "success", HttpStatus.OK);
+        var response = getResponse(infoResponse, "success", HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -133,7 +121,6 @@ public class PatientController {
     @DeleteMapping("/delete")
     @Operation(summary = "Delete Patient by id")
     public ResponseEntity<Response<Void>> deletePatient(@RequestParam("patient_id") String patientId) {
-        RequestContext.setUserId(0L);
         patientService.deletePatientByUserId(patientId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -142,11 +129,12 @@ public class PatientController {
     @Operation(summary = "Set Patient Area of Interest")
     public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
             @PathVariable("userId") @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
-            ) {
+    ) {
 
         boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
         return ResponseEntity.ok().build();
     }
+
     @GetMapping("/recommendations")
     @Operation(summary = "Get Consultant Recommendations for this particular user")
     public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String userId) {
@@ -160,6 +148,7 @@ public class PatientController {
         return ResponseEntity.ok().body(response);
     }
 
-    public record PatientOnboardingRequest(List<String> medicalCategories){}
+    public record PatientOnboardingRequest(List<String> medicalCategories) {
+    }
 
 }

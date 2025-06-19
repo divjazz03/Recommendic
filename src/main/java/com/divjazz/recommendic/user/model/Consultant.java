@@ -8,9 +8,11 @@ import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
@@ -45,12 +47,30 @@ public class Consultant extends User{
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "consultant", orphanRemoval = true)
     private List<Consultation> consultations;
+
     @Column(columnDefinition = "text")
     private String bio;
 
     @Column(name = "specialization")
     private String medicalCategory;
+    @Column(name = "certified")
     private boolean certified;
+    @Column(name = "location")
+    private String locationOfInstitution;
+
+    @Column(name = "experience")
+    private int yearsOfExperience;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "languages")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Type(StringArrayType.class)
+    private String[] languages;
+
+    @OneToOne(mappedBy = "consultant",cascade = CascadeType.REMOVE)
+    private ConsultantStat consultantStat;
     protected Consultant() {
     }
 

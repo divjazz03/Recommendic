@@ -50,7 +50,7 @@ public class GlobalControllerExceptionAdvice {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST,
                 "Invalid Argument",
-                ex.getClass().getName(),
+                "Invalid parameter",
                 new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

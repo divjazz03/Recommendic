@@ -10,7 +10,6 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "search")
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @Getter
 @Setter
 public class Search extends Auditable {

@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
-import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;

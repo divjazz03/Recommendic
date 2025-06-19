@@ -15,15 +15,11 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "certification")
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @Getter
 @Setter
-public class Certification extends Auditable implements Serializable {
-    @ManyToOne(targetEntity = Consultant.class, fetch = FetchType.LAZY)
+public class Certification extends Auditable{
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id", nullable = false)
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    @JsonProperty("user_id")
     private Consultant ownerOfCertification;
 
     @ManyToOne(fetch = FetchType.LAZY)

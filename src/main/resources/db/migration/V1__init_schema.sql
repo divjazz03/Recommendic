@@ -1,5 +1,5 @@
 BEGIN;
-
+/* Schemas include public patient consultant admin*/
 DROP TABLE IF EXISTS
     patient,
     consultant,
@@ -21,16 +21,20 @@ DROP TYPE IF EXISTS article_search_result, message_search_result, user_security_
 
 DROP INDEX IF EXISTS
     article_search_idx,
-    idx_users_email,
-    idx_users_user_id,
+    idx_consultant_email,
+    idx_consultant_user_id,
     idx_search_owner_id,
+    patient_schema.idx_patient_email,
+    patient_schema.idx_patient_user_id,
     consultation_search_idx,
     message_search_idx CASCADE;
-DROP SCHEMA IF EXISTS patient_schema;
+DROP SCHEMA IF EXISTS patient_schema, consultant_schema, admin_schema CASCADE ;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE SCHEMA patient_schema;
+CREATE SCHEMA consultant_schema;
+CREATE SCHEMA admin_schema;
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS admin
 (
@@ -270,11 +274,13 @@ CREATE TABLE IF NOT EXISTS comment
 ALTER TABLE IF EXISTS consultant
     ADD FOREIGN KEY (certificate_id) REFERENCES certification (id);
 
-CREATE INDEX idx_search_owner_id ON search (owner_id);
+CREATE INDEX IF NOT EXISTS idx_search_owner_id ON search (owner_id);
 CREATE INDEX IF NOT EXISTS idx_patient_email ON patient_schema.patient (email);
 CREATE INDEX IF NOT EXISTS idx_patient_user_id ON patient_schema.patient (user_id);
 CREATE INDEX IF NOT EXISTS idx_consultant_email ON consultant (email);
 CREATE INDEX IF NOT EXISTS idx_consultant_user_id ON consultant (user_id);
+CREATE INDEX IF NOT EXISTS idx_patient_credential ON patient_schema.patient USING GIN (user_credential);
+CREATE INDEX IF NOT EXISTS idx_consultant_credential ON consultant USING GIN (user_credential);
 CREATE INDEX IF NOT EXISTS article_search_idx ON article USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS consultation_search_idx ON consultation USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS article_status_idx on article (article_status);
@@ -517,7 +523,8 @@ CREATE TYPE user_security_data AS
 );
 
 CREATE OR REPLACE FUNCTION find_user_sec_detail_by_email(
-    input_email TEXT
+    IN input_email TEXT,
+    OUT user_security_data user_security_data
 ) RETURNS user_security_data AS
 $$
 BEGIN
@@ -525,6 +532,7 @@ BEGIN
            email,
            user_id,
            user_credential
+    INTO user_security_data
     FROM (select patient.id, patient.email, patient.user_id, patient.user_credential
           from patient_schema.patient
           where email = input_email
@@ -535,19 +543,22 @@ BEGIN
           UNION
           SELECT admin.id, admin.email, admin.user_id, admin.user_credential
           FROM admin
-          where email = input_email) as retreived;
+          where email = input_email) as retreived
+    LIMIT 1;
 END;
 
 $$
     LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION find_user_credentials_by_email(
-    input_email TEXT
-) RETURNS json AS
+    IN input_email TEXT,
+    OUT user_credential_out jsonb
+) RETURNS jsonb AS
 
 $$
 BEGIN
     SELECT user_credential
+    INTO user_credential_out
     FROM (select patient.user_credential
           from patient_schema.patient
           where email = input_email
@@ -558,18 +569,21 @@ BEGIN
           UNION
           SELECT admin.user_credential
           FROM admin
-          where email = input_email) as retreived;
+          where email = input_email) as retrieved
+    LIMIT 1;
 
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION find_user_credentials_by_userId(
-    input_user_id TEXT
-) RETURNS json AS
+    IN input_user_id TEXT,
+    OUT user_credential_out jsonb
+) RETURNS jsonb AS
 
 $$
 BEGIN
     SELECT user_credential
+    INTO user_credential_out
     FROM (select patient.user_credential
           from patient_schema.patient
           where user_id = input_user_id
@@ -580,7 +594,8 @@ BEGIN
           UNION
           SELECT admin.user_credential
           FROM admin
-          where user_id = input_user_id) as retreived;
+          where user_id = input_user_id) as retreived
+    LIMIT 1;
 
 END;
 $$ LANGUAGE plpgsql;

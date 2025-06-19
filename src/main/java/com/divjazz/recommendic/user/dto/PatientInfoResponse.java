@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record PatientInfoResponse(
-        String patientId,
+        String userId,
         String lastName,
         String firstName,
         String phoneNumber,
         String gender,
         Address address
-) implements UserResponse {
+) implements UserInfoResponse {
 }

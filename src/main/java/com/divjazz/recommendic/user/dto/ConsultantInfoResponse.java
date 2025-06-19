@@ -14,14 +14,14 @@ public record ConsultantInfoResponse(
         String phoneNumber,
         Address address,
         String medicalSpecialization
-) implements UserResponse {
+) implements UserInfoResponse {
 
-    public ConsultantInfoResponse (String consultantId,
-                                   String lastName,
-                                   String firstName,
-                                   String gender,
-                                   String phoneNumber,
-                                   Address address) {
+    public ConsultantInfoResponse(String consultantId,
+                                  String lastName,
+                                  String firstName,
+                                  String gender,
+                                  String phoneNumber,
+                                  Address address) {
         this(consultantId,lastName,firstName,gender,phoneNumber,address,null);
     }
 }

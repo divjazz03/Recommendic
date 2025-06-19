@@ -18,7 +18,7 @@ public class UserRepository {
 
     public Optional<UserSecurityProjectionDTO> findByEmail_Security_Projection(String email ) {
         String sql = """
-                SELECT * FROM find_user_sec_detail_by_email(?);
+                SELECT id, email, user_id,user_credential from find_user_sec_detail_by_email(?)
                 """;
 
         UserSecurityProjectionDTO securityProjectionDTO = jdbcTemplate.query(
@@ -39,13 +39,11 @@ public class UserRepository {
     
     public Optional<String> findByEmail_ReturningCredentialsJsonB(String email) {
         String sql = """
-                SELECT * FROM find_user_credentials_by_email(?);
+                SELECT find_user_credentials_by_email(?)
                 """;
 
-        String credentialJsonB = jdbcTemplate.query(
-                sql, (rs) -> {
-                    return rs.getString("user_credential");
-                },
+        String credentialJsonB = jdbcTemplate.queryForObject(
+                sql, String.class,
                 email
         );
 
@@ -55,13 +53,11 @@ public class UserRepository {
     
     Optional<String> findByUserId_ReturningCredentialsJsonB(String email) {
         String sql = """
-                SELECT * FROM find_user_credentials_by_userid(?);
+                SELECT find_user_credentials_by_userid(?)
                 """;
 
-        String credentialJsonB = jdbcTemplate.query(
-                sql, (rs) -> {
-                    return rs.getString("user_credential");
-                },
+        String credentialJsonB = jdbcTemplate.queryForObject(
+                sql, String.class,
                 email
         );
 
