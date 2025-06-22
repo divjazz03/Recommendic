@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/user")
 @Tag(name = "General User API")
+@RequiredArgsConstructor
 public class UserController {
 
     private final GeneralUserService userService;
 
-    public UserController(GeneralUserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping()
     @Operation(summary = "Get current user with assumption that user is authenticated")

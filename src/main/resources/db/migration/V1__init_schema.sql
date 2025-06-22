@@ -15,8 +15,7 @@ DROP TABLE IF EXISTS
     article_recommendation,
     certification,
     search,
-    message,
-    consultation CASCADE;
+    message,CASCADE;
 DROP TYPE IF EXISTS article_search_result, message_search_result, user_security_data CASCADE;
 
 DROP INDEX IF EXISTS
@@ -26,7 +25,6 @@ DROP INDEX IF EXISTS
     idx_search_owner_id,
     patient_schema.idx_patient_email,
     patient_schema.idx_patient_user_id,
-    consultation_search_idx,
     message_search_idx CASCADE;
 DROP SCHEMA IF EXISTS patient_schema, consultant_schema, admin_schema CASCADE ;
 
@@ -220,32 +218,13 @@ CREATE TABLE IF NOT EXISTS article_recommendation
     updated_by CHARACTER VARYING(54)
 );
 
-CREATE TABLE IF NOT EXISTS consultation
-(
-    id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    diagnosis         TEXT,
-    consultation_time TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    consultation_id   CHARACTER VARYING(54) UNIQUE,
-    patient_id        BIGINT REFERENCES patient_schema.patient (id) NOT NULL,
-    consultant_id     BIGINT REFERENCES consultant (id)             NOT NULL,
-    accepted          BOOLEAN                     DEFAULT FALSE,
-    status            CHARACTER VARYING(10)       DEFAULT 'NOT_STARTED',
-    search_vector     TSVECTOR GENERATED ALWAYS AS (
-                              setweight(to_tsvector('english', coalesce(diagnosis, '')), 'A') ||
-                              setweight(to_tsvector('english', coalesce(status, '')), 'B')
-                          ) STORED,
-    updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by        CHARACTER VARYING(54),
-    updated_by        CHARACTER VARYING(54)
-);
+
 
 CREATE TABLE IF NOT EXISTS message
 (
     id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     sender_id       CHARACTER VARYING(54),
     receiver_id     CHARACTER VARYING(54),
-    consultation_id CHARACTER VARYING(54) REFERENCES consultation (consultation_id),
     content         TEXT,
     timestamp       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     search_vector   tsvector GENERATED ALWAYS AS (
@@ -282,7 +261,6 @@ CREATE INDEX IF NOT EXISTS idx_consultant_user_id ON consultant (user_id);
 CREATE INDEX IF NOT EXISTS idx_patient_credential ON patient_schema.patient USING GIN (user_credential);
 CREATE INDEX IF NOT EXISTS idx_consultant_credential ON consultant USING GIN (user_credential);
 CREATE INDEX IF NOT EXISTS article_search_idx ON article USING GIN (search_vector);
-CREATE INDEX IF NOT EXISTS consultation_search_idx ON consultation USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS article_status_idx on article (article_status);
 CREATE INDEX IF NOT EXISTS message_search_idx ON message USING GIN (search_vector);
 

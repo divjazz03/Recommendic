@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +18,11 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RestController
 @RequestMapping("/api/v1/auth")
 @Tag(name = "User Login and Logout Api")
+@RequiredArgsConstructor
 public class LoginLogoutController {
 
     private final LoginService loginService;
 
-    public LoginLogoutController(LoginService loginService) {
-        this.loginService = loginService;
-    }
 
     @PostMapping("/login")
     @Operation(summary = "Log User in")

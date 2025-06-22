@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/medical_categories/")
+@RequestMapping("/api/v1/medical_categories")
 @Tag(name = "Medical Category API")
 public class MedicalCategoriesController {
 

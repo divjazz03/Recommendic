@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RestController
 @RequestMapping("/api/v1/consultant")
 @Tag(name = "Consultant API")
+@RequiredArgsConstructor
 public class ConsultantController {
 
     private static final String VALID_REQUEST = """
@@ -50,9 +52,6 @@ public class ConsultantController {
             """;
     private final ConsultantService consultantService;
 
-    public ConsultantController(ConsultantService consultantService) {
-        this.consultantService = consultantService;
-    }
 
     private static ConsultantDTO getConsultantDTO(@NotNull ConsultantRegistrationParams requestParams) {
         UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());

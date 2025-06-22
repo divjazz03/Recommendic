@@ -1,5 +1,9 @@
 package com.divjazz.recommendic;
 
+import com.divjazz.recommendic.appointment.exception.AppointmentNotFoundException;
+import com.divjazz.recommendic.appointment.exception.ScheduleNotAvailableException;
+import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
+import com.divjazz.recommendic.consultation.exception.ConsultationNotFoundException;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.LoginFailedException;
@@ -26,31 +30,49 @@ import static com.divjazz.recommendic.RequestUtils.getErrorResponse;
 public class GlobalControllerExceptionAdvice {
 
     public record ValidationErrorResponse(String message, List<FieldError> errors){
-        public record FieldError(String field, String error){}
+    }
+    public record FieldError(String field, String error){}
+
+    @ExceptionHandler(ScheduleNotAvailableException.class)
+    public ResponseEntity<Response<String>> handleScheduleSlotNotAvailable(ScheduleNotAvailableException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+    }
+
+    @ExceptionHandler(AppointmentNotFoundException.class)
+    public ResponseEntity<Response<String>> handleAppointmentNotFound(AppointmentNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+    }
+    @ExceptionHandler(ConsultationNotFoundException.class)
+    public ResponseEntity<Response<String>> handleConsultationNotFound(ConsultationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+    }
+    @ExceptionHandler(ConsultationAlreadyStartedException.class)
+    public ResponseEntity<Response<String>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
     }
 
     @ExceptionHandler(ConfirmationTokenExpiredException.class)
-    public ResponseEntity<Response<String>> handleConfirmationTokenExpiredException(ConfirmationTokenExpiredException ex) {
+    public ResponseEntity<Response<String>> handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex));
     }
     @ExceptionHandler(ConfirmationTokenNotFoundException.class)
-    public ResponseEntity<Response<String>> handleConfirmationTokenNotFoundException(ConfirmationTokenNotFoundException ex) {
+    public ResponseEntity<Response<String>> handleConfirmationTokenNotFound(ConfirmationTokenNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Response<ValidationErrorResponse>> handleArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Response<ValidationErrorResponse>> handleArgumentNotValid(MethodArgumentNotValidException ex) {
         var bindingResult = ex.getBindingResult();
 
-        List<ValidationErrorResponse.FieldError> fieldErrors = bindingResult.getFieldErrors().stream()
-                .map(fieldError -> new ValidationErrorResponse.FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors().stream()
+                .map(fieldError -> new FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
         var response = new Response<>(
                 LocalDateTime.now().toString(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST,
-                "Invalid Argument",
-                "Invalid parameter",
+                "Invalid Field",
+                "Invalid Field",
                 new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -90,7 +112,7 @@ public class GlobalControllerExceptionAdvice {
     }
 
     @ExceptionHandler(LoginFailedException.class)
-    public ResponseEntity<Response<String>> handleLoginFailedException(LoginFailedException ex) {
+    public ResponseEntity<Response<String>> handleLoginFailed(LoginFailedException ex) {
         return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex), HttpStatus.UNAUTHORIZED);
     }
 
@@ -99,15 +121,15 @@ public class GlobalControllerExceptionAdvice {
         return new ResponseEntity<>(RequestUtils.getResponse(ex.getResponseBodyAsString(), "failed", ex.getStatusCode()), ex.getStatusCode());
     }
     @ExceptionHandler(CredentialExpiredException.class)
-    public ResponseEntity<Response<String>> handleCredentialExpiredException(CredentialExpiredException ex) {
+    public ResponseEntity<Response<String>> handleCredentialExpired(CredentialExpiredException ex) {
         return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<Response<String>> handleAccountLockedException(LockedException ex) {
+    public ResponseEntity<Response<String>> handleAccountLocked(LockedException ex) {
         return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Response<String>> handleAuthenticationException(AuthenticationException ex) {
+    public ResponseEntity<Response<String>> handleAuthentication(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
     }

@@ -21,14 +21,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             """, nativeQuery = true)
     Set<ArticleSearchDTO> queryArticle(@Param("query") String query, @Param("size") int size, @Param("page") int page);
 
-    @NotNull
-    Page<Article> findAll(@NotNull Pageable pageable);
-
-    @Query(value = """
-            select a from article a left join users c on c.id = a.writer_id where c.specialization = :medicalCategory
-            """, nativeQuery = true)
-    Page<Article> findAllByMedicalCategoryOfInterest(@Param("medicalCategory") String medicalCategory, Pageable pageable);
-
     Page<Article> queryArticleByConsultant(Consultant consultant, Pageable pageable);
 
     @Query(value = """

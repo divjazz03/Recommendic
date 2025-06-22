@@ -1,8 +1,12 @@
 package com.divjazz.recommendic.search.service;
 
+import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
+import com.divjazz.recommendic.appointment.mapper.AppointmentMapper;
+import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
+import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
@@ -11,11 +15,13 @@ import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.PatientService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SearchService {
 
 
@@ -31,29 +38,16 @@ public class SearchService {
     private final ConsultantService consultantService;
     private final GeneralUserService userService;
     private final ConsultationService consultationService;
-    private final PatientService patientService;
-
+    private final AppointmentService appointmentService;
     private final ArticleService articleService;
-
     private final AdminService adminService;
-
     private final AuthUtils authUtils;
 
-    public SearchService(SearchRepository searchRepository, ConsultantService consultantService, GeneralUserService userService, ConsultationService consultationService, PatientService patientService, ArticleService articleService, AdminService adminService, AuthUtils authUtils) {
-        this.searchRepository = searchRepository;
-        this.consultantService = consultantService;
-        this.userService = userService;
-        this.consultationService = consultationService;
-        this.patientService = patientService;
-        this.articleService = articleService;
-        this.adminService = adminService;
-        this.authUtils = authUtils;
-    }
 
     /**
      * The Search is determined by the 0th index of String Array of the query after it has been split
      *
-     * @param query  This represents the query string which could either be "category" or the consultant name
+     * @param query This represents the query string which could either be "category" or the consultant name
      * @return Returns a Set of Consultant Objects
      */
     public Set<SearchResult> executeQueryForAuthorizedUsers(String query, String category) {
@@ -80,53 +74,53 @@ public class SearchService {
                 switch (searchCategoryEnum) {
                     // All categories in search option from the frontend
                     case ALL -> {
-                        var consultations = consultationService.retrieveConsultationsByUserId(currentUser.getUserId());
-                        Set<ConsultationResponse> consultationsResult = new HashSet<>(10);
-                        if (!consultations.isEmpty()) {
-                            consultationsResult = consultations.stream().map(consultation -> new ConsultationResponse(
-                                    consultation.getDiagnosis(),
-                                    consultation.getConsultationTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    consultation.getPatient().getUserNameObject().getFullName(),
-                                    consultation.getConsultant().getUserNameObject().getFullName(),
-                                    consultation.getStatus().toString(),
-                                    consultation.getConsultationId(),
-                                    consultation.isAccepted()
-                            )).collect(Collectors.toSet());
-                        }
-                        var consultants = consultantService.searchSomeConsultantsByQuery(query);
+                        var consultations = consultationService.retrieveConsultationsByPatientId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
+                        Set<AppointmentDTO> appointmentDTOSet = appointments
+                                .map(AppointmentMapper::appointmentToDTO)
+                                .limit(10).collect(Collectors.toSet());
+                        Set<ConsultationResponse> consultationsResult = consultations
+                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .limit(10).collect(Collectors.toSet());
+
+                        Set<ConsultantInfoResponse> consultants = consultantService.searchSomeConsultantsByQuery(query);
                         results.addAll(Set.of(
-                                new SearchResult(Category.CONSULTATION,consultationsResult),
-                                new SearchResult(Category.CONSULTANTS, consultants)
+                                new SearchResult(Category.CONSULTATION, consultationsResult),
+                                new SearchResult(Category.CONSULTANTS, consultants),
+                                new SearchResult(Category.APPOINTMENT, appointmentDTOSet)
                         ));
                     }
                     case CONSULTATION -> {
-                        var consultations = patientService.findAllConsultationForaGivenPatient(currentUser.getUserId());
-                        Set<ConsultationResponse> consultationsResult = new HashSet<>(10);
-                        if (!consultations.isEmpty()) {
-                            consultationsResult = consultations.stream().map(consultation -> new ConsultationResponse(
-                                    consultation.getDiagnosis(),
-                                    consultation.getConsultationTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    consultation.getPatient().getUserNameObject().getFullName(),
-                                    consultation.getConsultant().getUserNameObject().getFullName(),
-                                    consultation.getStatus().toString(),
-                                    consultation.getConsultationId(),
-                                    consultation.isAccepted()
-                            )).collect(Collectors.toSet());
-                            results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
-                        }
+                        var consultations = consultationService.retrieveConsultationsByPatientId(currentUser.getUserId());
+                        Set<ConsultationResponse> consultationsResult = consultations
+                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .limit(10).collect(Collectors.toSet());
+                        results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
 
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
                     case ARTICLE -> {
-                        PageResponse<ArticleSearchResponse> articles = articleService.searchArticle(query, Pageable.ofSize(10));
+                        PageResponse<ArticleSearchResponse> articles = articleService.searchArticle(
+                                query,
+                                Pageable.ofSize(10)
+                        );
                         if (!articles.empty()) {
                             var articlesSet = new HashSet<>(articles.content());
                             results.add(new SearchResult(Category.ARTICLE, articlesSet));
                         }
                     }
+                    case APPOINTMENT -> {
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
+                        Set<AppointmentDTO> appointmentDTOSet = appointments
+                                .map(AppointmentMapper::appointmentToDTO)
+                                .limit(10).collect(Collectors.toSet());
+
+                        results.add(
+                                new SearchResult(Category.APPOINTMENT, appointmentDTOSet)
+                        );
+                    }
                     default -> results.add(new SearchResult(Category.ALL, Collections.EMPTY_SET));
-                    //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
                 }
 
             }
@@ -135,44 +129,40 @@ public class SearchService {
                 switch (searchCategoryEnum) {
                     // All categories in search option from the frontend
                     case ALL -> {
-                        var consultations = consultationService.retrieveConsultationsByUserId(currentUser.getUserId());
-                        Set<ConsultationResponse> consultationsResult = new HashSet<>(10);
-                        if (!consultations.isEmpty()) {
-                            consultationsResult = consultations.stream().map(consultation -> new ConsultationResponse(
-                                    consultation.getDiagnosis(),
-                                    consultation.getConsultationTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    consultation.getPatient().getUserNameObject().getFullName(),
-                                    consultation.getConsultant().getUserNameObject().getFullName(),
-                                    consultation.getStatus().toString(),
-                                    consultation.getConsultationId(),
-                                    consultation.isAccepted()
-                            )).collect(Collectors.toSet());
-                        }
+                        var consultations = consultationService.retrieveConsultationsByConsultantId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
+                        Set<AppointmentDTO> appointmentDTOSet = appointments
+                                .map(AppointmentMapper::appointmentToDTO)
+                                .limit(10).collect(Collectors.toSet());
+                        Set<ConsultationResponse> consultationsResult = consultations
+                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .collect(Collectors.toSet());
 
-                        results.add(
-                                new SearchResult(Category.CONSULTATION, consultationsResult));
+                        results.addAll(Set.of(
+                                new SearchResult(Category.CONSULTATION, consultationsResult),
+                                new SearchResult(Category.APPOINTMENT, appointmentDTOSet)
+                        ));
                     }
+
                     case CONSULTATION -> {
-                        var consultations = consultationService.retrieveConsultationsByUserId(currentUser.getUserId());
-                        Set<ConsultationResponse> consultationsResult = new HashSet<>(10);
-                        if (!consultations.isEmpty()) {
-                            consultationsResult = consultations.stream().map(consultation -> new ConsultationResponse(
-                                    consultation.getDiagnosis(),
-                                    consultation.getConsultationTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    consultation.getPatient().getUserNameObject().getFullName(),
-                                    consultation.getConsultant().getUserNameObject().getFullName(),
-                                    consultation.getStatus().toString(),
-                                    consultation.getConsultationId(),
-                                    consultation.isAccepted()
-                            )).collect(Collectors.toSet());
-                        }
+                        var consultations = consultationService.retrieveConsultationsByConsultantId(currentUser.getUserId());
+                        Set<ConsultationResponse> consultationsResult = consultations
+                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .collect(Collectors.toSet());
 
                         results.add(
                                 new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+                    case APPOINTMENT -> {
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
+                        Set<AppointmentDTO> appointmentDTOSet = appointments
+                                .map(AppointmentMapper::appointmentToDTO)
+                                .limit(10).collect(Collectors.toSet());
+                        results.add(new SearchResult(Category.APPOINTMENT, appointmentDTOSet));
+                    }
 
-                    default -> results.add(new SearchResult(Category.CONSULTATION,Collections.emptySet()));
+                    default -> results.add(new SearchResult(Category.CONSULTATION, Collections.emptySet()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
 
                 }
@@ -214,7 +204,7 @@ public class SearchService {
 
             }
         }
-        searchRepository.save(new Search(query,searchCategoryEnum, currentUser));
+        searchRepository.save(new Search(query, searchCategoryEnum, currentUser));
         return results;
     }
 
@@ -223,8 +213,8 @@ public class SearchService {
         return searches.stream()
                 .flatMap(search ->
                         executeQueryForAuthorizedUsers(search.getQuery(),
-                            search.getCategory().name()).stream())
-                .limit(20)
+                                search.getCategory().name()).stream())
+                .limit(10)
                 .collect(Collectors.toSet());
     }
 }

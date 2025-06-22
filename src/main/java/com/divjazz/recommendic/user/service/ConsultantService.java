@@ -21,6 +21,7 @@ import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.google.common.collect.ImmutableSet;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -35,34 +36,14 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ConsultantService {
 
-    private final UserRepository userRepository;
     private final UserConfirmationRepository userConfirmationRepository;
     private final PasswordEncoder passwordEncoder;
     private final GeneralUserService userService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ConsultantRepository consultantRepository;
-    private final ConsultationRepository consultationRepository;
-    private final AssignmentService assignmentService;
-
-    public ConsultantService(
-            ConsultantRepository consultantRepository,
-            UserRepository userRepository,
-            UserConfirmationRepository userConfirmationRepository,
-            PasswordEncoder passwordEncoder,
-            GeneralUserService userService,
-            ApplicationEventPublisher applicationEventPublisher,
-            ConsultationRepository consultationRepository, AssignmentService assignmentService) {
-        this.userRepository = userRepository;
-        this.consultantRepository = consultantRepository;
-        this.userConfirmationRepository = userConfirmationRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userService = userService;
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.consultationRepository = consultationRepository;
-        this.assignmentService = assignmentService;
-    }
 
     public static ConsultantInfoResponse consultantToConsultantInfoResponse(Consultant consultant) {
         return new ConsultantInfoResponse(consultant.getUserId(),

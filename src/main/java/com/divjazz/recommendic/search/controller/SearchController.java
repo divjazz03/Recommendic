@@ -8,6 +8,7 @@ import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -28,15 +29,13 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RestController
 @RequestMapping("/api/v1/search")
 @Tag(name = "Search API")
+@RequiredArgsConstructor
 public class SearchController {
 
     private final SearchService searchService;
     private final ArticleService articleService;
 
-    public SearchController(SearchService searchService, ArticleService articleService) {
-        this.searchService = searchService;
-        this.articleService = articleService;
-    }
+
 
     @GetMapping
     @Operation(summary = "Execute a global search")

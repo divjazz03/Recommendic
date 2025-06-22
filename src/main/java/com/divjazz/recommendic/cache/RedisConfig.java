@@ -2,6 +2,7 @@ package com.divjazz.recommendic.cache;
 
 import com.divjazz.recommendic.cache.service.CacheService;
 import com.divjazz.recommendic.cache.service.impl.RedisCacheServiceImpl;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -32,18 +33,23 @@ public class RedisConfig {
     public RedisCacheConfiguration generalCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
                 .prefixCacheNameWith("recommendic::")
-                .entryTtl(Duration.ofMinutes(20))
+                .entryTtl(Duration.ofMinutes(10))
                 .serializeValuesWith(
                         RedisSerializationContext
                                 .SerializationPair
                                 .fromSerializer(new GenericJackson2JsonRedisSerializer())
+                )
+                .serializeKeysWith(
+                        RedisSerializationContext
+                                .SerializationPair
+                                .fromSerializer(new StringRedisSerializer())
                 )
                 .disableCachingNullValues();
     }
 
     @Bean("loginHandlerBean")
     @Primary
-    public CacheService<Object, Object> cacheService(RedisTemplate<Object, Object> redisTemplate) {
+    public CacheService<Object, Object> cacheService(@Qualifier("loginHandlerRedisTemplate") RedisTemplate<Object, Object> redisTemplate) {
         return new RedisCacheServiceImpl<>(redisTemplate);
     }
 }

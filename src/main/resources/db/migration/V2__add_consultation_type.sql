@@ -2,21 +2,6 @@ DROP TABLE IF EXISTS consultation_type,
     consultant_education, consultant_stat, consultation_review CASCADE;
 DROP INDEX IF EXISTS idx_consultant_stat, idx_consultant_review CASCADE;
 
-CREATE TABLE consultation_type
-(
-    id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name        CHARACTER VARYING(20) NOT NULL,
-    price       DECIMAL               NOT NULL,
-    description TEXT                  NOT NULL,
-    updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by        CHARACTER VARYING(54),
-    updated_by        CHARACTER VARYING(54)
-);
-
-ALTER TABLE consultation
-    ADD COLUMN IF NOT EXISTS type_id BIGINT REFERENCES consultation_type (id);
-
 ALTER TABLE consultant
     ADD COLUMN IF NOT EXISTS languages  TEXT[],
     ADD COLUMN IF NOT EXISTS location   TEXT DEFAULT NULL,
@@ -79,7 +64,6 @@ ADD COLUMN IF NOT EXISTS consultant_stat_id BIGINT REFERENCES consultant_stat(id
 CREATE TABLE consultation_review
 (
     id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    consultation_id BIGINT REFERENCES consultation (id),
     rating          INTEGER DEFAULT 0,
     comment         TEXT,
     date            TIMESTAMP(6) WITHOUT TIME ZONE,

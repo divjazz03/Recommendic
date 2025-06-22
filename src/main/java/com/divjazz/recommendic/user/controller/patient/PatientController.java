@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RestController
 @RequestMapping("/api/v1/patient")
 @Tag(name = "Patient API")
+@RequiredArgsConstructor
 public class PatientController {
 
     private static final String VALID_REQUEST = """
@@ -52,11 +54,6 @@ public class PatientController {
             """;
     private final PatientService patientService;
     private final RecommendationService recommendationService;
-
-    public PatientController(PatientService patientService, RecommendationService recommendationService) {
-        this.patientService = patientService;
-        this.recommendationService = recommendationService;
-    }
 
     @PostMapping("/create")
     @Operation(summary = "Register a Patient User",

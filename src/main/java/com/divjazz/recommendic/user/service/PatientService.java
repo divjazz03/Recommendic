@@ -18,6 +18,7 @@ import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredenti
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,10 +35,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PatientService {
 
     private final Logger log = LoggerFactory.getLogger(PatientService.class);
-    private final UserRepository userRepository;
     private final UserConfirmationRepository userConfirmationRepository;
     private final GeneralUserService userService;
     private final PasswordEncoder encoder;
@@ -46,20 +47,6 @@ public class PatientService {
 
     private final TransactionTemplate transactionTemplate;
 
-    public PatientService(
-            PatientRepository patientRepository,
-            UserRepository userRepository,
-            UserConfirmationRepository userConfirmationRepository, GeneralUserService userService,
-            PasswordEncoder encoder,
-            ApplicationEventPublisher applicationEventPublisher, TransactionTemplate transactionTemplate) {
-        this.userRepository = userRepository;
-        this.patientRepository = patientRepository;
-        this.userConfirmationRepository = userConfirmationRepository;
-        this.userService = userService;
-        this.encoder = encoder;
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.transactionTemplate = transactionTemplate;
-    }
 
 
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
@@ -115,14 +102,6 @@ public class PatientService {
     @Transactional(readOnly = true)
     public Patient findPatientByUserId(String id) {
         return patientRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
-    }
-
-    @Transactional(readOnly = true)
-    public Set<Patient> findPatientsByMedicalCategories(String[] medicalCategories) {
-        return patientRepository.findPatientByMedicalCategories(medicalCategories);
-    }
-    public Set<Consultation> findAllConsultationForaGivenPatient(String patientId) {
-        return patientRepository.findAllConsultationByPatientId(patientId);
     }
 
     @Transactional

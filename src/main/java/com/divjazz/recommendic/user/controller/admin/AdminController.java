@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RestController
 @RequestMapping("/api/v1/admin")
 @Tag(name = "Admin API")
+@RequiredArgsConstructor
 public class AdminController {
 
     private static final String VALID_REQUEST = """
@@ -49,10 +51,6 @@ public class AdminController {
             }
             """;
     private final AdminService adminService;
-
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
 
     @Operation(summary = "Register an Admin User", description = "Must be a user with super admin access")
     @ApiResponses(value = {

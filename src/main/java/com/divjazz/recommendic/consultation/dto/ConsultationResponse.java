@@ -8,12 +8,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 @JsonInclude(value = NON_DEFAULT)
 public record ConsultationResponse(
-        String diagnosis,
-        String time,
+        String summary,
+        String start_time,
         String patientName,
         String consultantName,
-        String consultationId,
+        Long consultationId,
         String status,
-        boolean accepted
+        String channel
 ) implements Serializable {
 }

@@ -15,6 +15,7 @@ import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class GeneralUserService {
 
     private final UserLoginRetryHandler userLoginRetryHandler;
@@ -32,23 +34,6 @@ public class GeneralUserService {
     private final ConsultantRepository consultantRepository;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
-
-    public GeneralUserService(
-            UserRepository userRepository,
-            UserLoginRetryHandler userLoginRetryHandler,
-            ObjectMapper objectMapper,
-            PatientRepository patientRepository,
-            ConsultantRepository consultantRepository,
-            AdminRepository adminRepository,
-            UserRepository userRepository1) {
-        this.patientRepository = patientRepository;
-        this.consultantRepository = consultantRepository;
-        this.adminRepository = adminRepository;
-
-        this.userLoginRetryHandler = userLoginRetryHandler;
-        this.objectMapper = objectMapper;
-        this.userRepository = userRepository1;
-    }
 
 
     public User retrieveUserByEmail(String email) {

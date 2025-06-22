@@ -15,8 +15,6 @@ public class UserLoginRetryHandler {
 
     @Value("${auth.maxAttempts}")
     private int MAX_ATTEMPTS;
-    @Value("${auth.lockoutDuration_minutes}")
-    private int LOCKOUT_DURATION_MINUTES;
 
     private final CacheService<Object, Object> cacheService;
 

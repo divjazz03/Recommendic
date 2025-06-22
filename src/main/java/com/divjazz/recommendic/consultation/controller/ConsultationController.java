@@ -1,59 +1,45 @@
 package com.divjazz.recommendic.consultation.controller;
 
+import com.divjazz.recommendic.RequestUtils;
 import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
-import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.RequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
+import java.net.URI;
+
+import static com.divjazz.recommendic.RequestUtils.*;
 
 @RestController()
 @RequestMapping("/api/v1/consultation")
 @Tag(name = "Consultation API")
+@RequiredArgsConstructor
 public class ConsultationController {
 
 
     private final ConsultationService consultationService;
-    private final AuthUtils authUtils;
 
-    public ConsultationController(ConsultationService consultationService,AuthUtils authUtils) {
-        this.consultationService = consultationService;
-        this.authUtils = authUtils;
+    @PostMapping(value = "/start/{appointment_id}")
+    @Operation(summary = "Starts a Consultation Session")
+    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable("appointment_id") Long appointmentId) {
+        ConsultationResponse response = consultationService.startConsultation(appointmentId);
+        return ResponseEntity.created(URI.create("/start/"+appointmentId))
+                .body(getResponse(response,"success", HttpStatus.CREATED));
     }
 
-    @PostMapping("/request")
-    @Operation(summary = "Request to open a consultation instance with a consultant")
-    public ResponseEntity<Response<ConsultationResponse>> requestConsultation(@RequestParam("consultant_id") String consultantId) {
-        var currentUser = authUtils.getCurrentUser();
-        var result = consultationService.initializeConsultation(consultantId, currentUser);
-        var response = RequestUtils.getResponse(result, "consultation initialized", HttpStatus.OK);
-        return new ResponseEntity<>(response, response.status());
+    @PostMapping(value = "/complete/{id}")
+    @Operation(summary = "Finalizes a Consultation Session")
+    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable("id") Long id, @RequestBody ConsultationCompleteRequest request) {
+        ConsultationResponse response = consultationService.completeConsultation(id, request.summary());
+        return ResponseEntity.ok(getResponse(response,"success", HttpStatus.CREATED));
     }
-
-    @GetMapping("/accept")
-    @Operation(summary = "Accept the consultation request and start chatting")
-    public ResponseEntity<Response<ConsultationResponse>> acceptConsultation(@RequestParam("consultation_id") String consultationId) {
-        var result = consultationService.acknowledgeConsultation(consultationId);
-        var response = RequestUtils.getResponse(result, "consultation acknowledged", HttpStatus.OK);
-        return new ResponseEntity<>(response, response.status());
-    }
-
-    @GetMapping("/")
-    @Operation(summary = "Get the current users consultation requests")
-    public ResponseEntity<Response<PageResponse<ConsultationResponse>>> getConsultationRequest(@PageableDefault Pageable pageable){
-        var result = consultationService.retrieveConsultationsOfConsultant(pageable);
-        return ResponseEntity.ok(RequestUtils.getResponse(result, "success", HttpStatus.OK));
-    }
-
 
 
 }

@@ -11,7 +11,7 @@ public record ArticleSearchDTO(
         String subtitle,
         String authorFirstName,
         String authorLastName,
-        LocalDateTime publishedAt,
+        String publishedAt,
         String[] tags,
         float rank,
         String highlighted,

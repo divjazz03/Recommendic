@@ -3,43 +3,39 @@ package com.divjazz.recommendic.article.service;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
+import com.divjazz.recommendic.article.dto.ArticleUpload;
+import com.divjazz.recommendic.article.exception.ArticleNotFoundException;
+import com.divjazz.recommendic.article.mapper.ArticleMapper;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.general.PageResponse;
-import com.divjazz.recommendic.general.Sort;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final AuthUtils authUtils;
 
-    public ArticleService(ArticleRepository articleRepository, AuthUtils authUtils) {
-        this.articleRepository = articleRepository;
-        this.authUtils = authUtils;
-    }
-
-    public Article uploadArticle(ArticleDTO articleDTO) {
+    public Article uploadArticle(ArticleUpload articleUpload) {
 
             var consultant = authUtils.getCurrentUser();
-            var article = new Article(articleDTO.title(),
-                    articleDTO.subtitle(),
-                    articleDTO.content(),
+            var article = new Article(articleUpload.title(),
+                    articleUpload.subtitle(),
+                    articleUpload.content(),
                     (Consultant) consultant,
-                    articleDTO.tags());
+                    articleUpload.tags());
             articleRepository.save(article);
             return article;
     }
@@ -58,6 +54,11 @@ public class ArticleService {
         return PageResponse.fromSet(pageable, setOfArticleResponse, total);
     }
 
+    public ArticleDTO getArticleById(long id) {
+        Article article = articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        return ArticleMapper.articleToArticleDTO(article);
+    }
+
 
 
     private ArticleSearchResponse convertFromSearchDTOtoSearchResponse(ArticleSearchDTO articleSearchDTO) {
@@ -70,7 +71,7 @@ public class ArticleService {
                 articleSearchDTO.upvotes(),
                 articleSearchDTO.numberOfComment(),
                 articleSearchDTO.reads(),
-                articleSearchDTO.publishedAt().toString(),
+                articleSearchDTO.publishedAt(),
                 articleSearchDTO.rank(),
                 articleSearchDTO.highlighted(),
                 articleSearchDTO.tags()
@@ -93,7 +94,7 @@ public class ArticleService {
         );
     }
 
-    public PageResponse<ArticleSearchResponse> getConsultantArticle(Consultant consultant, Pageable pageable) {
+    public PageResponse<ArticleSearchResponse> getByConsultant(Consultant consultant, Pageable pageable) {
         var pageOfArticle = articleRepository.queryArticleByConsultant(consultant, pageable);
         var pageOfArticleSearchResponse = pageOfArticle.map(this::convertFromArticleToArticleSearchResponse);
         return PageResponse.from(pageOfArticleSearchResponse);

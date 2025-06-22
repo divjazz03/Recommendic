@@ -2,30 +2,39 @@ package com.divjazz.recommendic.user.controller.patient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.*;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PatientRegistrationParams(
-        @NotEmpty(message = "First name cannot be empty or null")
+        @NotNull(message = "firstname is required")
+        @NotBlank(message = "firstname cannot be blank")
         String firstName,
-        @NotEmpty(message = "Last name cannot be empty or null")
+        @NotNull(message = "lastname is required")
+        @NotBlank(message = "First name cannot be blank")
         String lastName,
-        @NotEmpty(message = "Email cannot be empty or null")
+        @NotNull(message = "email is required")
+        @NotBlank(message = "email cannot be blank")
         @Email(message = "Invalid email address")
         String email,
-        @NotEmpty(message = "Password cannot be empty or null")
+        @Min(value = 8, message = "password must be greater than 8 characters")
+        @NotNull(message = "password is required")
+        @NotBlank(message = "password cannot be blank")
         String password,
-        @NotEmpty(message = "Phone number cannot be empty or null")
+        @NotNull(message = "phone number is required")
+        @NotBlank(message = "phone number cannot be blank")
         String phoneNumber,
-        @NotEmpty(message = "Gender cannot be empty")
+        @NotNull(message = "gender is required")
+        @NotBlank(message = "gender cannot be blank")
         String gender,
-        @NotEmpty(message = "City cannot be empty")
+        @NotNull(message = "city is required")
+        @NotBlank(message = "city cannot be blank")
         String city,
-        @NotEmpty(message = "State cannot be empty")
+        @NotNull(message = "state is required")
+        @NotBlank(message = "state cannot be blank")
         String state,
-        @NotEmpty(message = "Country cannot be empty")
+        @NotNull(message = "country is required")
+        @NotBlank(message = "country cannot be blank")
         String country) {
 }
 

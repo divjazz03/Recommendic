@@ -11,6 +11,7 @@ import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -19,17 +20,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class RecommendationService {
 
     private final RecommendationRepository recommendationRepository;
     private final ConsultantService consultantService;
     private final SearchService searchService;
 
-    public RecommendationService(RecommendationRepository recommendationRepository, ConsultantService consultantService, SearchService searchService) {
-        this.recommendationRepository = recommendationRepository;
-        this.consultantService = consultantService;
-        this.searchService = searchService;
-    }
 
     public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
         createRecommendationForPatient(patient);

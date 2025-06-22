@@ -5,7 +5,7 @@ public enum Category {
     ALL,
     CONSULTATION,
     ASSIGNMENT,
-    DRUG,
+    APPOINTMENT,
     ARTICLE,
     CONSULTANTS,
     PATIENTS,

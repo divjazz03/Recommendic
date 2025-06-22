@@ -18,6 +18,7 @@ import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class LoginService {
 
     private final GeneralUserService generalUserService;
@@ -33,14 +35,6 @@ public class LoginService {
     private final UserLoginRetryHandler userLoginRetryHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final UserConfirmationRepository userConfirmationRepository;
-
-    public LoginService(GeneralUserService generalUserService, JwtService jwtService, UserLoginRetryHandler userLoginRetryHandler, CustomAuthenticationProvider customAuthenticationProvider, UserConfirmationRepository userConfirmationRepository) {
-        this.generalUserService = generalUserService;
-        this.jwtService = jwtService;
-        this.userLoginRetryHandler = userLoginRetryHandler;
-        this.customAuthenticationProvider = customAuthenticationProvider;
-        this.userConfirmationRepository = userConfirmationRepository;
-    }
 
     public LoginResponse handleUserLogin(LoginRequest loginRequest, HttpServletResponse servletResponse) {
 

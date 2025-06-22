@@ -1,13 +1,11 @@
 package com.divjazz.recommendic.consultation.model;
 
 import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.consultation.enums.Status;
-import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
+import com.divjazz.recommendic.appointment.model.Appointment;
+import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -16,42 +14,25 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "consultation")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Consultation extends Auditable {
 
-    @Column(name = "diagnosis")
-    private String diagnosis;
-
-    @Column(name = "consultation_id")
-    private String consultationId;
-
-    @Column(name = "consultation_time")
-    private LocalDateTime consultationTime;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "patient_id")
-    private Patient patient;
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "consultant_id")
-    private Consultant consultant;
-
-    private boolean accepted;
-
+    @OneToOne
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
+    @Column(name = "summary")
+    private String summary;
     @Enumerated(EnumType.STRING)
-    private Status status;
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "type_id")
-    private ConsultationType consultationType;
-
-    protected Consultation() {
-    }
-
-    public Consultation(String diagnosis, String consultationId, LocalDateTime consultationTime, Patient patient, Consultant consultant) {
-        this.diagnosis = diagnosis;
-        this.consultationId = consultationId;
-        this.consultationTime = consultationTime;
-        this.patient = patient;
-        this.consultant = consultant;
-    }
+    @Column(name = "status")
+    private ConsultationStatus consultationStatus;
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
+    @Column (name = "channel")
+    private ConsultationChannel channel;
 
 
     @Override
@@ -62,17 +43,13 @@ public class Consultation extends Auditable {
 
         Consultation that = (Consultation) o;
 
-        return Objects.equals(consultant, that.consultant) &&
-                Objects.equals(patient, that.patient) &&
-                Objects.equals(consultationTime, that.consultationTime);
+        return Objects.equals(appointment.getId(), that.getAppointment().getId());
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (consultationTime != null ? consultationTime.hashCode() : 0);
-        result = 31 * result + (patient != null ? patient.hashCode() : 0);
-        result = 31 * result + (consultant != null ? consultant.hashCode() : 0);
+        result = 31 * result + (appointment != null ? appointment.hashCode() : 0);
         return result;
     }
 }

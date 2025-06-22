@@ -15,6 +15,7 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class AdminService {
     private final GeneralUserService userService;
     private final PasswordEncoder passwordEncoder;
@@ -35,17 +37,6 @@ public class AdminService {
 
     private final AssignmentService assignmentService;
 
-
-    public AdminService(GeneralUserService userService,
-            PasswordEncoder passwordEncoder,
-            AdminRepository adminRepository,
-            ApplicationEventPublisher applicationEventPublisher, AssignmentService assignmentService) {
-        this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
-        this.adminRepository = adminRepository;
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.assignmentService = assignmentService;
-    }
 
     @Transactional
     public AdminCredentialResponse createAdmin(AdminDTO adminDTO) throws UserAlreadyExistsException {

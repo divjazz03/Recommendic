@@ -1,6 +1,7 @@
-package com.divjazz.recommendic.consultation.model;
+package com.divjazz.recommendic.appointment.model;
 
 import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.model.Consultant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,9 +25,8 @@ public class ScheduleSlot extends Auditable {
     private ZonedDateTime startTime;
     @Column(name = "end_time")
     private ZonedDateTime endTime;
-    @ManyToOne
-    @JoinColumn(name = "consultation_type_id")
-    private ConsultationType consultationType;
+    @Enumerated(EnumType.STRING)
+    private ConsultationChannel consultationChannel;
     @Column(name = "is_recurring")
     private boolean isRecurring;
     @Column (name = "recurrence_rule")
