@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
@@ -10,13 +10,11 @@ import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -101,7 +99,8 @@ public class PatientService {
 
     @Transactional(readOnly = true)
     public Patient findPatientByUserId(String id) {
-        return patientRepository.findByUserId(id).orElseThrow(UserNotFoundException::new);
+        return patientRepository.findByUserId(id)
+                .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(id)));
     }
 
     @Transactional
@@ -110,7 +109,8 @@ public class PatientService {
                     .map(MedicalCategoryEnum::fromValue)
                     .map(MedicalCategoryEnum::getValue)
                     .collect(Collectors.toSet());
-            Patient patient = patientRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+            Patient patient = patientRepository.findByUserId(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
             patient.setMedicalCategories(medicalCategorySet.toArray(String[]::new));
             patient.setUserStage(UserStage.ACTIVE_USER);
         return true;

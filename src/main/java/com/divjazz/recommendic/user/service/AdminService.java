@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;
@@ -7,7 +8,6 @@ import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
@@ -73,7 +73,8 @@ public class AdminService {
 
     public Admin getAdminByEmail(String email) {
         return adminRepository
-                .findByEmail(email).orElseThrow(UserNotFoundException::new);
+                .findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Admin with email: %s not found".formatted(email)));
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword() {

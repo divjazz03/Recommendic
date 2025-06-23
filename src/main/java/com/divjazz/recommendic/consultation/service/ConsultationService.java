@@ -5,10 +5,10 @@ import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
-import com.divjazz.recommendic.consultation.exception.ConsultationNotFoundException;
 import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +43,7 @@ public class ConsultationService {
     @Transactional
     public ConsultationResponse completeConsultation(Long consultationId, String summary) {
         var consultation = consultationRepository.findById(consultationId)
-                .orElseThrow(() -> new ConsultationNotFoundException(consultationId));
+                .orElseThrow(() -> new EntityNotFoundException("Consultation with id: %s either doesn't exist or has been deleted"));
 
         consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
@@ -58,5 +58,11 @@ public class ConsultationService {
     @Transactional(readOnly = true)
     public Stream<Consultation> retrieveConsultationsByConsultantId(String consultantId) {
         return consultationRepository.findConsultationsByConsultantUserId(consultantId);
+    }
+    public Consultation getConsultationById(Long consultationId) {
+        return consultationRepository.findById(consultationId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Consultation with id: %s not found".formatted(consultationId))
+                );
     }
 }

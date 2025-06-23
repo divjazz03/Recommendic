@@ -44,10 +44,6 @@ public class Consultant extends User{
     )
     private Set<Article> articles;
 
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "consultant", orphanRemoval = true)
-    private List<Consultation> consultations;
-
     @Column(columnDefinition = "text")
     private String bio;
 
@@ -84,7 +80,6 @@ public class Consultant extends User{
         super.setUserType(UserType.CONSULTANT);
         this.medicalCategory = null;
         certificates = new HashSet<>(30);
-        consultations = new ArrayList<>(20);
         certified = false;
     }
     /**

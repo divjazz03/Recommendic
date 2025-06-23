@@ -4,10 +4,10 @@ import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.dto.ArticleUpload;
-import com.divjazz.recommendic.article.exception.ArticleNotFoundException;
 import com.divjazz.recommendic.article.mapper.ArticleMapper;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -55,7 +55,8 @@ public class ArticleService {
     }
 
     public ArticleDTO getArticleById(long id) {
-        Article article = articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Article with id: %s either doesn't exist or has been deleted".formatted(id)));
         return ArticleMapper.articleToArticleDTO(article);
     }
 

@@ -1,4 +1,6 @@
 package com.divjazz.recommendic.chat.dto;
 
-public record ChatResponseMessage(String senderName, String receiverName, String consultationId, String content, java.time.LocalDateTime timestamp, Boolean viewed) {
+import java.time.LocalDateTime;
+
+public record ChatResponseMessage(String senderName, String receiverName, long consultationId, String content, LocalDateTime timestamp, Boolean viewed) {
 }

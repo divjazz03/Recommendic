@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
@@ -11,14 +11,12 @@ import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.google.common.collect.ImmutableSet;
 import lombok.RequiredArgsConstructor;
@@ -103,8 +101,12 @@ public class ConsultantService {
     public Set<Consultant> getConsultantByCategory(MedicalCategoryEnum category) {
         return ImmutableSet.
                 copyOf(
-                        consultantRepository.findByMedicalCategory(new MedicalCategory(category.getValue(), category.getDescription()).name())
-                                .orElseThrow(UserNotFoundException::new)
+                        consultantRepository
+                                .findByMedicalCategory(
+                                        new MedicalCategory(category.getValue(), category.getDescription()).name()
+                                )
+                                .orElseThrow(
+                                        () -> new EntityNotFoundException("Consultant with category: %s not found".formatted(category)))
                 );
     }
 
@@ -125,7 +127,8 @@ public class ConsultantService {
     }
 
     public Consultant retrieveConsultantByUserId(String userId) {
-        return consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+        return consultantRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
     }
 
     public void deleteConsultantById(String userId) {
@@ -140,7 +143,8 @@ public class ConsultantService {
     public boolean handleOnboarding(String userId, String medicalSpecialization) {
         try {
             MedicalCategoryEnum medicalSpec = MedicalCategoryEnum.valueOf(medicalSpecialization);
-            Consultant consultant = consultantRepository.findByUserId(userId).orElseThrow(UserNotFoundException::new);
+            Consultant consultant = consultantRepository.findByUserId(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
             consultant.setMedicalCategory(medicalSpec);
             consultant.setUserStage(UserStage.ACTIVE_USER);
             consultantRepository.save(consultant);

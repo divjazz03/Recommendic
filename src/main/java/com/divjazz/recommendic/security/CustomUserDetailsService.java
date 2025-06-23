@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.security;
 
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,12 +23,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try{
             return userService.retrieveUserByEmail(username);
-        } catch (UserNotFoundException userNotFoundException){
+        } catch (EntityNotFoundException ex){
             throw new AuthenticationException("Invalid email please signup");
         }
     }
 
-    public UserDetails loadUserByUserId(String userId) throws UserNotFoundException {
+    public UserDetails loadUserByUserId(String userId) throws EntityNotFoundException {
         return userService.retrieveUserByUserId(userId);
     }
 }

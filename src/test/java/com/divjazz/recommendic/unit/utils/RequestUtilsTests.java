@@ -1,10 +1,9 @@
 package com.divjazz.recommendic.unit.utils;
 
 import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.user.exception.CertificateNotFoundException;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.RequestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,8 +45,7 @@ public class RequestUtilsTests {
     private static Stream<Arguments> getErrorResponseShouldReturnAResponseObjectWithTheAppropriateException(){
         return Stream.of(
                 Arguments.of(new UserAlreadyExistsException("e")),
-                Arguments.of(new UserNotFoundException()),
-                Arguments.of(new CertificateNotFoundException(" ? ")),
+                Arguments.of(new EntityNotFoundException("")),
                 Arguments.of(new NoSuchMedicalCategory())
         );
     }
@@ -71,8 +69,7 @@ public class RequestUtilsTests {
     private static Stream<Arguments> getErrorResponseShouldReturnAResponseObjectWithTheAppropriateStatusCodeAndMessage(){
         return Stream.of(
                 Arguments.of(HttpStatus.EXPECTATION_FAILED, new UserAlreadyExistsException("e")),
-                Arguments.of(HttpStatus.NOT_FOUND, new UserNotFoundException()),
-                Arguments.of(HttpStatus.NOT_FOUND, new CertificateNotFoundException(" ? ")),
+                Arguments.of(HttpStatus.NOT_FOUND, new EntityNotFoundException("")),
                 Arguments.of(HttpStatus.NOT_FOUND, new NoSuchMedicalCategory())
         );
     }

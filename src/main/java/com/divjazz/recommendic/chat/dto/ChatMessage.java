@@ -9,12 +9,12 @@ public class ChatMessage {
     private final String senderId;
     private final String receiverId;
     private final String content;
-    private final String consultationId;
+    private final long consultationId;
     private final LocalDateTime timeStamp;
     private final MessageType messageType;
 
 
-    public ChatMessage(String senderId, String receiverId, String content, String consultationId, MessageType messageType) {
+    public ChatMessage(String senderId, String receiverId, String content, long consultationId, MessageType messageType) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
@@ -35,7 +35,7 @@ public class ChatMessage {
         return messageType;
     }
 
-    public String getConsultationId() {
+    public long getConsultationId() {
         return consultationId;
     }
 

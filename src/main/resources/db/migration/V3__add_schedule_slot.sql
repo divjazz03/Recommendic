@@ -5,7 +5,8 @@ DROP TYPE IF EXISTS session_channel,consultation_status, appointment_status;
 CREATE TYPE session_channel AS ENUM ('VOICE','CHAT', 'VIDEO','IN_PERSON');
 CREATE TYPE consultation_status AS ENUM ('ONGOING','COMPLETED', 'MISSED');
 CREATE TYPE  appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELED');
-CREATE TABLE schedule_slot
+
+CREATE TABLE IF NOT EXISTS schedule_slot
 (
     id                   BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
     consultant_id        BIGINT REFERENCES consultant (id)               NOT NULL,
@@ -21,13 +22,14 @@ CREATE TABLE schedule_slot
     updated_by           CHARACTER VARYING(54)
 );
 
-CREATE TABLE appointment
+CREATE TABLE IF NOT EXISTS appointment
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
     patient_id    BIGINT REFERENCES patient_schema.patient (id),
     consultant_id BIGINT REFERENCES consultant (id),
+    schedule_slot_id BIGINT REFERENCES schedule_slot (id),
     note          TEXT,
-    status        TEXT                           DEFAULT 'CONFIRMED',
+    status        appointment_status        DEFAULT 'REQUESTED',
     updated_at    TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    CHARACTER VARYING(54),

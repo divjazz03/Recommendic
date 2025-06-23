@@ -4,8 +4,10 @@ import com.divjazz.recommendic.chat.dto.ChatMessage;
 import com.divjazz.recommendic.chat.dto.ChatResponseMessage;
 import com.divjazz.recommendic.chat.model.Message;
 import com.divjazz.recommendic.chat.repository.ChatMessageRepository;
+import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -15,24 +17,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
+    private final ConsultationService consultationService;
     private final GeneralUserService userService;
 
-    public ChatMessageService(ChatMessageRepository chatMessageRepository, GeneralUserService userService) {
-        this.chatMessageRepository = chatMessageRepository;
-        this.userService = userService;
-    }
 
     public void saveMessage(ChatMessage chatMessage) {
-        var offlineMessage = new Message(chatMessage.getSenderId(), chatMessage.getReceiverId(), chatMessage.getConsultationId(), chatMessage.getContent());
+        var consultation = consultationService.getConsultationById(chatMessage.getConsultationId());
+        var offlineMessage = new Message(chatMessage.getSenderId(), chatMessage.getReceiverId(), consultation, chatMessage.getContent());
         chatMessageRepository.save(offlineMessage);
     }
 
     @Transactional
     public void sendMessage(ChatMessage chatMessage) {
-        var message = new Message(chatMessage.getSenderId(), chatMessage.getReceiverId(), chatMessage.getConsultationId(), chatMessage.getContent());
+        var consultation = consultationService.getConsultationById(chatMessage.getConsultationId());
+        var message = new Message(chatMessage.getSenderId(), chatMessage.getReceiverId(), consultation, chatMessage.getContent());
         try {
             message.setDelivered(true);
             chatMessageRepository.save(message);
@@ -52,7 +54,7 @@ public class ChatMessageService {
         return offlineMessages.stream().map(message -> new ChatResponseMessage(
                 userService.retrieveUserByUserId(message.getSenderId()).getUserNameObject().getFullName(),
                 userService.retrieveUserByUserId(recipient.getUserId()).getUserNameObject().getFullName(),
-                message.getConsultationId(),
+                message.getConsultation().getId(),
                 message.getContent(),
                 message.getTimeStamp(),
                 message.isDelivered()

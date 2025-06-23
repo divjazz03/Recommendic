@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.notification.service;
 
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.notification.dto.NotificationDTO;
 import com.divjazz.recommendic.notification.model.Notification;
@@ -8,6 +9,7 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,18 +23,26 @@ public class NotificationService {
         Notification notification = new Notification(notificationDTO.header(),
                 notificationDTO.summary(),
                 notificationDTO.userId(),
-                false);
+                false,
+                notificationDTO.category());
         notificationRepository.save(notification);
         return notificationDTO;
+    }
+    @Transactional
+    public void setNotificationToSeen(Long notificationId) {
+        var notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new EntityNotFoundException("Notification with id: %s not found".formatted(notificationId)));
+        notification.setSeen(true);
     }
 
     public PageResponse<NotificationDTO> getNotificationsForAuthenticatedUser(Pageable pageable) {
         return PageResponse.from(notificationRepository
-                .findAllByUserId(authUtils.getCurrentUser().getUserId(), pageable)
+                .findAllByForUserId(authUtils.getCurrentUser().getUserId(), pageable)
                 .map(notification -> new NotificationDTO(notification.getHeader(),
                         notification.getSummary(),
-                        notification.getUserId(),
-                        notification.isSeen())
+                        notification.getForUserId(),
+                        notification.isSeen(),
+                        notification.getCategory())
                 ));
     }
 }

@@ -4,18 +4,17 @@ import com.divjazz.recommendic.security.ApiAuthentication;
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.TokenType;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
-import com.divjazz.recommendic.security.exception.TokenNotFoundException;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.LoginResponse;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.exception.ConfirmationTokenExpiredException;
-import com.divjazz.recommendic.user.exception.ConfirmationTokenNotFoundException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +71,7 @@ public class LoginService {
     @Transactional
     public String handleConfirmationTokenValidation(String token) {
         UserConfirmation userConfirmation = userConfirmationRepository.findByKey(token)
-                .orElseThrow(ConfirmationTokenNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Confirmation with token: %s does not exist".formatted(token)));
         if (userConfirmation.isExpired()) {
             throw new ConfirmationTokenExpiredException();
         }

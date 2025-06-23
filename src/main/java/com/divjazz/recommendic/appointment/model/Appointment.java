@@ -23,6 +23,7 @@ public class Appointment extends Auditable {
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
     @ManyToOne(optional = false)
+    @JoinColumn(name = "schedule_slot_id")
     private ScheduleSlot scheduleSlot;
     @Column(name = "note")
     private String note;

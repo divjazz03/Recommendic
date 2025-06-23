@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.ApiAuthentication;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -42,7 +42,7 @@ public class GeneralUserService {
 
     public UserSecurityProjection retrieveUserDetailInfoByEmail(String email) {
         var result = userRepository.findByEmail_Security_Projection(email)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("User with email: %s not found".formatted(email)));
         var credential = objectMapper.convertValue(result.userCredential(), UserCredential.class);
 
         return new UserSecurityProjection(result.id(), result.email(), result.userId(), credential);
@@ -53,7 +53,7 @@ public class GeneralUserService {
         return objectMapper
                 .convertValue(userRepository
                                 .findByEmail_ReturningCredentialsJsonB(email)
-                                .orElseThrow(UserNotFoundException::new),
+                        .orElseThrow(() -> new EntityNotFoundException("User with email: %s not found".formatted(email))),
                         UserCredential.class);
     }
 
@@ -93,7 +93,7 @@ public class GeneralUserService {
             return admin.get();
         }
 
-        throw new UserNotFoundException();
+        throw new EntityNotFoundException("User with email: %s not found".formatted(email));
     }
 
     private User findUserByUserId(String userId) {
@@ -110,11 +110,11 @@ public class GeneralUserService {
             return admin.get();
         }
 
-        throw new UserNotFoundException();
+        throw new EntityNotFoundException("User with id: %s not found".formatted(userId));
     }
 
     @Transactional
-    public void updateLoginAttempt(User user, LoginType loginType) throws UserNotFoundException {
+    public void updateLoginAttempt(User user, LoginType loginType) throws EntityNotFoundException {
         RequestContext.setUserId(user.getId());
         switch (loginType) {
             case LOGIN_FAILED -> {

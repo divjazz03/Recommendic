@@ -32,6 +32,7 @@ public class Consultation extends Auditable {
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
     @Column (name = "channel")
+    @Enumerated(EnumType.STRING)
     private ConsultationChannel channel;
 
 

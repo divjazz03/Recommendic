@@ -29,10 +29,6 @@ public class Patient extends User {
     @Type(StringArrayType.class)
     @JdbcTypeCode(SqlTypes.JSON)
     private String[] medicalCategories;
-
-    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
-    private List<Consultation> consultations;
-
     protected Patient() {
     }
 

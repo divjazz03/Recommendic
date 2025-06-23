@@ -1,15 +1,14 @@
 package com.divjazz.recommendic.security;
 
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.domain.TokenData;
 import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.TokenNotFoundException;
 import com.divjazz.recommendic.security.jwt.service.JwtService;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 
 import static com.divjazz.recommendic.security.TokenType.*;
 import static com.divjazz.recommendic.RequestUtils.getErrorResponse;
 
-import com.divjazz.recommendic.user.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -102,7 +101,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } else {
                 filterChain.doFilter(request,response);
             }
-        } catch ( UserNotFoundException | InvalidTokenException | TokenNotFoundException e) {
+        } catch (EntityNotFoundException | TokenNotFoundException | InvalidTokenException e) {
             var errorResponse = getErrorResponse(
                     HttpStatus.EXPECTATION_FAILED,
                     e

@@ -10,6 +10,6 @@ import java.util.stream.Stream;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    Page<Notification> findAllByUserId(String userId, Pageable pageable);
-    Page<Notification> findAllByUserIdAndSeenIsFalse(String userId);
+    Page<Notification> findAllByForUserId(String userId, Pageable pageable);
+    Page<Notification> findAllByForUserIdAndSeenIsFalse(String userId, Pageable pageable);
 }

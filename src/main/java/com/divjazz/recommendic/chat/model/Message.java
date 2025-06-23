@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.chat.model;
 
 import com.divjazz.recommendic.Auditable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.divjazz.recommendic.consultation.model.Consultation;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,8 +20,10 @@ public class Message extends Auditable {
     @Setter
     private String content;
 
-    @Column(name = "consultation_id", nullable = false)
-    private String consultationId;
+
+    @JoinColumn(name = "consultation_id")
+    @ManyToOne
+    private Consultation consultation;
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timeStamp;
     @Column(name = "delivered", nullable = false)
@@ -32,11 +33,11 @@ public class Message extends Auditable {
     protected Message() {
     }
 
-    public Message(String senderId, String receiverId, String consultationId, String content) {
+    public Message(String senderId, String receiverId, Consultation consultation, String content) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
-        this.consultationId = consultationId;
+        this.consultation = consultation;
         this.timeStamp = LocalDateTime.now();
         delivered = false;
     }

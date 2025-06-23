@@ -3,15 +3,14 @@ package com.divjazz.recommendic.appointment.service;
 import com.divjazz.recommendic.appointment.dto.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
-import com.divjazz.recommendic.appointment.exception.AppointmentNotFoundException;
 import com.divjazz.recommendic.appointment.exception.ScheduleNotAvailableException;
 import com.divjazz.recommendic.appointment.mapper.AppointmentMapper;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.ScheduleSlot;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleSlotRepository;
+import com.divjazz.recommendic.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.user.exception.UserNotFoundException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
@@ -37,7 +35,7 @@ public class AppointmentService {
 
     public Appointment getAppointmentById(Long appointmentId) {
         return appointmentRepository.findById(appointmentId)
-                .orElseThrow(AppointmentNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Appointment with id: %s not found".formatted(appointmentId)));
     }
 
     @Transactional
@@ -46,9 +44,11 @@ public class AppointmentService {
                 .findAllByConsultant_UserId(appointmentCreationRequest.consultantId());
         Consultant consultant  = consultantRepository
                 .findByUserId(appointmentCreationRequest.consultantId())
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s does not exist"
+                        .formatted(appointmentCreationRequest.consultantId())));
         Patient patient = patientRepository.findByUserId(authUtils.getCurrentUser().getUserId())
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s does not exist"
+                        .formatted(appointmentCreationRequest.consultantId())));
 
         ScheduleSlot foundScheduleSlot = scheduleSlotStream
                 .filter( scheduleSlot -> {
