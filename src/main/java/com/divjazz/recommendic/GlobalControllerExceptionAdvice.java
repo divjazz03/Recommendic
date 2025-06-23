@@ -8,6 +8,7 @@ import com.divjazz.recommendic.security.exception.LoginFailedException;
 import com.divjazz.recommendic.user.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +29,10 @@ public class GlobalControllerExceptionAdvice {
     }
     public record FieldError(String field, String error){}
 
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<Response<String>> handleAccountDisabled(DisabledException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,ex));
+    }
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)
     public ResponseEntity<Response<String>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
@@ -97,6 +102,11 @@ public class GlobalControllerExceptionAdvice {
     }
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Response<String>> handleAuthentication(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
+    }
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<Response<String>> handleGeneralAuthenticationError(org.springframework.security.core.AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
     }

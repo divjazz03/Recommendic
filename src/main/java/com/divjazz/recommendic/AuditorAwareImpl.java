@@ -1,9 +1,7 @@
 package com.divjazz.recommendic;
 
-import com.divjazz.recommendic.security.ApiAuthentication;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;

@@ -17,7 +17,6 @@ public record PatientRegistrationParams(
         @NotBlank(message = "email cannot be blank")
         @Email(message = "Invalid email address")
         String email,
-        @Min(value = 8, message = "password must be greater than 8 characters")
         @NotNull(message = "password is required")
         @NotBlank(message = "password cannot be blank")
         String password,

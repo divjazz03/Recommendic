@@ -27,8 +27,4 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new AuthenticationException("Invalid email please signup");
         }
     }
-
-    public UserDetails loadUserByUserId(String userId) throws EntityNotFoundException {
-        return userService.retrieveUserByUserId(userId);
-    }
 }

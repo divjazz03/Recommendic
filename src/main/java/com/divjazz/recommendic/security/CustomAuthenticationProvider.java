@@ -1,7 +1,9 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -20,13 +22,25 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication){
         var userCredentials = generalUserService.retrieveUserCredentials((String) authentication.getPrincipal());
         if (userCredentials.isExpired()) {
             throw new CredentialsExpiredException("Credentials are expired, please reset your password");
         }
-
-        return super.authenticate(authentication);
+        try {
+            return super.authenticate(authentication);
+        } catch (AuthenticationException authenticationException) {
+            if (authenticationException instanceof BadCredentialsException ex) {
+                logger.error(ex.getMessage());
+                throw new com.divjazz.recommendic.security.exception
+                        .AuthenticationException("Login Failed: %s".formatted(ex.getMessage()));
+            }
+            if (authenticationException instanceof DisabledException ex) {
+                logger.error(ex.getMessage());
+                throw ex;
+            }
+            throw authenticationException;
+        }
     }
 
     @Override

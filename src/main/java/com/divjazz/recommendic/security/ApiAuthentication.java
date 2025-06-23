@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.model.User;
+import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,7 +14,9 @@ public class ApiAuthentication extends UsernamePasswordAuthenticationToken {
     private static final String PASSWORD_PROTECTED = "[PASSWORD_PROTECTED]";
     private static final String EMAIL_PROTECTED = "[EMAIL_PROTECTED]";
     private User user;
+    @Getter
     private final String email;
+    @Getter
     private final String password;
 
 
@@ -48,10 +51,4 @@ public class ApiAuthentication extends UsernamePasswordAuthenticationToken {
         return isAuthenticated() ? user : email;
     }
 
-    public String getPassword() {
-        return this.password;
-    }
-    public String getEmail() {
-        return this.email;
-    }
 }

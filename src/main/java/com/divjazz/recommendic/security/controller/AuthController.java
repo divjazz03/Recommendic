@@ -7,10 +7,10 @@ import com.divjazz.recommendic.user.dto.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import static com.divjazz.recommendic.RequestUtils.getResponse;
@@ -19,21 +19,28 @@ import static com.divjazz.recommendic.RequestUtils.getResponse;
 @RequestMapping("/api/v1/auth")
 @Tag(name = "User Login and Logout Api")
 @RequiredArgsConstructor
-public class LoginLogoutController {
+public class AuthController {
 
     private final LoginService loginService;
 
 
     @PostMapping("/login")
     @Operation(summary = "Log User in")
-    public ResponseEntity<Response<LoginResponse>> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpServletResponse) {
-        var result = loginService.handleUserLogin(loginRequest, httpServletResponse);
+    public ResponseEntity<Response<LoginResponse>> login(@RequestBody LoginRequest loginRequest,
+                                                         HttpServletRequest httpServletRequest) {
+        var result = loginService.handleUserLogin(loginRequest,httpServletRequest);
+
         return ResponseEntity.ok(getResponse(result,"success", HttpStatus.OK));
+    }
+    @GetMapping("/me")
+    public CurrentUser me() {
+        String principal = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return new CurrentUser(principal);
     }
     @PostMapping("/logout")
     @Operation(summary = "Log user out")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse httpServletResponse) {
-        loginService.handleLogout(request, httpServletResponse);
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        request.getSession().invalidate();
         return ResponseEntity.ok().build();
     }
 
@@ -43,4 +50,6 @@ public class LoginLogoutController {
         String response = loginService.handleConfirmationTokenValidation(token);
         return ResponseEntity.ok(getResponse(response, "success", HttpStatus.OK));
     }
+
+    public record CurrentUser(String principal){}
 }
