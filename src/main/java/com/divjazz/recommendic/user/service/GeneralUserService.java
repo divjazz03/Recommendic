@@ -16,6 +16,7 @@ import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,8 +60,8 @@ public class GeneralUserService {
 
 
     public User retrieveCurrentUser() {
-        ApiAuthentication authentication = (ApiAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
+        var authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        return  retrieveUserByEmail((String) authentication.getPrincipal());
 
     }
 
