@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.model.certification;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

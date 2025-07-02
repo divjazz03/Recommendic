@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.article.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.article.ArticleStatus;
 import com.divjazz.recommendic.user.model.Consultant;
 import io.hypersistence.utils.hibernate.type.array.LongArrayType;
@@ -9,9 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -36,7 +34,6 @@ public class Article extends Auditable {
     private String content;
 
     @Type(LongArrayType.class)
-    @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "like_ids")
     private long[] likeUserIds;
     @OneToMany(cascade = CascadeType.ALL,
@@ -44,7 +41,6 @@ public class Article extends Auditable {
             orphanRemoval = true)
     private Set<Comment> comments;
     @Type(StringArrayType.class)
-    @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "tags")
     private String[] tags;
     @ManyToOne(fetch = FetchType.LAZY)

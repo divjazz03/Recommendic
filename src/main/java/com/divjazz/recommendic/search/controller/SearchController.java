@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.search.controller;
 
-import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.service.ArticleService;
-import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.divjazz.recommendic.RequestUtils.getResponse;
+import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 
 @RestController
@@ -53,7 +53,7 @@ public class SearchController {
     @Operation(summary = "Search for Article")
     public ResponseEntity<Response<PageResponse<ArticleSearchResponse>>> searchArticle(@RequestParam(name = "query", defaultValue = "") String query,
                                                                                        @PageableDefault Pageable pageable) {
-        PageResponse<ArticleSearchResponse> results = articleService.searchArticle(query,
+        PageResponse<ArticleSearchResponse> results = articleService.searchPageArticle(query,
                 pageable);
         return ResponseEntity.ok(getResponse(results, "Success", HttpStatus.OK));
 

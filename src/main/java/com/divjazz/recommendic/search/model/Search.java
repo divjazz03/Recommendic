@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.search.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.user.model.User;
-import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

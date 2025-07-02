@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.consultation.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;

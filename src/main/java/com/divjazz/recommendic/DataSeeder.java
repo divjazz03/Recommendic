@@ -209,7 +209,6 @@ public class DataSeeder implements ApplicationRunner {
                 faker.phoneNumber().phoneNumber(),
                 Gender.FEMALE,
                 address,
-                Role.PATIENT,
                 userCredential
         );
         patient.setUserStage(UserStage.ACTIVE_USER);
@@ -230,7 +229,6 @@ public class DataSeeder implements ApplicationRunner {
                 faker.phoneNumber().phoneNumber(),
                 Gender.MALE,
                 address1,
-                Role.CONSULTANT,
                 userCredential1
         );
         consultant.setUserStage(UserStage.ACTIVE_USER);

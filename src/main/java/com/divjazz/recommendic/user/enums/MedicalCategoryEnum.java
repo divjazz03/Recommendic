@@ -36,7 +36,7 @@ public enum MedicalCategoryEnum {
     }
 
     @JsonCreator
-    public static MedicalCategoryEnum fromValue(String value) {
+    public static MedicalCategoryEnum fromValue(String value) throws IllegalArgumentException {
         if (value != null) {
             for (MedicalCategoryEnum medicalCategoryEnum : MedicalCategoryEnum.values()) {
                 if (medicalCategoryEnum.value.equalsIgnoreCase(value)) {

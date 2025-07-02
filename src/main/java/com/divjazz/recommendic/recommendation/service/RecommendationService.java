@@ -28,12 +28,12 @@ public class RecommendationService {
     private final SearchService searchService;
 
 
-    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
-        createRecommendationForPatient(patient);
-
-        return recommendationRepository.findByPatient(patient).orElse(Set.of());
-
-    }
+//    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
+//        createRecommendationForPatient(patient);
+//
+//        return recommendationRepository.findByPatient(patient).orElse(Set.of());
+//
+//    }
 
     private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant) {
         return new ConsultantInfoResponse(
@@ -58,32 +58,32 @@ public class RecommendationService {
         );
     }
 
-    public void createRecommendationForPatient(Patient patient) {
-        var medicalCategories = patient.getMedicalCategories().stream()
-                .map(MedicalCategoryEnum::fromValue)
-                .map(medicalCategoryEnum ->
-                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
-                .collect(Collectors.toSet());
-        var searchHistory = searchService.retrieveSearchesByUserId(patient.getUserId());
-        var consultantsBasedOnMedicalCategories = retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
-
-        Set<ConsultantRecommendation> consultantRecommendations = consultantsBasedOnMedicalCategories.stream()
-                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
-                .collect(Collectors.toSet());
-
-        var consultantsBasedOnSearchHistory = retrieveConsultantsBasedOnPatientSearchHistory(searchHistory);
-        consultantRecommendations.addAll(consultantsBasedOnSearchHistory.stream()
-                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
-                .collect(Collectors.toSet()));
-
-        recommendationRepository.saveAll(consultantRecommendations);
-    }
+//    public void createRecommendationForPatient(Patient patient) {
+//        var medicalCategories = patient.getMedicalCategories().stream()
+//                .map(MedicalCategoryEnum::fromValue)
+//                .map(medicalCategoryEnum ->
+//                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
+//                .collect(Collectors.toSet());
+//        var searchHistory = searchService.retrieveSearchesByUserId(patient.getUserId());
+//        var consultantsBasedOnMedicalCategories = retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
+//
+//        Set<ConsultantRecommendation> consultantRecommendations = consultantsBasedOnMedicalCategories.stream()
+//                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
+//                .collect(Collectors.toSet());
+//
+//        var consultantsBasedOnSearchHistory = retrieveConsultantsBasedOnPatientSearchHistory(searchHistory);
+//        consultantRecommendations.addAll(consultantsBasedOnSearchHistory.stream()
+//                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
+//                .collect(Collectors.toSet()));
+//
+//        recommendationRepository.saveAll(consultantRecommendations);
+//    }
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()
                 .map(medicalCategory -> MedicalCategoryEnum.fromValue(medicalCategory.name()))
                 .flatMap(medicalCategory -> consultantService
-                        .getConsultantByCategory(medicalCategory)
+                        .getConsultantsByCategory(medicalCategory)
                         .stream())
                 .collect(Collectors.toSet());
     }

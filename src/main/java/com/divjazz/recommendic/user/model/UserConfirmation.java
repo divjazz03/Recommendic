@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

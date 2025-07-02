@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -12,15 +12,11 @@ import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredenti
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -36,7 +32,6 @@ import java.util.UUID;
 public class User extends Auditable implements UserDetails {
 
     @Type(JsonBinaryType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "username", nullable = false, columnDefinition = "jsonb")
     private UserName userName;
 
@@ -53,7 +48,6 @@ public class User extends Auditable implements UserDetails {
     private Gender gender;
 
     @Type(JsonBinaryType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "address", nullable = false, columnDefinition = "jsonb")
     private Address address;
 
@@ -61,7 +55,6 @@ public class User extends Auditable implements UserDetails {
     private LocalDateTime lastLogin;
 
     @Type(JsonBinaryType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "profile_picture", nullable = false, columnDefinition = "jsonb")
     private ProfilePicture profilePicture;
     @Column(name = "role")
@@ -69,7 +62,6 @@ public class User extends Auditable implements UserDetails {
     private Role role;
 
     @Type(JsonBinaryType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
     private UserCredential userCredential;
 

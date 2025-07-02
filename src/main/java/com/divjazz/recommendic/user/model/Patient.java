@@ -37,9 +37,9 @@ public class Patient extends User {
             String email,
             String phoneNumber,
             Gender gender,
-            Address address, Role role, UserCredential userCredential) {
+            Address address, UserCredential userCredential) {
 
-        super(userName, email, phoneNumber, gender, address, role, userCredential);
+        super(userName, email, phoneNumber, gender, address, Role.PATIENT, userCredential);
         super.setUserType(UserType.PATIENT);;
     }
 

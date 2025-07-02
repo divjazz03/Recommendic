@@ -1,15 +1,15 @@
 package com.divjazz.recommendic.article.controller;
 
-import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchResponse;
 import com.divjazz.recommendic.article.dto.ArticleUpload;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.service.ArticleService;
-import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.global.security.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
-import static com.divjazz.recommendic.RequestUtils.getResponse;
+import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/article")

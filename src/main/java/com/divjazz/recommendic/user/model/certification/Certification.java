@@ -1,16 +1,13 @@
 package com.divjazz.recommendic.user.model.certification;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.User;
-import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 @Entity

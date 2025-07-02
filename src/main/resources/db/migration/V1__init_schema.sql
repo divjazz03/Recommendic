@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS
     article_recommendation,
     certification,
     search,
-    message,CASCADE;
+    message CASCADE;
 DROP TYPE IF EXISTS article_search_result, message_search_result, user_security_data CASCADE;
 
 DROP INDEX IF EXISTS
@@ -26,7 +26,7 @@ DROP INDEX IF EXISTS
     patient_schema.idx_patient_email,
     patient_schema.idx_patient_user_id,
     message_search_idx CASCADE;
-DROP SCHEMA IF EXISTS patient_schema, consultant_schema, admin_schema CASCADE ;
+DROP SCHEMA IF EXISTS patient_schema, consultant_schema, admin_schema CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS admin
     account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)        NOT NULL,
     role                CHARACTER VARYING(54)        NOT NULL,
-    last_login          TIMESTAMP(6) WITH TIME ZONE           DEFAULT NULL,
-    updated_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
+    last_login          TIMESTAMP                             DEFAULT NULL,
+    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
     created_by          CHARACTER VARYING(54),
     updated_by          CHARACTER VARYING(54),
     /*Credential embed*/
@@ -78,9 +78,9 @@ CREATE TABLE IF NOT EXISTS patient_schema.patient
     account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)        NOT NULL,
     role                CHARACTER VARYING(54)        NOT NULL,
-    last_login          TIMESTAMP(6) WITH TIME ZONE           DEFAULT NULL,
-    updated_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
+    last_login          TIMESTAMP                             DEFAULT NULL,
+    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
     created_by          CHARACTER VARYING(54),
     updated_by          CHARACTER VARYING(54),
     medical_categories  TEXT[],
@@ -105,36 +105,45 @@ CREATE TABLE IF NOT EXISTS consultant
     account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)        NOT NULL,
     role                CHARACTER VARYING(54)        NOT NULL,
-    last_login          TIMESTAMP(6) WITH TIME ZONE           DEFAULT NULL,
-    updated_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP(6) WITH TIME ZONE           DEFAULT CURRENT_TIMESTAMP,
+    location            CHARACTER VARYING(100)       NOT NULL,
+    experience          INTEGER                              ,
+    title               CHARACTER VARYING(100)       NOT NULL,
+    languages           CHARACTER VARYING(54)[]      ,
+    last_login          TIMESTAMP                             DEFAULT NULL,
+    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
     created_by          CHARACTER VARYING(54),
     updated_by          CHARACTER VARYING(54),
     specialization      CHARACTER VARYING(54),
     certified           BOOLEAN                               DEFAULT FALSE,
     certificate_id      BIGINT,
-    user_credential     jsonb
+    user_credential     jsonb,
+    search_vector       tsvector GENERATED ALWAYS AS (
+                                    setweight(to_tsvector('english', coalesce(username ->> 'first_name', '')), 'A') ||
+                                    setweight(to_tsvector('english', coalesce(username ->> 'last_name', '')), 'B') ||
+                                    setweight(to_tsvector('english', coalesce(specialization, '')), 'C')
+                            ) STORED
 
 );
 
 CREATE TABLE IF NOT EXISTS users_confirmation
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id    CHARACTER VARYING(54)              NOT NULL,
-    expiry     TIMESTAMP(6) WITH TIME ZONE NOT NULL,
-    key        CHARACTER VARYING(100)      NOT NULL,
-    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by CHARACTER VARYING(54)       NOT NULL,
-    updated_by CHARACTER VARYING(54)       NOT NULL
+    user_id    CHARACTER VARYING(54)  NOT NULL,
+    expiry     TIMESTAMP(6)           NOT NULL,
+    key        CHARACTER VARYING(100) NOT NULL,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_by CHARACTER VARYING(54)  NOT NULL,
+    updated_by CHARACTER VARYING(54)  NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS assignment
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     admin_id   BIGINT REFERENCES admin (id),
-    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by CHARACTER VARYING(54) NOT NULL,
     updated_by CHARACTER VARYING(54) NOT NULL
 );
@@ -149,9 +158,9 @@ CREATE TABLE IF NOT EXISTS certification
     file_name        CHARACTER VARYING(255)            NOT NULL,
     file_url         CHARACTER VARYING(255)            NOT NULL,
     certificate_type CHARACTER VARYING(30)             NOT NULL,
-    confirmed        BOOLEAN                     DEFAULT TRUE,
-    updated_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    confirmed        BOOLEAN      DEFAULT TRUE,
+    updated_at       TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at       TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by       CHARACTER VARYING(54)             NOT NULL,
     updated_by       CHARACTER VARYING(54)             NOT NULL
 
@@ -162,9 +171,9 @@ CREATE TABLE IF NOT EXISTS search
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     query      CHARACTER VARYING(30) NOT NULL,
     owner_id   CHARACTER VARYING(54) NOT NULL,
-    category   CHARACTER VARYING(30)       DEFAULT 'ALL',
-    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    category   CHARACTER VARYING(30) DEFAULT 'ALL',
+    updated_at TIMESTAMP(6)          DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6)          DEFAULT CURRENT_TIMESTAMP,
     created_by CHARACTER VARYING(54) NOT NULL,
     updated_by CHARACTER VARYING(54) NOT NULL
 );
@@ -179,16 +188,16 @@ CREATE TABLE IF NOT EXISTS article
     like_ids       BIGINT[],
     tags           CHARACTER VARYING(50)[],
     writer_id      BIGINT REFERENCES consultant (id) NOT NULL,
-    no_of_reads    BIGINT                      DEFAULT 0,
+    no_of_reads    BIGINT       DEFAULT 0,
     article_status CHARACTER VARYING(10)             NOT NULL,
     search_vector  TSVECTOR GENERATED ALWAYS AS (
                                setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
                                setweight(to_tsvector('english', coalesce(content, '')), 'B') ||
                                setweight(to_tsvector('english', coalesce(subtitle, '')), 'C')
                        ) STORED,
-    updated_at     TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at     TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    published_at   TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
+    updated_at     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    published_at   TIMESTAMP(6) DEFAULT NULL,
     created_by     CHARACTER VARYING(54)             NOT NULL,
     updated_by     CHARACTER VARYING(54)             NOT NULL
 
@@ -200,8 +209,8 @@ CREATE TABLE IF NOT EXISTS consultant_recommendation
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     patient_id    BIGINT REFERENCES patient_schema.patient (id) NOT NULL,
     consultant_id BIGINT REFERENCES consultant (id)             NOT NULL,
-    updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by    CHARACTER VARYING(54)                         NOT NULL,
     updated_by    CHARACTER VARYING(54)                         NOT NULL
 );
@@ -212,8 +221,8 @@ CREATE TABLE IF NOT EXISTS article_recommendation
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     patient_id BIGINT REFERENCES patient_schema.patient (id) NOT NULL,
     article_id BIGINT REFERENCES article (id)                NOT NULL,
-    updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by CHARACTER VARYING(54),
     updated_by CHARACTER VARYING(54)
 );
@@ -222,19 +231,19 @@ CREATE TABLE IF NOT EXISTS article_recommendation
 
 CREATE TABLE IF NOT EXISTS message
 (
-    id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    sender_id       CHARACTER VARYING(54),
-    receiver_id     CHARACTER VARYING(54),
-    content         TEXT,
-    timestamp       TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    search_vector   tsvector GENERATED ALWAYS AS (
-                        setweight(to_tsvector('english', coalesce(content, '')), 'C')
-                        ) STORED,
-    delivered       BOOLEAN                     DEFAULT FALSE,
-    updated_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at      TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by      CHARACTER VARYING(54),
-    updated_by      CHARACTER VARYING(54)
+    id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    sender_id     CHARACTER VARYING(54),
+    receiver_id   CHARACTER VARYING(54),
+    content       TEXT,
+    timestamp     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    search_vector tsvector GENERATED ALWAYS AS (
+                      setweight(to_tsvector('english', coalesce(content, '')), 'C')
+                      ) STORED,
+    delivered     BOOLEAN      DEFAULT FALSE,
+    updated_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_by    CHARACTER VARYING(54),
+    updated_by    CHARACTER VARYING(54)
 
 );
 
@@ -244,8 +253,8 @@ CREATE TABLE IF NOT EXISTS comment
     user_id           CHARACTER VARYING(54) NOT NULL,
     article_id        BIGINT REFERENCES article (id),
     parent_comment_id BIGINT REFERENCES comment (id),
-    updated_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at        TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at        TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by        CHARACTER VARYING(54),
     updated_by        CHARACTER VARYING(54)
 );
@@ -271,7 +280,7 @@ CREATE TYPE article_search_result AS
     subtitle        CHARACTER VARYING(54),
     authorFirstName TEXT,
     authorLastName  TEXT,
-    published_at    TIMESTAMP WITH TIME ZONE,
+    published_at    TIMESTAMP,
     rank            float4,
     highlight       TEXT,
     total           BIGINT
@@ -281,8 +290,8 @@ CREATE OR REPLACE FUNCTION search_articles(
     search_query TEXT,
     tag_filter CHARACTER VARYING(50)[] DEFAULT NULL,
     author_filter BIGINT[] DEFAULT NULL,
-    min_date TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
-    max_date TIMESTAMP(6) WITH TIME ZONE DEFAULT NULL,
+    min_date TIMESTAMP(6) DEFAULT NULL,
+    max_date TIMESTAMP(6) DEFAULT NULL,
     page_size INTEGER DEFAULT 20,
     page_number INTEGER DEFAULT 1
 )

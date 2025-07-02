@@ -10,8 +10,8 @@ public class ArticleMapper {
                 article.getTitle(),
                 article.getSubtitle(),
                 article.getContent(),
-                article.getTags(),
-                article.getLikeUserIds().length,
+                null,//article.getTags(),
+                0L, //article.getLikeUserIds().length,
                 article.getConsultant().getUserNameObject().getFullName(),
                 article.getNumberOfReads(),
                 article.getPublished_at().toString()

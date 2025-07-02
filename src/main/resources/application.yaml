@@ -1,0 +1,95 @@
+server:
+  error:
+    include-binding-errors: never
+    include-message: never
+  tomcat:
+    accept-count: 500
+    threads:
+      max: 300
+      min-spare: 20
+    max-swallow-size: 50MB
+  shutdown: graceful
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: false
+        secure: false
+        name: SESSIONID
+
+spring:
+  application:
+    name: Recommendic
+  servlet:
+    multipart:
+      enabled: true
+      max-request-size: 10MB
+      max-file-size: 30MB
+  session:
+    redis:
+      flush-mode: on_save
+      namespace: recommendic:test:session
+  data:
+    redis:
+      url: ${REDIS_DATABASE_URL}
+      connect-timeout: 60000
+  flyway:
+    enabled: true
+    locations: 'classpath:db/migration'
+    baseline-on-migrate: true
+
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: false
+  jpa:
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+        format_sql: true
+  mail:
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        mime:
+          charset: UTF
+        smtp:
+          ssl:
+            enable: true
+    verify:
+      host: ${VERIFY_EMAIL_HOST}
+    username: ${EMAIL_ID}
+
+management:
+  endpoint:
+    metrics:
+      access: read_only
+    info:
+      access: read_only
+    health:
+      show-details: always
+      access: read_only
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+cors:
+  frontend:
+    domain: 'http://localhost:5173'
+auth:
+  maxAttempts: 5
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true

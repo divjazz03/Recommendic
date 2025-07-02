@@ -1,17 +1,14 @@
 package com.divjazz.recommendic.user.controller.patient;
 
-import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.RequestUtils.getResponse;
+import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 
 @RestController
@@ -122,28 +119,28 @@ public class PatientController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/onboarding/{userId}")
-    @Operation(summary = "Set Patient Area of Interest")
-    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
-            @PathVariable("userId") @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
-    ) {
+//    @PutMapping("/onboarding/{userId}")
+//    @Operation(summary = "Set Patient Area of Interest")
+//    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
+//            @PathVariable("userId") @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
+//    ) {
+//
+//        boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
+//        return ResponseEntity.ok().build();
+//    }
 
-        boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/recommendations")
-    @Operation(summary = "Get Consultant Recommendations for this particular user")
-    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String userId) {
-
-        Patient patient = patientService.findPatientByUserId(userId);
-        var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
-        var response = getResponse(recommendations,
-                "Success in retrieving the Patient Users",
-                HttpStatus.OK
-        );
-        return ResponseEntity.ok().body(response);
-    }
+//    @GetMapping("/recommendations")
+//    @Operation(summary = "Get Consultant Recommendations for this particular user")
+//    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String userId) {
+//
+//        Patient patient = patientService.findPatientByUserId(userId);
+//        var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
+//        var response = getResponse(recommendations,
+//                "Success in retrieving the Patient Users",
+//                HttpStatus.OK
+//        );
+//        return ResponseEntity.ok().body(response);
+//    }
 
     public record PatientOnboardingRequest(List<String> medicalCategories) {
     }

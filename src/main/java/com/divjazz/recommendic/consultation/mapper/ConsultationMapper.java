@@ -15,7 +15,7 @@ public class ConsultationMapper {
                 consultantName.getFullName(),
                 consultation.getId(),
                 consultation.getConsultationStatus().toString(),
-                consultation.getAppointment().getScheduleSlot().getConsultationChannel().toString()
+                consultation.getAppointment().getConsultationChannel().toString()
         );
     }
 }

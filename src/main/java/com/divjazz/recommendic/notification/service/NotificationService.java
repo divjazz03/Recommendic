@@ -1,11 +1,11 @@
 package com.divjazz.recommendic.notification.service;
 
-import com.divjazz.recommendic.exception.EntityNotFoundException;
-import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.dto.NotificationDTO;
 import com.divjazz.recommendic.notification.model.Notification;
 import com.divjazz.recommendic.notification.repository.NotificationRepository;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.global.security.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,10 +29,18 @@ public class NotificationService {
         return notificationDTO;
     }
     @Transactional
-    public void setNotificationToSeen(Long notificationId) {
+    public NotificationDTO setNotificationToSeen(Long notificationId) {
         var notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new EntityNotFoundException("Notification with id: %s not found".formatted(notificationId)));
         notification.setSeen(true);
+
+        return new NotificationDTO(
+                notification.getHeader(),
+                notification.getSummary(),
+                notification.getForUserId(),
+                notification.isSeen(),
+                notification.getCategory()
+        );
     }
 
     public PageResponse<NotificationDTO> getNotificationsForAuthenticatedUser(Pageable pageable) {

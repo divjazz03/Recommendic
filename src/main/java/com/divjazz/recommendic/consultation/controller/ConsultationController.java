@@ -1,11 +1,9 @@
 package com.divjazz.recommendic.consultation.controller;
 
-import com.divjazz.recommendic.RequestUtils;
-import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
-import com.divjazz.recommendic.security.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
-import static com.divjazz.recommendic.RequestUtils.*;
+import static com.divjazz.recommendic.global.RequestUtils.*;
 
 @RestController()
 @RequestMapping("/api/v1/consultation")

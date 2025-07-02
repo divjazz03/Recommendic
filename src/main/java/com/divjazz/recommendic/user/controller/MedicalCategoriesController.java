@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.user.controller;
 
-import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
-import com.divjazz.recommendic.RequestUtils;
+import com.divjazz.recommendic.global.RequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -34,7 +34,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     LEFT JOIN FETCH c.appointment a
     LEFT JOIN FETCH a.patient p
     LEFT JOIN FETCH a.consultant co
-    LEFT JOIN FETCH a.scheduleSlot ss
+    LEFT JOIN FETCH a.schedule ss
     WHERE co.userId = :userId or p.userId = :userId
     """)
     Set<Consultation> getAllConsultationsByAppointment_Patient_UserIdOrAppointment_Consultant_UserId(
@@ -45,7 +45,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
      LEFT JOIN FETCH c.appointment a
      LEFT JOIN FETCH a.patient p
      LEFT JOIN FETCH a.consultant co
-     LEFT JOIN FETCH a.scheduleSlot ss
+     LEFT JOIN FETCH a.schedule ss
      WHERE p.userId = :patientId
      ORDER BY a.createdAt
      """
@@ -56,7 +56,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     LEFT JOIN FETCH c.appointment a
     LEFT JOIN FETCH  a.patient p
     LEFT JOIN FETCH a.consultant co
-    LEFT JOIN FETCH a.scheduleSlot ss
+    LEFT JOIN FETCH a.schedule ss
     WHERE p.userId = :patientId
     """)
     Stream<Consultation> findConsultationsByPatientUserId(@Param("patientId") String patientId);
@@ -65,7 +65,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     LEFT JOIN FETCH c.appointment a
     LEFT JOIN FETCH  a.patient p
     LEFT JOIN FETCH a.consultant co
-    LEFT JOIN FETCH a.scheduleSlot ss
+    LEFT JOIN FETCH a.schedule ss
     WHERE co.userId = :consultantId
     """)
     Stream<Consultation> findConsultationsByConsultantUserId(@Param("consultantId") String consultantId);

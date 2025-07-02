@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.notification.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.notification.enums.NotificationCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

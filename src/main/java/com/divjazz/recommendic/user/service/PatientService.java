@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.exception.EntityNotFoundException;
-import com.divjazz.recommendic.user.domain.RequestContext;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.EventType;
@@ -11,7 +10,6 @@ import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
@@ -25,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -43,10 +40,7 @@ public class PatientService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PatientRepository patientRepository;
 
-    private final TransactionTemplate transactionTemplate;
-
-
-
+    @Transactional
     public PatientInfoResponse createPatient(PatientDTO patientDTO) {
         UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
         Patient user = new Patient(
@@ -55,23 +49,15 @@ public class PatientService {
                 patientDTO.phoneNumber(),
                 patientDTO.gender(),
                 patientDTO.address(),
-                Role.PATIENT,
                 userCredential);
         user.setUserCredential(userCredential);
         user.setUserType(UserType.PATIENT);
         user.setUserStage(UserStage.ONBOARDING);
 
         if (userService.isUserNotExists(user.getEmail())) {
-            RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
-            transactionTemplate.executeWithoutResult( status -> {
-                try {
-                    patientRepository.save(user);
-                    userConfirmationRepository.save(userConfirmation);
-                } catch (IllegalArgumentException e) {
-                    status.setRollbackOnly();
-                }
-            });
+            patientRepository.save(user);
+            userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
             applicationEventPublisher.publishEvent(userEvent);
             log.info("New user with id {} created", user.getUserId());
@@ -96,7 +82,6 @@ public class PatientService {
     }
 
 
-
     @Transactional(readOnly = true)
     public Patient findPatientByUserId(String id) {
         return patientRepository.findByUserId(id)
@@ -105,14 +90,16 @@ public class PatientService {
 
     @Transactional
     public boolean handleOnboarding(String userId, List<String> medicalCategories) {
-            Set<String> medicalCategorySet = medicalCategories.stream()
-                    .map(MedicalCategoryEnum::fromValue)
-                    .map(MedicalCategoryEnum::getValue)
-                    .collect(Collectors.toSet());
-            Patient patient = patientRepository.findByUserId(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
+        Set<String> medicalCategorySet = medicalCategories.stream()
+                .map(MedicalCategoryEnum::fromValue)
+                .map(MedicalCategoryEnum::getValue)
+                .collect(Collectors.toSet());
+        Patient patient = patientRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
+        if (patient.getUserStage() == UserStage.ONBOARDING) {
             patient.setMedicalCategories(medicalCategorySet.toArray(String[]::new));
             patient.setUserStage(UserStage.ACTIVE_USER);
+        }
         return true;
     }
 

@@ -6,12 +6,17 @@ import jakarta.validation.constraints.NotNull;
 public record AppointmentCreationRequest(
         @NotNull(message = "id is required")
         String consultantId,
-        @Future
+
+        long scheduleId,
+
         @NotNull(message = "startTime is required")
         String startTime,
-        @Future
+
         @NotNull(message = "startTime is required")
         String endTime,
+        @NotNull(message = "appointment date is required")
+        @Future
+        String appointmentDate,
         @NotNull(message = "channel is required")
         String channel
 ) {

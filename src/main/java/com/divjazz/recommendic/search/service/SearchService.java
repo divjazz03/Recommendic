@@ -8,24 +8,21 @@ import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
-import com.divjazz.recommendic.general.PageResponse;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.repository.SearchRepository;
-import com.divjazz.recommendic.security.exception.AuthenticationException;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.global.security.exception.AuthenticationException;
+import com.divjazz.recommendic.global.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
-import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,20 +73,27 @@ public class SearchService {
                     case ALL -> {
                         var consultations = consultationService.retrieveConsultationsByPatientId(currentUser.getUserId());
                         var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
+                        var articles = articleService.searchArticle(
+                                query,
+                                Pageable.ofSize(10)
+                        );
+
                         Set<AppointmentDTO> appointmentDTOSet = appointments
                                 .map(AppointmentMapper::appointmentToDTO)
-                                .limit(10).collect(Collectors.toSet());
+                                .limit(10).collect(Collectors.toUnmodifiableSet());
                         Set<ConsultationResponse> consultationsResult = consultations
                                 .map(ConsultationMapper::consultationToConsultationResponse)
-                                .limit(10).collect(Collectors.toSet());
+                                .limit(10).collect(Collectors.toUnmodifiableSet());
 
                         Set<ConsultantInfoResponse> consultants = consultantService.searchSomeConsultantsByQuery(query);
                         results.addAll(Set.of(
+                                new SearchResult(Category.ARTICLE, articles.collect(Collectors.toUnmodifiableSet())),
                                 new SearchResult(Category.CONSULTATION, consultationsResult),
                                 new SearchResult(Category.CONSULTANTS, consultants),
                                 new SearchResult(Category.APPOINTMENT, appointmentDTOSet)
                         ));
                     }
+
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationsByPatientId(currentUser.getUserId());
                         Set<ConsultationResponse> consultationsResult = consultations
@@ -101,15 +105,14 @@ public class SearchService {
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
 
                     case ARTICLE -> {
-                        PageResponse<ArticleSearchResponse> articles = articleService.searchArticle(
+                       var articles = articleService.searchArticle(
                                 query,
                                 Pageable.ofSize(10)
                         );
-                        if (!articles.empty()) {
-                            var articlesSet = new HashSet<>(articles.content());
-                            results.add(new SearchResult(Category.ARTICLE, articlesSet));
-                        }
+                       Set<ArticleSearchResponse> articleSet = articles.collect(Collectors.toUnmodifiableSet());
+                       results.add(new SearchResult(Category.ARTICLE, articleSet));
                     }
+
                     case APPOINTMENT -> {
                         var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
@@ -160,6 +163,14 @@ public class SearchService {
                                 .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.APPOINTMENT, appointmentDTOSet));
+                    }
+                    case ARTICLE -> {
+                        var articles = articleService.searchArticle(
+                                query,
+                                Pageable.ofSize(10)
+                        );
+                        Set<ArticleSearchResponse> articleSet = articles.collect(Collectors.toUnmodifiableSet());
+                        results.add(new SearchResult(Category.ARTICLE, articleSet));
                     }
 
                     default -> results.add(new SearchResult(Category.CONSULTATION, Collections.emptySet()));

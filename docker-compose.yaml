@@ -3,7 +3,7 @@ services:
 
   postgres:
     container_name: recommendic_db
-    image: postgres:16-alpine3.20
+    image: postgres:17.5-alpine3.22
     env_file: .env
     restart: unless-stopped
     ports:

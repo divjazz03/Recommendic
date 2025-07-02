@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.user.controller.consultant;
 
 
-import com.divjazz.recommendic.Response;
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.divjazz.recommendic.RequestUtils.getResponse;
+import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/consultant")

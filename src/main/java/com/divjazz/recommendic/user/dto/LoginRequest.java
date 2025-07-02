@@ -2,16 +2,16 @@ package com.divjazz.recommendic.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.Getter;
-
-@Data
-public class LoginRequest {
-    @NotEmpty(message = "Email cannot be empty or null")
-    @Email(message = "Invalid email address")
-    private String email;
-    @NotEmpty(message = "Password cannot be empty or null")
-    private String password;
 
 
+public record LoginRequest(
+        @NotNull(message = "Email is required")
+        @Email(message = "Invalid email address")
+        String email,
+        @NotEmpty(message = "Password cannot be empty")
+        @NotNull(message = "Password is required")
+        String password
+) {
 }

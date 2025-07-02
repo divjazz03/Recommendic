@@ -1,11 +1,10 @@
 package com.divjazz.recommendic.article.model;
 
-import com.divjazz.recommendic.Auditable;
-import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.global.Auditable;
 import jakarta.persistence.*;
+import lombok.Getter;
 
-import java.util.Set;
-
+@Getter
 @Entity
 @Table(name = "comment")
 public class Comment extends Auditable {
@@ -28,24 +27,12 @@ public class Comment extends Auditable {
         this.comments = comments;
     }
 
-    public String getUserThatCommented() {
-        return userThatCommented;
-    }
-
     public void setUserThatCommented(String userIdOfCommenter) {
         this.userThatCommented = userThatCommented;
     }
 
-    public Article getArticle() {
-        return article;
-    }
-
     public void setArticle(Article article) {
         this.article = article;
-    }
-
-    public Comment getComments() {
-        return comments;
     }
 
     public void setComments(Comment comments) {

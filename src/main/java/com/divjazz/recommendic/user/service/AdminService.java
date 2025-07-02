@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
 import com.divjazz.recommendic.user.dto.AdminDTO;

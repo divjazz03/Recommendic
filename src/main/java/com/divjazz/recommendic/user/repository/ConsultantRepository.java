@@ -16,22 +16,21 @@ import java.util.Set;
 
 public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
 
-    Optional<List<Consultant>> findByMedicalCategory(String medicalCategory);
+    List<Consultant> findByMedicalCategoryIgnoreCase(String medicalCategory);
     Optional<Consultant> findByUserId(String userId);
     Optional<Consultant> findByEmail(String email);
     boolean existsByEmail(String email);
     void deleteByUserId(String userId);
 
-    @Query(value = "select c from consultant c where first_name = :name or last_name = :name and dtype = 'Consultant'" , nativeQuery = true)
+    @Query(value = "select * from consultant c where c.username ->> 'first_name' = :name or c.username ->> 'last_name' = :name " , nativeQuery = true)
     Set<Consultant> findConsultantByName(@Param("name") String name);
 
     @Query(value = """
-            select c from consultant c where certified = true and dtype = 'Consultant' and to_tsvector('english', specialization) @@ to_tsquery('english', :query)
-            or to_tsvector('english', first_name) or to_tsvector('english', last_name) @@ to_tsquery('english',:query)
+            select * from consultant c where certified = true and c.search_vector @@ to_tsquery('english',:query)
             """, nativeQuery = true)
     Set<Consultant> searchConsultant(@Param("query") String query);
 
-    @Query(value = "select c from consultant  c where dtype = 'Consultant' and c.certified = false", nativeQuery = true)
+    @Query(value = "select * from consultant  c where c.certified = false", nativeQuery = true)
     Set<Consultant> findUnCertifiedConsultant();
 
 }

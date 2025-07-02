@@ -8,7 +8,7 @@ import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStarted
 import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
-import com.divjazz.recommendic.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +33,7 @@ public class ConsultationService {
         Consultation consultation = Consultation.builder()
                 .appointment(appointment)
                 .consultationStatus(ConsultationStatus.ONGOING)
-                .channel(appointment.getScheduleSlot().getConsultationChannel())
+                .channel(appointment.getConsultationChannel())
                 .startedAt(LocalDateTime.now())
                 .build();
         consultation = consultationRepository.save(consultation);

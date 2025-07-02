@@ -1,10 +1,10 @@
 package com.divjazz.recommendic.unit.utils;
 
-import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.RequestUtils;
+import com.divjazz.recommendic.global.RequestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 

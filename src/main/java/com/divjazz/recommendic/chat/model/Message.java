@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.chat.model;
 
-import com.divjazz.recommendic.Auditable;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import jakarta.persistence.*;
 import lombok.Getter;

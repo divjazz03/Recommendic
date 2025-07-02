@@ -61,7 +61,6 @@ public class Consultant extends User{
     private String title;
 
     @Column(name = "languages")
-    @JdbcTypeCode(SqlTypes.ARRAY)
     @Type(StringArrayType.class)
     private String[] languages;
 
@@ -75,8 +74,8 @@ public class Consultant extends User{
             String email,
             String phoneNumber,
             Gender gender,
-            Address address, Role role, UserCredential userCredential) {
-        super(userName, email, phoneNumber, gender, address, role, userCredential);
+            Address address, UserCredential userCredential) {
+        super(userName, email, phoneNumber, gender, address, Role.CONSULTANT, userCredential);
         super.setUserType(UserType.CONSULTANT);
         this.medicalCategory = null;
         certificates = new HashSet<>(30);

@@ -7,19 +7,19 @@ import com.divjazz.recommendic.article.dto.ArticleUpload;
 import com.divjazz.recommendic.article.mapper.ArticleMapper;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
-import com.divjazz.recommendic.exception.EntityNotFoundException;
-import com.divjazz.recommendic.general.PageResponse;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.global.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -30,28 +30,36 @@ public class ArticleService {
 
     public Article uploadArticle(ArticleUpload articleUpload) {
 
-            var consultant = authUtils.getCurrentUser();
-            var article = new Article(articleUpload.title(),
-                    articleUpload.subtitle(),
-                    articleUpload.content(),
-                    (Consultant) consultant,
-                    articleUpload.tags());
-            articleRepository.save(article);
-            return article;
+        var consultant = authUtils.getCurrentUser();
+        var article = new Article(articleUpload.title(),
+                articleUpload.subtitle(),
+                articleUpload.content(),
+                (Consultant) consultant,
+                articleUpload.tags());
+        articleRepository.save(article);
+        return article;
     }
 
     @Cacheable(value = "article_search", keyGenerator = "customCacheKeyGenerator")
-    public PageResponse<ArticleSearchResponse> searchArticle(String query, Pageable pageable) {
+    public Stream<ArticleSearchResponse> searchArticle(String query, Pageable pageable) {
         if (query.isEmpty() || query.isBlank()) {
-            return PageResponse.from(Page.empty());
+            return Stream.of();
         }
         Set<ArticleSearchDTO> result = articleRepository.queryArticle(query, pageable.getPageSize(), pageable.getPageNumber());
-        var total = result.stream().findFirst().isPresent()? result.stream().findFirst().get().total() : 0;
-        var setOfArticleResponse = result.stream()
-                .map(this::convertFromSearchDTOtoSearchResponse)
-                .collect(Collectors.toSet());
+        return result.stream()
+                .map(this::convertFromSearchDTOtoSearchResponse);
+    }
 
-        return PageResponse.fromSet(pageable, setOfArticleResponse, total);
+    public PageResponse<ArticleSearchResponse> searchPageArticle(String query, Pageable pageable) {
+        if (query.isEmpty() || query.isBlank()) {
+            return PageResponse.from(articleRepository.findAll(pageable).map(this::convertFromArticleToArticleSearchResponse));
+        }
+        Set<ArticleSearchDTO> result = articleRepository.queryArticle(query, pageable.getPageSize(), pageable.getPageNumber());
+        return PageResponse.fromSet(pageable,
+                result
+                        .stream()
+                        .map(this::convertFromSearchDTOtoSearchResponse)
+                        .collect(Collectors.toSet()), result.isEmpty() ? 0 : result.stream().findFirst().get().total());
     }
 
     public ArticleDTO getArticleById(long id) {
@@ -59,7 +67,6 @@ public class ArticleService {
                 .orElseThrow(() -> new EntityNotFoundException("Article with id: %s either doesn't exist or has been deleted".formatted(id)));
         return ArticleMapper.articleToArticleDTO(article);
     }
-
 
 
     private ArticleSearchResponse convertFromSearchDTOtoSearchResponse(ArticleSearchDTO articleSearchDTO) {
@@ -76,8 +83,9 @@ public class ArticleService {
                 articleSearchDTO.rank(),
                 articleSearchDTO.highlighted(),
                 articleSearchDTO.tags()
-                );
+        );
     }
+
     private ArticleSearchResponse convertFromArticleToArticleSearchResponse(Article article) {
         return new ArticleSearchResponse(
                 article.getId(),
@@ -102,12 +110,12 @@ public class ArticleService {
     }
 
     @Cacheable(value = "articleRecommendationResponse", keyGenerator = "customCacheKeyGenerator")
-    public PageResponse<ArticleSearchResponse> recommendArticles(Pageable pageable,Patient patient) {
+    public PageResponse<ArticleSearchResponse> recommendArticles(Pageable pageable, Patient patient) {
         Set<ArticleSearchDTO> results = articleRepository
                 .recommendArticleToPatient(patient.getId(), pageable.getPageSize(), pageable.getPageNumber());
         Set<ArticleSearchResponse> articleSearchResponseSet = results.stream()
                 .map(this::convertFromSearchDTOtoSearchResponse)
                 .collect(Collectors.toSet());
-        return PageResponse.fromSet(pageable,articleSearchResponseSet,20 );
+        return PageResponse.fromSet(pageable, articleSearchResponseSet, 20);
     }
 }

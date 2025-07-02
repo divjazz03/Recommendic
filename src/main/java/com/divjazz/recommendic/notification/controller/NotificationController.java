@@ -1,8 +1,8 @@
 package com.divjazz.recommendic.notification.controller;
 
-import com.divjazz.recommendic.RequestUtils;
-import com.divjazz.recommendic.Response;
-import com.divjazz.recommendic.general.PageResponse;
+import com.divjazz.recommendic.global.RequestUtils;
+import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.dto.NotificationDTO;
 import com.divjazz.recommendic.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;

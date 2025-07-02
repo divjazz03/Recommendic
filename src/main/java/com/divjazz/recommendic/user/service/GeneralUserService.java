@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.exception.EntityNotFoundException;
-import com.divjazz.recommendic.security.ApiAuthentication;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.model.Admin;

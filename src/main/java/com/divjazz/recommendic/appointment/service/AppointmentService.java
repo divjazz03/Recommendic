@@ -3,14 +3,15 @@ package com.divjazz.recommendic.appointment.service;
 import com.divjazz.recommendic.appointment.dto.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
-import com.divjazz.recommendic.appointment.exception.ScheduleNotAvailableException;
+import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.appointment.mapper.AppointmentMapper;
 import com.divjazz.recommendic.appointment.model.Appointment;
-import com.divjazz.recommendic.appointment.model.ScheduleSlot;
+import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
-import com.divjazz.recommendic.appointment.repository.ScheduleSlotRepository;
-import com.divjazz.recommendic.exception.EntityNotFoundException;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
+import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -19,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final ScheduleSlotRepository scheduleSlotRepository;
+    private final ScheduleRepository scheduleRepository;
     private final ConsultantRepository consultantRepository;
     private final PatientRepository patientRepository;
     private final AuthUtils authUtils;
@@ -40,8 +41,9 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDTO createAppointment(AppointmentCreationRequest appointmentCreationRequest) {
-        Stream<ScheduleSlot> scheduleSlotStream = scheduleSlotRepository
-                .findAllByConsultant_UserId(appointmentCreationRequest.consultantId());
+        Stream<Appointment> appointmentStream = getAppointmentsByConsultantId(appointmentCreationRequest.consultantId());
+        Schedule schedule = scheduleRepository.findById(appointmentCreationRequest.scheduleId())
+                .orElseThrow(() -> new EntityNotFoundException("Schedule was not found"));
         Consultant consultant  = consultantRepository
                 .findByUserId(appointmentCreationRequest.consultantId())
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s does not exist"
@@ -50,28 +52,27 @@ public class AppointmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s does not exist"
                         .formatted(appointmentCreationRequest.consultantId())));
 
-        ScheduleSlot foundScheduleSlot = scheduleSlotStream
-                .filter( scheduleSlot -> {
-                            var startTime = scheduleSlot.getStartTime();
-                            var endTime = scheduleSlot.getEndTime();
-
-                            return startTime
-                                    .isEqual(ZonedDateTime.parse(appointmentCreationRequest.startTime(),
-                                            DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+        boolean appointmentIsOccupiedBooked = appointmentStream
+                .anyMatch(appointment -> {
+                            var appointmentDate = appointment.getAppointmentDate();
+                            return schedule.equals(appointment.getSchedule())
                                     &&
-                                    endTime
-                                            .isEqual(ZonedDateTime.parse(appointmentCreationRequest.endTime(),
-                                                    DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+                                    appointmentDate.equals(LocalDate.parse(appointmentCreationRequest.appointmentDate(),
+                                            DateTimeFormatter.ISO_DATE_TIME));
 
-                        })
-                .filter(scheduleSlot -> !scheduleSlot.isBooked())
-                .findAny().orElseThrow(() -> new ScheduleNotAvailableException(appointmentCreationRequest.startTime()
-                        , appointmentCreationRequest.endTime()));
+                        });
+
+        if (appointmentIsOccupiedBooked) {
+            throw new AppointmentBookedException("Date: %s with Time: %s".formatted(appointmentCreationRequest.appointmentDate(),
+                    appointmentCreationRequest.startTime()));
+        }
         Appointment appointment = Appointment.builder()
                 .consultant(consultant)
                 .patient(patient)
-                .scheduleSlot(foundScheduleSlot)
+                .schedule(schedule)
                 .status(AppointmentStatus.REQUESTED)
+                .appointmentDate(LocalDate.now())
+                .consultationChannel(ConsultationChannel.valueOf(appointmentCreationRequest.channel().toUpperCase()))
                 .build();
 
         appointment = appointmentRepository.save(appointment);

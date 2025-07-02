@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.cache.service.CacheService;
-import com.divjazz.recommendic.security.exception.LoginFailedException;
+import com.divjazz.recommendic.global.security.exception.LoginFailedException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Component;
 
@@ -48,26 +47,24 @@ public class UserLoginRetryHandler {
 
     private int incrementFailedAttempt(String email) {
         String attemptKey = getAttemptKey(email);
-        Long currentAttempts = (Long) cacheService.get(attemptKey);
-        if (currentAttempts == null) {
-            currentAttempts = 1L;
+        int currentAttempts = (int) cacheService.get(attemptKey);
+        if (currentAttempts == 0) {
+            currentAttempts = 1;
             cacheService.put(attemptKey, currentAttempts);
-            return currentAttempts.intValue();
+            return currentAttempts;
         }
         cacheService.put(attemptKey,++currentAttempts);
-        return currentAttempts.intValue();
+        return currentAttempts;
     }
 
     private int getFailedAttempts(String email) {
         String attemptKey = getAttemptKey(email);
-        Long attempts = (Long) cacheService.get(attemptKey);
-        return attempts != null ? attempts.intValue() : 0;
+        return (int) cacheService.get(attemptKey);
     }
 
     private long getRemainingLockTime(String email) {
         String lockKey = getLockKey(email);
-        Long expiry = cacheService.getRemainingTime(lockKey, TimeUnit.MINUTES);
-        return expiry != null ? expiry : 0L;
+        return cacheService.getRemainingTime(lockKey, TimeUnit.MINUTES);
     }
 
     public boolean isAccountLocked(String email) {

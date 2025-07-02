@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
@@ -13,14 +13,12 @@ import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.google.common.collect.ImmutableSet;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +54,6 @@ public class ConsultantService {
     public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
         UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
         Consultant user = getConsultant(consultantDTO, userCredential);
-
         if (userService.isUserNotExists(user.getEmail())) {
             RequestContext.setUserId(user.getId());
             var userConfirmation = new UserConfirmation(user);
@@ -70,7 +67,6 @@ public class ConsultantService {
         }
     }
 
-    @NotNull
     private static Consultant getConsultant(ConsultantDTO consultantDTO, UserCredential userCredential) {
         Consultant user = new Consultant(
                 consultantDTO.userName(),
@@ -78,7 +74,7 @@ public class ConsultantService {
                 consultantDTO.phoneNumber(),
                 consultantDTO.gender(),
                 consultantDTO.address(),
-                Role.CONSULTANT, userCredential
+                userCredential
         );
 
         user.setUserCredential(userCredential);
@@ -98,15 +94,14 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantByCategory(MedicalCategoryEnum category) {
+    public Set<Consultant> getConsultantsByCategory(MedicalCategoryEnum category) {
         return ImmutableSet.
                 copyOf(
                         consultantRepository
-                                .findByMedicalCategory(
-                                        new MedicalCategory(category.getValue(), category.getDescription()).name()
+                                .findByMedicalCategoryIgnoreCase(
+                                        MedicalCategory.fromMedicalCategoryEnum(category).name()
                                 )
-                                .orElseThrow(
-                                        () -> new EntityNotFoundException("Consultant with category: %s not found".formatted(category)))
+
                 );
     }
 
@@ -123,7 +118,7 @@ public class ConsultantService {
                         consultant.getAddress(),
                         consultant.getMedicalCategory().toString()
                 ))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public Consultant retrieveConsultantByUserId(String userId) {
