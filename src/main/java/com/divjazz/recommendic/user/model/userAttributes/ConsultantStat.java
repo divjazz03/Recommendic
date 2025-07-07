@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "consultant_stat")
@@ -22,25 +24,25 @@ public class ConsultantStat extends Auditable {
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
 
-    @Type(StringArrayType.class)
-    @Column(name = "patients_helped")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "patients_helped", columnDefinition = "text[]")
     private String[] patientsHelped;
-    @Type(StringArrayType.class)
-    @Column(name = "successes")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "successes", columnDefinition = "text[]")
     private String[] successes;
 
     @Column(name = "success_rate")
     private int successRate;
 
-    @Column(name = "response_times")
-    @Type(IntArrayType.class)
+    @Column(name = "response_times", columnDefinition = "integer[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
     private int[] responseTimes;
 
     @Column(name = "average_response")
     private Integer averageResponseTime;
 
-    @Column(name = "follow_ups")
-    @Type(StringArrayType.class)
+    @Column(name = "follow_ups", columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
     private String[] followUps ;
 
 

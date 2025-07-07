@@ -32,7 +32,7 @@ public class RequestUtilsTests {
     @ParameterizedTest
     @MethodSource
     public void getErrorResponseShouldReturnAResponseObjectWithTheAppropriateException(Exception e){
-        var response = RequestUtils.getErrorResponse(HttpStatus.EXPECTATION_FAILED, e);
+        var response = RequestUtils.getErrorResponse(HttpStatus.EXPECTATION_FAILED, e, null);
         var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 HttpStatus.EXPECTATION_FAILED.value(),
@@ -53,7 +53,7 @@ public class RequestUtilsTests {
     @ParameterizedTest
     @MethodSource
     public void getErrorResponseShouldReturnAResponseObjectWithTheAppropriateStatusCodeAndMessage(HttpStatus status, Exception e){
-        var response = RequestUtils.getErrorResponse(status, e);
+        var response = RequestUtils.getErrorResponse(status, e, null);
         var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status.value(),

@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS consultation
     created_by    CHARACTER VARYING(54),
     updated_by    CHARACTER VARYING(54)
 );
-
+ALTER TABLE message ADD COLUMN IF NOT EXISTS consultation_id BIGINT REFERENCES consultation (id);
 CREATE OR REPLACE FUNCTION update_consultation_search_vector()
 RETURNS TRIGGER AS $$
     BEGIN

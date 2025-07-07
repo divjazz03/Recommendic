@@ -1,14 +1,17 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +34,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 
 @RestController
-@RequestMapping("/api/v1/patient")
+@RequestMapping("/api/v1/patients")
 @Tag(name = "Patient API")
 @RequiredArgsConstructor
 public class PatientController {
@@ -52,7 +56,7 @@ public class PatientController {
     private final PatientService patientService;
     private final RecommendationService recommendationService;
 
-    @PostMapping("/create")
+    @PostMapping
     @Operation(summary = "Register a Patient User",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(examples = {
@@ -90,9 +94,9 @@ public class PatientController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/patients")
+    @GetMapping
     @Operation(summary = "Get Paginated Patients")
-    public ResponseEntity<Response<Set<PatientDTO>>> patients(@ParameterObject Pageable pageable) {
+    public ResponseEntity<Response<Set<PatientDTO>>> patients(@PageableDefault Pageable pageable) {
         var patients = patientService.getAllPatients(pageable);
         var patientDTOSet = patients.stream()
                 .map(patient -> new PatientDTO(
@@ -112,35 +116,35 @@ public class PatientController {
 
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/{userId}")
     @Operation(summary = "Delete Patient by id")
-    public ResponseEntity<Response<Void>> deletePatient(@RequestParam("patient_id") String patientId) {
-        patientService.deletePatientByUserId(patientId);
+    public ResponseEntity<Response<Void>> deletePatient(@PathVariable String userId) {
+        patientService.deletePatientByUserId(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-//    @PutMapping("/onboarding/{userId}")
-//    @Operation(summary = "Set Patient Area of Interest")
-//    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
-//            @PathVariable("userId") @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
-//    ) {
-//
-//        boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
-//        return ResponseEntity.ok().build();
-//    }
+    @PostMapping("/{userId}/onboard")
+    @Operation(summary = "Set Patient Area of Interest")
+    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
+            @PathVariable @Parameter(name = "userId", description = "User id") String userId, @RequestBody PatientOnboardingRequest request
+    ) {
 
-//    @GetMapping("/recommendations")
-//    @Operation(summary = "Get Consultant Recommendations for this particular user")
-//    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@RequestParam("patient_id") String userId) {
-//
-//        Patient patient = patientService.findPatientByUserId(userId);
-//        var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
-//        var response = getResponse(recommendations,
-//                "Success in retrieving the Patient Users",
-//                HttpStatus.OK
-//        );
-//        return ResponseEntity.ok().body(response);
-//    }
+        boolean value = patientService.handleOnboarding(userId, request.medicalCategories());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{userId}/recommendation")
+    @Operation(summary = "Get Consultant Recommendations for this particular user")
+    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@PathVariable String userId) {
+
+        Patient patient = patientService.findPatientByUserId(userId);
+        var recommendations = recommendationService.retrieveRecommendationByPatient(patient);
+        var response = getResponse(recommendations,
+                "Success in retrieving the Patient Users",
+                HttpStatus.OK
+        );
+        return ResponseEntity.ok().body(response);
+    }
 
     public record PatientOnboardingRequest(List<String> medicalCategories) {
     }

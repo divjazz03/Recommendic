@@ -16,7 +16,7 @@ import java.net.URI;
 import static com.divjazz.recommendic.global.RequestUtils.*;
 
 @RestController()
-@RequestMapping("/api/v1/consultation")
+@RequestMapping("/api/v1/consultations")
 @Tag(name = "Consultation API")
 @RequiredArgsConstructor
 public class ConsultationController {

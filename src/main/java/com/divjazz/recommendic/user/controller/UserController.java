@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/users")
 @Tag(name = "General User API")
 @RequiredArgsConstructor
 public class UserController {
@@ -24,7 +24,7 @@ public class UserController {
     private final GeneralUserService userService;
 
 
-    @GetMapping()
+    @GetMapping
     @Operation(summary = "Get current user with assumption that user is authenticated")
     public ResponseEntity<CurrentUser> getCurrentUser(){
         User user = userService.retrieveCurrentUser();

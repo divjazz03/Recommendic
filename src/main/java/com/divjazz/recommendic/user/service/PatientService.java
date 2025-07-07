@@ -78,6 +78,9 @@ public class PatientService {
     }
 
     public void deletePatientByUserId(String patient_Id) {
+        if (userService.isUserNotExists(patient_Id)) {
+            throw new EntityNotFoundException("Patient does not exist has already been deleted");
+        }
         patientRepository.deleteByUserId(patient_Id);
     }
 

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v1/admins")
 @Tag(name = "Admin API")
 @RequiredArgsConstructor
 public class AdminController {

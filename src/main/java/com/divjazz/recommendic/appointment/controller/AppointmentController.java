@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/v1/appointment")
+@RequestMapping("/api/v1/appointments")
 @RequiredArgsConstructor
 @Tag(name = "Appointment API")
 public class AppointmentController {

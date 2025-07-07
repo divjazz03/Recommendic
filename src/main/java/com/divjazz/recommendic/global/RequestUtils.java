@@ -25,7 +25,7 @@ public class RequestUtils {
                 exception instanceof UserAlreadyExistsException)
             return exception.getMessage();
         if (httpStatus.is5xxServerError())
-            return "An Internal server error occured";
+            return "An Internal server error occurred";
         else
             return "An error occurred. Please try again ";
     };
@@ -34,7 +34,7 @@ public class RequestUtils {
                                        T data,
                                        String message,
                                        HttpStatusCode status) {
-        return new Response<T>(
+        return new Response<>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
                 HttpStatus.valueOf(status.value()),
@@ -44,16 +44,16 @@ public class RequestUtils {
         );
     }
 
-    public static Response<String> getErrorResponse(
+    public static <T> Response<T> getErrorResponse(
                                             HttpStatusCode status,
-                                            Exception exception) {
+                                            Exception exception, T data) {
         return new Response<>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
                 HttpStatus.valueOf(status.value()),
                 errorReason.apply(exception, status),
-                getRootCauseMessage(exception),
-                exception.getMessage()
+                exception.getClass().getCanonicalName(),
+                data
         );
     }
 }

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
-@RequestMapping("/api/v1/consultant")
+@RequestMapping("/api/v1/consultants")
 @Tag(name = "Consultant API")
 @RequiredArgsConstructor
 public class ConsultantController {
@@ -70,7 +70,7 @@ public class ConsultantController {
         return new ConsultantDTO(userName, userEmail, phoneNumber, gender, address, requestParams.password());
     }
 
-    @PostMapping("/create")
+    @PostMapping
     @Operation(summary = "Register a Consultant User",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(examples = {
@@ -103,7 +103,7 @@ public class ConsultantController {
 
     }
 
-    @GetMapping("/consultants")
+    @GetMapping
     @Operation(summary = "Get Paginated Consultants")
     public ResponseEntity<Response<Set<ConsultantInfoResponse>>> getConsultants(@ParameterObject Pageable pageable) {
 
@@ -121,14 +121,14 @@ public class ConsultantController {
         return new ResponseEntity<>(response, HttpStatus.FOUND);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     @Operation(summary = "Delete Consultant by id")
     public ResponseEntity<Response<Void>> deleteConsultant(@RequestParam("consultant_id") String consultantId) {
         consultantService.deleteConsultantById(consultantId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/onboarding/{userId}")
+    @PostMapping("/{userId}/onboard")
     @Operation(summary = "Set Consultant Area of Specialization")
     public ResponseEntity<Boolean> onboardingSetListOfMedicalInterests(
             @PathVariable("userId") String userId, @RequestBody ConsultantOnboardingRequest request

@@ -27,7 +27,7 @@ import java.net.URI;
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
-@RequestMapping("/api/v1/article")
+@RequestMapping("/api/v1/articles")
 @Tag(name = "Article API")
 @RequiredArgsConstructor
 public class ArticleController {

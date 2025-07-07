@@ -27,7 +27,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 
 @RestController
-@RequestMapping("/api/v1/search")
+@RequestMapping("/api/v1/searches")
 @Tag(name = "Search API")
 @RequiredArgsConstructor
 public class SearchController {

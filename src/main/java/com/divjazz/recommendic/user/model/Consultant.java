@@ -15,7 +15,9 @@ import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,8 +54,8 @@ public class Consultant extends User{
     @Column(name = "title")
     private String title;
 
-    @Column(name = "languages")
-    @Type(StringArrayType.class)
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "languages", columnDefinition = "text[]")
     private String[] languages;
 
     @OneToOne(mappedBy = "consultant",cascade = CascadeType.REMOVE)

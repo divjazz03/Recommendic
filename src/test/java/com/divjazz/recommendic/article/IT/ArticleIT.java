@@ -161,7 +161,7 @@ public class ArticleIT extends BaseIntegration {
     @MethodSource("validArticle")
     void shouldUploadArticleWithValidRequestAndReturn201IfUserIsConsultant(String validArticle) throws Exception {
         var response = mockMvc.perform(
-                        post("/api/v1/article")
+                        post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(validArticle)
                                 .with(user(consultant))
@@ -177,7 +177,7 @@ public class ArticleIT extends BaseIntegration {
     void shouldNotUploadArticleWithValidRequestAndReturn403IfNotConsultant(String validArticle) throws Exception {
 
         mockMvc.perform(
-                        post("/api/v1/article")
+                        post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(validArticle)
                                 .with(user(patient))
@@ -189,7 +189,7 @@ public class ArticleIT extends BaseIntegration {
     @MethodSource("inValidArticle")
     void shouldNotUploadArticleWithInvalidRequestAndReturn400(String invalidArticle) throws Exception {
         var response = mockMvc.perform(
-                        post("/api/v1/article")
+                        post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(invalidArticle)
                                 .with(user(consultant))
@@ -205,7 +205,7 @@ public class ArticleIT extends BaseIntegration {
         populateArticles();
 
         var response = mockMvc.perform(
-                        get("/api/v1/article")
+                        get("/api/v1/articles")
                                 .with(user(consultant))
                 )
                 .andExpect(status().isOk())
@@ -218,7 +218,7 @@ public class ArticleIT extends BaseIntegration {
         populateArticles();
 
         var response = mockMvc.perform(
-                get("/api/v1/article")
+                get("/api/v1/articles")
                         .with(user(patient))
         )
                 .andExpect(status().isOk())
@@ -242,7 +242,7 @@ public class ArticleIT extends BaseIntegration {
         );
 
         var response = mockMvc.perform(
-                get("/api/v1/article/%s".formatted(articlePopulated.getId()))
+                get("/api/v1/articles/%s".formatted(articlePopulated.getId()))
                         .with(user(patient))
 
         )

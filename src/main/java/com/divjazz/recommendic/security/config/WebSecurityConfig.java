@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -52,9 +53,8 @@ public class WebSecurityConfig {
         return NoOpPasswordEncoder.getInstance();
     }
 
-    private static final String[] WHITELIST_PATHS = {"/api/v1/patient/create",
-            "/api/v1/consultant/create","/api/v1/search/drug/**", "api/v1/medical_categories/","/error",
-            "/api-docs","/api-docs/*", "/api-docs.yaml","swagger-ui/*", "/actuator/**", "/favicon.ico",
+    private static final String[] WHITELIST_PATHS = {"/api/v1/users","/api/v1/medical_categories","/error",
+            "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*", "/actuator/**", "/favicon.ico",
             "/api/v1/auth/*"
     };
 
@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(WHITELIST_PATHS).permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/v1/consultants","/api/v1/patients").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

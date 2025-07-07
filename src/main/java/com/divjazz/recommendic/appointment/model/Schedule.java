@@ -4,7 +4,8 @@ import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.converter.ZoneOffsetConverter;
 import com.divjazz.recommendic.user.model.Consultant;
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
+import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,7 +35,9 @@ public class Schedule extends Auditable {
     @Column(name = "utf_offset")
     @Convert(converter = ZoneOffsetConverter.class)
     private ZoneOffset zoneOffset;
-    @Type(StringArrayType.class)
+    @Type(value = EnumArrayType.class,
+    parameters = @org.hibernate.annotations.Parameter(name = AbstractArrayType.SQL_ARRAY_TYPE,
+            value = "session_channel"))
     @Column(name = "consultation_channel")
     private ConsultationChannel[] consultationChannels;
     @Column(name = "is_recurring")

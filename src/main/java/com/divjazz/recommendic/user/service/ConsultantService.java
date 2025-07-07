@@ -127,6 +127,9 @@ public class ConsultantService {
     }
 
     public void deleteConsultantById(String userId) {
+        if (userService.isUserNotExists(userId)) {
+            throw new EntityNotFoundException("Consultant does not exist or has been deleted");
+        }
         consultantRepository.deleteByUserId(userId);
     }
 

@@ -3,7 +3,6 @@ package com.divjazz.recommendic.global.exception;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
-import com.divjazz.recommendic.security.exception.InvalidTokenException;
 import com.divjazz.recommendic.security.exception.LoginFailedException;
 import com.divjazz.recommendic.user.exception.*;
 import org.slf4j.Logger;
@@ -48,18 +47,18 @@ public class GlobalControllerExceptionAdvice {
 
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<Response<String>> handleAccountDisabled(DisabledException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,ex));
+    public ResponseEntity<Response<Object>> handleAccountDisabled(DisabledException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,ex,null));
     }
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)
-    public ResponseEntity<Response<String>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+    public ResponseEntity<Response<Object>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex,null));
     }
 
     @ExceptionHandler(ConfirmationTokenExpiredException.class)
-    public ResponseEntity<Response<String>> handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex));
+    public ResponseEntity<Response<Object>> handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex,null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -69,21 +68,13 @@ public class GlobalControllerExceptionAdvice {
         List<FieldError> fieldErrors = bindingResult.getFieldErrors().stream()
                 .map(fieldError -> new FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
-        var response = new Response<>(
-                LocalDateTime.now().toString(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST,
-                "Invalid Field",
-                "Invalid Field",
-                new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)
-        );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(response);
+                .body(getErrorResponse(HttpStatus.BAD_REQUEST,ex, new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)));
     }
 
     @ExceptionHandler(NoSuchMedicalCategory.class)
-    public ResponseEntity<Response<String>> handleInvalidMedicalCategory(NoSuchMedicalCategory ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.BAD_REQUEST, ex), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Response<Object>> handleInvalidMedicalCategory(NoSuchMedicalCategory ex) {
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.BAD_REQUEST, ex, null), HttpStatus.BAD_REQUEST);
     }
 
 
@@ -91,18 +82,12 @@ public class GlobalControllerExceptionAdvice {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Response<String>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
 
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.CONFLICT, ex), HttpStatus.CONFLICT);
-    }
-
-
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Response<String>> handleInvalidToken(InvalidTokenException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.CONFLICT, ex, null), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(LoginFailedException.class)
     public ResponseEntity<Response<String>> handleLoginFailed(LoginFailedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
@@ -112,26 +97,26 @@ public class GlobalControllerExceptionAdvice {
     }
     @ExceptionHandler(CredentialExpiredException.class)
     public ResponseEntity<Response<String>> handleCredentialExpired(CredentialExpiredException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex, null), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<Response<String>> handleAccountLocked(LockedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex, null), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Response<String>> handleAuthentication(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null));
     }
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ResponseEntity<Response<String>> handleGeneralAuthenticationError(org.springframework.security.core.AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Response<String>> handleEntityNotFound(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex, null));
     }
 
 

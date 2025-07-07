@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/notification")
+@RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -27,8 +27,8 @@ public class NotificationController {
 
         return ResponseEntity.ok(RequestUtils.getResponse(notifications, "success", HttpStatus.OK));
     }
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> seeNotification(@PathVariable("id") Long notificationId) {
+    @PostMapping
+    public ResponseEntity<Void> seeNotification(@RequestBody Long notificationId) {
         notificationService.setNotificationToSeen(notificationId);
         return ResponseEntity.ok().build();
     }

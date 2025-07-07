@@ -25,10 +25,8 @@ import java.util.Set;
 @Getter
 @Setter
 public class Patient extends User {
-
-    @Column(name = "medical_categories", columnDefinition = "jsonb")
-    @Type(StringArrayType.class)
-    @JdbcTypeCode(SqlTypes.JSON)
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "medical_categories", columnDefinition = "text[]")
     private String[] medicalCategories;
     protected Patient() {
     }
