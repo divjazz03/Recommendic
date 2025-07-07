@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS
     certification,
     search,
     message CASCADE;
-DROP TYPE IF EXISTS article_search_result, message_search_result, user_security_data CASCADE;
+DROP TYPE IF EXISTS article_search_result, article_status_enum, message_search_result, user_security_data CASCADE;
 
 DROP INDEX IF EXISTS
     article_search_idx,
@@ -105,10 +105,10 @@ CREATE TABLE IF NOT EXISTS consultant
     account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
     gender              CHARACTER VARYING(54)        NOT NULL,
     role                CHARACTER VARYING(54)        NOT NULL,
-    location            CHARACTER VARYING(100)       NOT NULL,
-    experience          INTEGER                              ,
-    title               CHARACTER VARYING(100)       NOT NULL,
-    languages           CHARACTER VARYING(54)[]      ,
+    location            CHARACTER VARYING(100),
+    experience          INTEGER,
+    title               CHARACTER VARYING(100),
+    languages           CHARACTER VARYING(54)[],
     last_login          TIMESTAMP                             DEFAULT NULL,
     updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
@@ -178,6 +178,8 @@ CREATE TABLE IF NOT EXISTS search
     updated_by CHARACTER VARYING(54) NOT NULL
 );
 
+CREATE TYPE article_status_enum AS ENUM ('DRAFT','ARCHIVED','PUBLISHED');
+
 
 CREATE TABLE IF NOT EXISTS article
 (
@@ -189,7 +191,7 @@ CREATE TABLE IF NOT EXISTS article
     tags           CHARACTER VARYING(50)[],
     writer_id      BIGINT REFERENCES consultant (id) NOT NULL,
     no_of_reads    BIGINT       DEFAULT 0,
-    article_status CHARACTER VARYING(10)             NOT NULL,
+    article_status VARCHAR(10)  DEFAULT 'DRAFT',
     search_vector  TSVECTOR GENERATED ALWAYS AS (
                                setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
                                setweight(to_tsvector('english', coalesce(content, '')), 'B') ||
@@ -280,9 +282,13 @@ CREATE TYPE article_search_result AS
     subtitle        CHARACTER VARYING(54),
     authorFirstName TEXT,
     authorLastName  TEXT,
-    published_at    TIMESTAMP,
-    rank            float4,
-    highlight       TEXT,
+    publishedAt     TIMESTAMP,
+    tags            CHARACTER VARYING(50)[],
+    rank            numeric,
+    highlighted     TEXT,
+    upvotes         BIGINT,
+    numberOfComment BIGINT,
+    reads           BIGINT,
     total           BIGINT
 );
 
@@ -293,7 +299,7 @@ CREATE OR REPLACE FUNCTION search_articles(
     min_date TIMESTAMP(6) DEFAULT NULL,
     max_date TIMESTAMP(6) DEFAULT NULL,
     page_size INTEGER DEFAULT 20,
-    page_number INTEGER DEFAULT 1
+    page_number INTEGER DEFAULT 0
 )
     RETURNS setof article_search_result
 AS
@@ -366,7 +372,7 @@ BEGIN
                total
         FROM ranked_articles ra
         ORDER BY ra.rank DESC
-        LIMIT page_size OFFSET ((page_number) - 1 * page_size);
+        LIMIT page_size OFFSET (page_number * page_size);
 END
 $$ language plpgsql;
 
@@ -384,7 +390,7 @@ CREATE TYPE message_search_result AS
 CREATE OR REPLACE FUNCTION search_messages(
     query text,
     page_size INTEGER DEFAULT 20,
-    page_number INTEGER DEFAULT 0
+    page_number INTEGER DEFAULT 1
 ) RETURNS SETOF message_search_result
 AS
 $$
@@ -426,7 +432,14 @@ BEGIN
                                  FROM message m2
                                           JOIN consultant c2 on c2.id = receiver_id
                                           JOIN patient_schema.patient p2 on p2.id = receiver_id
-                                 WHERE m2.search_vector @@ tsquery_var)
+                                 WHERE m2.search_vector ||
+                                       setweight(to_tsvector('english',
+                                                             coalesce(c2.username ->> 'first_name',
+                                                                      p2.username ->> 'first_name', '')),
+                                                 'A') ||
+                                       setweight(to_tsvector('english',
+                                                             coalesce(c2.username ->> 'last_name', p2.username ->> 'last_name', '')),
+                                                 'B') @@ tsquery_var)
         SELECT rm.id        as id,
                rm.rank      as rank,
                rm.highlight as content_highlight,
@@ -442,47 +455,43 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION recommendArticlesForPatient(
     patient_id BIGINT,
-    page_size INTEGER,
-    page_number INTEGER
+    page_size INTEGER DEFAULT 20,
+    page_number INTEGER DEFAULT 0
 ) RETURNS SETOF article_search_result AS
 $$
 DECLARE
-    query       text;
-    tsquery_var tsquery;
+    total BIGINT;
 BEGIN
 
-    SELECT array_to_string(array_agg(DISTINCT tag || ':*'), ' & ')
-    FROM patient_schema.patient p,
-         (SELECT unnest(a.tags) as tag
-          FROM article a) as rtag
-    WHERE p.id = patient_id
-    INTO query;
+    SELECT count(*)
+    FROM article a
+             LEFT JOIN consultant co ON a.writer_id = co.id
+    INTO total;
 
-    tsquery_var := to_tsquery('english', query);
 
     RETURN QUERY
         WITH ranked_articles AS (SELECT DISTINCT ON (a.id) a.id,
-                                                           a.title                     as title,
+                                                           a.title                           as title,
                                                            a.subtitle,
-                                                           co.username ->> 'full_name' as firstName,
-                                                           co.username ->> 'full_name' as lastName,
+                                                           co.username ->> 'full_name'       as firstName,
+                                                           co.username ->> 'full_name'       as lastName,
                                                            a.published_at,
-                                                           a.no_of_reads               as reads,
-                                                           a.tags                      as tags,
-                                                           cardinality(a.like_ids)     as upvotes,
-                                                           ts_rank(to_tsvector('english', array_to_string(tags, ' ')),
-                                                                   tsquery_var) *
-                                                           CASE
-                                                               WHEN a.published_at > now() - INTERVAL '7 days'
-                                                                   THEN 1.5 -- boost more recent articles
-                                                               WHEN a.published_at > now() - INTERVAL '30 days' THEN 1.2
-                                                               ELSE 1.0
-                                                               END                     as rank,
+                                                           a.no_of_reads                     as reads,
+                                                           a.tags                            as tags,
+                                                           cardinality(a.like_ids) :: BIGINT as upvotes,
+                                                           (a.no_of_reads +
+                                                            CASE
+                                                                WHEN a.published_at > now() - INTERVAL '7 days'
+                                                                    THEN 1.5 -- boost more recent articles
+                                                                WHEN a.published_at > now() - INTERVAL '30 days'
+                                                                    THEN 1.2
+                                                                ELSE 1.0
+                                                                END)  / 1000                       as rank,
                                                            (SELECT count(c.article_id)
                                                             FROM comment c
-                                                            where c.article_id = a.id) as no_of_comments
+                                                            where c.article_id = a.id)       as no_of_comments
                                  FROM article a
-                                          JOIN consultant co ON a.writer_id = co.id)
+                                          LEFT JOIN consultant co ON a.writer_id = co.id)
         SELECT ra.id             as id,
                ra.title          as title,
                ra.subtitle       as subtitle,
@@ -491,13 +500,14 @@ BEGIN
                ra.published_at   as publishedAt,
                ra.tags           as tags,
                ra.rank           as rank,
+               null,
                ra.upvotes        as upvotes,
                ra.no_of_comments as numberOfComment,
                ra.reads          as reads,
                total
         FROM ranked_articles ra
         ORDER BY ra.rank DESC
-        LIMIT page_size OFFSET ((page_number) - 1 * page_size);
+        LIMIT page_size OFFSET (page_number * page_size);
 END;
 $$ language plpgsql;
 

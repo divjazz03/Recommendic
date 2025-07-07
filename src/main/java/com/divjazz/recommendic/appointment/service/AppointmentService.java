@@ -11,7 +11,7 @@ import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
-import com.divjazz.recommendic.global.security.utils.AuthUtils;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;

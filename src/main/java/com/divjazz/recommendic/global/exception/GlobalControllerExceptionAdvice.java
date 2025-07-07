@@ -2,9 +2,9 @@ package com.divjazz.recommendic.global.exception;
 
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
-import com.divjazz.recommendic.global.security.exception.AuthenticationException;
-import com.divjazz.recommendic.global.security.exception.InvalidTokenException;
-import com.divjazz.recommendic.global.security.exception.LoginFailedException;
+import com.divjazz.recommendic.security.exception.AuthenticationException;
+import com.divjazz.recommendic.security.exception.InvalidTokenException;
+import com.divjazz.recommendic.security.exception.LoginFailedException;
 import com.divjazz.recommendic.user.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

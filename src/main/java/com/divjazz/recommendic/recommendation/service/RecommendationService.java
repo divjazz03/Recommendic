@@ -1,7 +1,13 @@
 package com.divjazz.recommendic.recommendation.service;
 
+import com.divjazz.recommendic.article.model.Article;
+import com.divjazz.recommendic.article.repository.ArticleRepository;
+import com.divjazz.recommendic.article.service.ArticleService;
+import com.divjazz.recommendic.recommendation.model.ArticleRecommendation;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
-import com.divjazz.recommendic.recommendation.repository.RecommendationRepository;
+import com.divjazz.recommendic.recommendation.repository.ArticleRecommendationRepository;
+import com.divjazz.recommendic.recommendation.repository.ConsultantRecommendationRepository;
+import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.search.service.SearchService;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
@@ -12,72 +18,52 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
 
-    private final RecommendationRepository recommendationRepository;
+    private final ConsultantRecommendationRepository consultantRecommendationRepository;
+    private final ArticleRecommendationRepository articleRecommendationRepository;
     private final ConsultantService consultantService;
-    private final SearchService searchService;
+    private final ArticleService articleService;
 
 
-//    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
-//        createRecommendationForPatient(patient);
-//
-//        return recommendationRepository.findByPatient(patient).orElse(Set.of());
-//
-//    }
 
-    private ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant) {
-        return new ConsultantInfoResponse(
-                consultant.getUserId(),
-                consultant.getUserNameObject().getLastName(),
-                consultant.getUserNameObject().getFirstName(),
-                consultant.getGender().toString(),
-                consultant.getPhoneNumber(),
-                consultant.getAddress(),
-                consultant.getMedicalCategory().toString()
-        );
+    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
+        return consultantRecommendationRepository.findByPatient(patient).orElse(Set.of());
+
     }
+    public void createArticleRecommendationsForPatient(Patient patient) {
+        var medicalCategories = patient.getMedicalCategories().stream()
+                .map(MedicalCategoryEnum::fromValue)
+                .map(medicalCategoryEnum ->
+                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
+                .collect(Collectors.toSet());
 
-    private PatientInfoResponse toPatientInfoResponse(Patient patient) {
-        return new PatientInfoResponse(
-                patient.getUserId(),
-                patient.getUserNameObject().getLastName(),
-                patient.getUserNameObject().getFirstName(),
-                patient.getPhoneNumber(),
-                patient.getGender().toString(),
-                patient.getAddress()
-        );
+        var articlesByConsultantSpecialty = retrieveConsultantsBasedOnMedicalCategories(medicalCategories)
+                .stream()
+                .flatMap(articleService::getArticleByConsultant)
+                .map(article -> new ArticleRecommendation(patient, article))
+                .collect(Collectors.toSet());
+
+        articleRecommendationRepository.saveAll(articlesByConsultantSpecialty);
+
     }
-
-//    public void createRecommendationForPatient(Patient patient) {
-//        var medicalCategories = patient.getMedicalCategories().stream()
-//                .map(MedicalCategoryEnum::fromValue)
-//                .map(medicalCategoryEnum ->
-//                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
-//                .collect(Collectors.toSet());
-//        var searchHistory = searchService.retrieveSearchesByUserId(patient.getUserId());
-//        var consultantsBasedOnMedicalCategories = retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
-//
-//        Set<ConsultantRecommendation> consultantRecommendations = consultantsBasedOnMedicalCategories.stream()
-//                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
-//                .collect(Collectors.toSet());
-//
-//        var consultantsBasedOnSearchHistory = retrieveConsultantsBasedOnPatientSearchHistory(searchHistory);
-//        consultantRecommendations.addAll(consultantsBasedOnSearchHistory.stream()
-//                .map(consultant -> new ConsultantRecommendation(UUID.randomUUID(), consultant, patient))
-//                .collect(Collectors.toSet()));
-//
-//        recommendationRepository.saveAll(consultantRecommendations);
-//    }
+    public void createArticleRecommendationForPatient(Patient patient, Article article) {
+        articleRecommendationRepository.save(new ArticleRecommendation(patient, article));
+    }
+    public void createConsultantRecommendationForPatient(Patient patient, Consultant consultant){
+        consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient));
+    }
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()

@@ -9,10 +9,11 @@ import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.global.security.utils.AuthUtils;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -37,8 +38,8 @@ public class ArticleController {
 
     @Operation(summary = "Upload an Article", description = "Must be a consultant to perform this action")
     @PostMapping
-    @PreAuthorize("hasRole('CONSULTANT')")
-    public ResponseEntity<Response<Article>> uploadArticle(@RequestBody ArticleUpload articleUpload, HttpServletRequest request) {
+   @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
+    public ResponseEntity<Response<ArticleDTO>> uploadArticle(@RequestBody @Valid ArticleUpload articleUpload, HttpServletRequest request) {
         var result = articleService.uploadArticle(articleUpload);
 
         return ResponseEntity

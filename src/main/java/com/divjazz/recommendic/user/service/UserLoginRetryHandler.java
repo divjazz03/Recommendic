@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.user.service;
 
-import com.divjazz.recommendic.cache.service.CacheService;
-import com.divjazz.recommendic.global.security.exception.LoginFailedException;
+import com.divjazz.recommendic.global.cache.service.CacheService;
+import com.divjazz.recommendic.security.exception.LoginFailedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Component;

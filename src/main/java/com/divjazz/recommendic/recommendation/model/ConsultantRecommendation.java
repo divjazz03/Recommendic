@@ -13,7 +13,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -31,7 +30,7 @@ public class ConsultantRecommendation extends Auditable {
     private Consultant consultant;
 
 
-    public ConsultantRecommendation(UUID id, Consultant consultant, Patient patient) {
+    public ConsultantRecommendation(Consultant consultant, Patient patient) {
         this.consultant = consultant;
         this.patient = patient;
     }
@@ -53,9 +52,6 @@ public class ConsultantRecommendation extends Auditable {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (patient != null ? patient.hashCode() : 0);
-        result = 31 * result + (consultant != null ? consultant.hashCode() : 0);
-        return result;
+        return 2000;
     }
 }

@@ -5,7 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
+@Getter
 public enum Role {
 
     PATIENT("ROLE_PATIENT", "PATIENT"),
@@ -23,14 +25,6 @@ public enum Role {
         this.name = name;
         this.permissions = permissions;
     }
-    public String getName() {
-        return name;
-    }
 
-
-
-    public String getPermissions() {
-        return permissions;
-    }
 
 }

@@ -47,24 +47,7 @@ public class ConsultantService {
                 consultant.getUserNameObject().getFirstName(),
                 consultant.getGender().toString(),
                 consultant.getPhoneNumber(),
-                consultant.getAddress(),"");
-    }
-
-    @Transactional
-    public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
-        UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
-        Consultant user = getConsultant(consultantDTO, userCredential);
-        if (userService.isUserNotExists(user.getEmail())) {
-            RequestContext.setUserId(user.getId());
-            var userConfirmation = new UserConfirmation(user);
-            var savedConsultant = consultantRepository.save(user);
-            userConfirmationRepository.save(userConfirmation);
-            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
-            applicationEventPublisher.publishEvent(userEvent);
-            return consultantToConsultantInfoResponse(savedConsultant);
-        } else {
-            throw new UserAlreadyExistsException(user.getEmail());
-        }
+                consultant.getAddress(), "");
     }
 
     private static Consultant getConsultant(ConsultantDTO consultantDTO, UserCredential userCredential) {
@@ -86,6 +69,23 @@ public class ConsultantService {
         user.setProfilePicture(profilePicture);
         user.setUserType(UserType.CONSULTANT);
         return user;
+    }
+
+    @Transactional
+    public ConsultantInfoResponse createConsultant(ConsultantDTO consultantDTO) {
+        UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantDTO.password()));
+        Consultant user = getConsultant(consultantDTO, userCredential);
+        if (userService.isUserNotExists(user.getEmail())) {
+            RequestContext.setUserId(user.getId());
+            var userConfirmation = new UserConfirmation(user);
+            var savedConsultant = consultantRepository.save(user);
+            userConfirmationRepository.save(userConfirmation);
+            UserEvent userEvent = new UserEvent(user, EventType.REGISTRATION, Map.of("key", userConfirmation.getKey()));
+            applicationEventPublisher.publishEvent(userEvent);
+            return consultantToConsultantInfoResponse(savedConsultant);
+        } else {
+            throw new UserAlreadyExistsException(user.getEmail());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -136,16 +136,14 @@ public class ConsultantService {
     }
 
     public boolean handleOnboarding(String userId, String medicalSpecialization) {
-        try {
-            MedicalCategoryEnum medicalSpec = MedicalCategoryEnum.valueOf(medicalSpecialization);
-            Consultant consultant = consultantRepository.findByUserId(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
-            consultant.setMedicalCategory(medicalSpec);
-            consultant.setUserStage(UserStage.ACTIVE_USER);
-            consultantRepository.save(consultant);
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
+
+        MedicalCategoryEnum medicalSpec = MedicalCategoryEnum.fromValue(medicalSpecialization);
+        Consultant consultant = consultantRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
+        consultant.setMedicalCategory(medicalSpec);
+        consultant.setUserStage(UserStage.ACTIVE_USER);
+        consultantRepository.save(consultant);
+
         return true;
     }
 }

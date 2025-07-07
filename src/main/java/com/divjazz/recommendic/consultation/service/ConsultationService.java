@@ -23,6 +23,7 @@ public class ConsultationService {
     private final AppointmentService appointmentService;
     private final ConsultationRepository consultationRepository;
 
+
     @Transactional
     public ConsultationResponse startConsultation(Long appointmentId) {
         Appointment appointment = appointmentService.getAppointmentById(appointmentId);
@@ -44,7 +45,6 @@ public class ConsultationService {
     public ConsultationResponse completeConsultation(Long consultationId, String summary) {
         var consultation = consultationRepository.findById(consultationId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultation with id: %s either doesn't exist or has been deleted"));
-
         consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
         consultation.setSummary(summary);

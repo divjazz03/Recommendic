@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.model.Admin;
@@ -34,7 +35,7 @@ public class GeneralUserService {
     private final ConsultantRepository consultantRepository;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
-
+    private final AuthUtils authUtils;
 
     public User retrieveUserByEmail(String email) {
         return findUserByEmail(email);
@@ -59,9 +60,7 @@ public class GeneralUserService {
 
 
     public User retrieveCurrentUser() {
-        var authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        return  retrieveUserByEmail((String) authentication.getPrincipal());
-
+        return authUtils.getCurrentUser();
     }
 
     public User retrieveUserByUserId(String id) {

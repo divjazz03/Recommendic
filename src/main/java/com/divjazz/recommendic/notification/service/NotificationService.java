@@ -5,7 +5,7 @@ import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.dto.NotificationDTO;
 import com.divjazz.recommendic.notification.model.Notification;
 import com.divjazz.recommendic.notification.repository.NotificationRepository;
-import com.divjazz.recommendic.global.security.utils.AuthUtils;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

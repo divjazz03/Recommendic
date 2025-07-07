@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.consultant;
 
+import com.divjazz.recommendic.global.validation.annotations.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,6 +23,7 @@ public record ConsultantRegistrationParams(
         @NotEmpty(message = "Phone number cannot be empty or null")
         @Schema(name = "Phone Number", example = "+23470467283", requiredMode = Schema.RequiredMode.REQUIRED)
         String phoneNumber,
+        @Gender
         @NotEmpty(message = "Gender cannot be empty or null")
         @Schema(name = "Gender", example = "MALE | FEMALE", requiredMode = Schema.RequiredMode.REQUIRED)
         String gender,

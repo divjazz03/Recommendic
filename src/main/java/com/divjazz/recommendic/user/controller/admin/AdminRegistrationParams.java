@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.admin;
 
+import com.divjazz.recommendic.global.validation.annotations.Gender;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -17,6 +18,7 @@ public record AdminRegistrationParams(
         @NotEmpty(message = "Phone number cannot be empty or null")
         @JsonProperty("phone_number")
         String phoneNumber,
+        @Gender
         @NotEmpty(message = "Gender cannot be empty or null")
         String gender,
         @NotEmpty(message = "zipcode cannot be empty or null")

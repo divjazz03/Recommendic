@@ -101,7 +101,7 @@ public class User extends Auditable implements UserDetails {
     @Override
     public Set<? extends GrantedAuthority> getAuthorities() {
 
-        return Set.of(new SimpleGrantedAuthority(role.getPermissions()));
+        return Set.of(new SimpleGrantedAuthority(role.getName()));
     }
 
     @Override

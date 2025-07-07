@@ -1,12 +1,13 @@
 package com.divjazz.recommendic.article.model;
 
 import com.divjazz.recommendic.global.Auditable;
-import com.divjazz.recommendic.article.ArticleStatus;
+import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.user.model.Consultant;
 import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
@@ -20,17 +21,16 @@ import java.util.concurrent.atomic.AtomicLong;
 @Setter
 @Entity
 @Table(name = "article")
+@AllArgsConstructor
+@Builder
 public class Article extends Auditable {
 
     @Column(nullable = false)
-    @NotBlank
     private String title;
 
     @Column(name = "subtitle", nullable = false)
-    @NotBlank
     private String subtitle;
     @Column(nullable = false)
-    @NotBlank
     private String content;
 
     @Type(LongArrayType.class)
@@ -43,7 +43,7 @@ public class Article extends Auditable {
     @Type(StringArrayType.class)
     @Column(name = "tags")
     private String[] tags;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "writer_id")
     private Consultant consultant;
 
@@ -69,6 +69,13 @@ public class Article extends Auditable {
         this.tags = tags;
         this.numberOfReads = 0L;
         this.status = ArticleStatus.DRAFT;
+    }
+
+    public long[] getLikeUserIds() {
+        if (likeUserIds == null) {
+            return new long[0];
+        }
+        return likeUserIds;
     }
 
 

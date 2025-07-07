@@ -12,7 +12,7 @@ public record LoginResponse(
         @JsonProperty("last_name") String lastName,
         String role,
         Address address,
-        UserStage userStage
+        String userStage
 
 ) {
 }

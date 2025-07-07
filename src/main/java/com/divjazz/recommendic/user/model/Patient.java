@@ -10,6 +10,7 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -40,7 +41,8 @@ public class Patient extends User {
             Address address, UserCredential userCredential) {
 
         super(userName, email, phoneNumber, gender, address, Role.PATIENT, userCredential);
-        super.setUserType(UserType.PATIENT);;
+        super.setUserType(UserType.PATIENT);
+        medicalCategories = new String[0];
     }
 
 

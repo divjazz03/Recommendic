@@ -1,5 +1,12 @@
 package com.divjazz.recommendic.article.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+
+import java.util.Objects;
+
+@Getter
 public enum ArticleTag {
 
     CHILD("child health"),
@@ -16,13 +23,23 @@ public enum ArticleTag {
     EYE("eye care"),
     PHYSICAL_THERAPY("physical therapy");
 
-    private String value;
+    @JsonValue
+    private final String value;
 
     ArticleTag(String value) {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
+    @JsonCreator
+    public static ArticleTag fromValue(String value) throws IllegalArgumentException {
+        if (Objects.nonNull(value)) {
+            for (ArticleTag articleTag : values()) {
+                if (articleTag.getValue().equalsIgnoreCase(value)) {
+                    return articleTag;
+                }
+            }
+            throw new IllegalArgumentException("Invalid article tag %s".formatted(value));
+        }
+        throw new IllegalArgumentException("Tag can't be null");
     }
 }

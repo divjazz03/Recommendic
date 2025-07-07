@@ -7,10 +7,10 @@ public record ArticleSearchResponse(
         String authorFirstName,
         String authorLastName,
         long upvote,
-        int noOfComments,
+        long noOfComments,
         long noOfReads,
         String publishedAt,
-        float rank,
+        double rank,
         String highlightedText,
         String[] tags
 ) {
