@@ -1,10 +1,7 @@
 package com.divjazz.recommendic.search;
 
-import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
-import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.service.ArticleService;
-import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.search.repository.SearchRepository;
 import com.divjazz.recommendic.search.service.SearchService;
@@ -13,24 +10,19 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
-import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class SearchServiceTest {

@@ -1,10 +1,8 @@
 package com.divjazz.recommendic.article.repository;
 
-import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.dto.ArticleSearchDTO;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.user.model.Consultant;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

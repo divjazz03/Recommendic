@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.article.dto;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

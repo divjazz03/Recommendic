@@ -7,7 +7,6 @@ import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,6 @@ public class UserController {
         ));
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CurrentUser(String userId, @JsonProperty("first_name") String firstName,@JsonProperty("last_name") String lastName, String role, Address address, @JsonProperty("user_type")UserType userType, @JsonProperty("user_stage")UserStage userStage){}
+    public record CurrentUser(String userId, String firstName, String lastName, String role, Address address, UserType userType, UserStage userStage){}
 
 }

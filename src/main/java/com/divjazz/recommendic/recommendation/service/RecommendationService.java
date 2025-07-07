@@ -1,31 +1,23 @@
 package com.divjazz.recommendic.recommendation.service;
 
 import com.divjazz.recommendic.article.model.Article;
-import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.recommendation.model.ArticleRecommendation;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.repository.ArticleRecommendationRepository;
 import com.divjazz.recommendic.recommendation.repository.ConsultantRecommendationRepository;
-import com.divjazz.recommendic.search.enums.Category;
 import com.divjazz.recommendic.search.model.Search;
-import com.divjazz.recommendic.search.service.SearchService;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor

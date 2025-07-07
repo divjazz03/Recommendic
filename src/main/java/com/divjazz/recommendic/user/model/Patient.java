@@ -1,7 +1,5 @@
 package com.divjazz.recommendic.user.model;
 
-import com.divjazz.recommendic.consultation.model.Consultation;
-import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
@@ -9,8 +7,9 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
-import jakarta.persistence.*;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -18,7 +17,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
 
 @Entity
 @Table(name = "patient", schema = "patient_schema")
