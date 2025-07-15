@@ -30,15 +30,12 @@ public class UserController {
         User user = userService.retrieveCurrentUser();
         return ResponseEntity.ok(new CurrentUser(
                 user.getUserId(),
-                user.getUserNameObject().getFirstName(),
-                user.getUserNameObject().getLastName(),
                 user.getRole().getName(),
-                user.getAddress(),
                 user.getUserType(),
                 user.getUserStage()
         ));
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CurrentUser(String userId, String firstName, String lastName, String role, Address address, UserType userType, UserStage userStage){}
+    public record CurrentUser(String userId, String role, UserType userType, UserStage userStage){}
 
 }

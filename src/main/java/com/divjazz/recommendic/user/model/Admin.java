@@ -33,8 +33,7 @@ public class Admin extends User {
             Gender gender,
             Address address,
             Role role, UserCredential userCredential) {
-        super(userName, email, phoneNumber, gender, address, role, userCredential);
-        super.setUserType(UserType.ADMIN);
+        super( email, gender, role, userCredential, UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
     public void addAssignment(Assignment assignment) {

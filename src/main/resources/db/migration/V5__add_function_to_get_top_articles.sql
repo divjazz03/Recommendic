@@ -34,7 +34,7 @@ $$
                                                      * (a.no_of_reads + 0.1)
                                                      * (cardinality(a.like_ids) + 0.1) as rank
                                  FROM article a
-                                          LEFT JOIN consultant co ON a.writer_id = co.id
+                                          LEFT JOIN consultant_profiles co ON a.writer_id = co.id
                                 )
         SELECT
                ra.id             as id,

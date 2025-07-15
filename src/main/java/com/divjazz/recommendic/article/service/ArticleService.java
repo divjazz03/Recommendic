@@ -16,6 +16,8 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,14 +37,16 @@ public class ArticleService {
     private final AuthUtils authUtils;
     private final ApplicationEventPublisher eventPublisher;
     private final ArticleRepositoryCustom articleRepositoryCustom;
+    private final ConsultantService consultantService;
 
     public ArticleDTO uploadArticle(ArticleUpload articleUpload) {
 
-        var consultant = authUtils.getCurrentUser();
+        var consultant = (Consultant) authUtils.getCurrentUser();
+
         var article = new Article(articleUpload.title(),
                 articleUpload.subtitle(),
                 articleUpload.content(),
-                (Consultant) consultant,
+                consultant,
                 articleUpload.tags());
         articleRepository.save(article);
 
@@ -52,7 +56,7 @@ public class ArticleService {
                 "",
                 article.getTags(),
                 article.getLikeUserIds().length,
-                article.getConsultant().getUserNameObject().getFullName(),
+                consultant.getProfile().getUserName().getFirstName(),
                 article.getNumberOfReads(),
                 article.getPublished_at() == null ? null
                         : article.getPublished_at().toString()
@@ -118,13 +122,14 @@ public class ArticleService {
         );
     }
 
-    private ArticleSearchResponse convertFromArticleToArticleSearchResponse(Article article) {
+    private ArticleSearchResponse convertFromArticleToArticleSearchResponse(Article article, Consultant consultant) {
+        var consultantProfile = consultantService.getConsultantProfile(consultant);
         return new ArticleSearchResponse(
                 article.getId(),
                 article.getTitle(),
                 article.getSubtitle(),
-                article.getConsultant().getUserNameObject().getFirstName(),
-                article.getConsultant().getUserNameObject().getLastName(),
+                consultantProfile.getUserName().getFirstName(),
+                consultantProfile.getUserName().getLastName(),
                 article.getLikeUserIds().length,
                 article.getComments().size(),
                 article.getNumberOfReads(),
@@ -137,7 +142,8 @@ public class ArticleService {
     @Transactional
     public PageResponse<ArticleSearchResponse> getByConsultant(Consultant consultant, Pageable pageable) {
         var pageOfArticle = articleRepository.queryArticleByConsultant(consultant, pageable);
-        var pageOfArticleSearchResponse = pageOfArticle.map(this::convertFromArticleToArticleSearchResponse);
+        var pageOfArticleSearchResponse = pageOfArticle
+                .map(article -> convertFromArticleToArticleSearchResponse(article, consultant));
         return PageResponse.from(pageOfArticleSearchResponse);
     }
     @Transactional

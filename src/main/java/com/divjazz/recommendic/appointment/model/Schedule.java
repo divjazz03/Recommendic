@@ -7,10 +7,7 @@ import com.divjazz.recommendic.user.model.Consultant;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Type;
 
 import java.time.LocalTime;
@@ -20,6 +17,7 @@ import java.time.ZoneOffset;
 @Table(name = "schedule_slot")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Schedule extends Auditable {

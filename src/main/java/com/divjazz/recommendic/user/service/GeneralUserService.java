@@ -135,10 +135,15 @@ public class GeneralUserService {
         }
     }
 
-    public boolean isUserNotExists(String email) {
-        return !patientRepository.existsByEmail(email) &&
-                !consultantRepository.existsByEmail(email) &&
-                !adminRepository.existsByEmail(email);
+    public boolean isUserExists(String email) {
+        return patientRepository.existsByEmail(email) ||
+                consultantRepository.existsByEmail(email) ||
+                adminRepository.existsByEmail(email) ;
+    }
+    public boolean isUserExistsByUserId(String userId) {
+        return patientRepository.existsByUserId(userId) ||
+                consultantRepository.existsByUserId(userId) ||
+                adminRepository.existsByUserId(userId);
     }
 
 }

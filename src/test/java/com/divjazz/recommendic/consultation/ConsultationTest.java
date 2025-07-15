@@ -11,11 +11,17 @@ import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
+import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.service.PatientService;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +37,7 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 public class ConsultationTest {
 
+    private static final Faker faker = new Faker();
 
     @Mock
     private AppointmentService appointmentService;
@@ -45,21 +52,39 @@ public class ConsultationTest {
     @BeforeEach
     void setup() {
         consultant = new Consultant(
-                new UserName("firstname", "lastname"),
-                "consultant@test.com",
-                "234424424242",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("bang", "dsadd", "jouuewn"),
-                new UserCredential("password")
+                new UserCredential(faker.text().text(20))
         );
         patient = new Patient(
-                new UserName("firstname", "lastname"),
-                "patient@test.com",
-                "234424424242",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("bang", "dsadd", "jouuewn"),
-                new UserCredential("password")
+                new UserCredential(faker.text().text(20))
         );
+        consultant.setEnabled(true);
+        consultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        consultant.setUserStage(UserStage.ACTIVE_USER);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(consultant)
+                .build();
+        consultant.setProfile(consultantProfile);
+
+        patient.setEnabled(true);
+        patient.setMedicalCategories(new String[]{});
+        patient.setUserStage(UserStage.ACTIVE_USER);
+
+        PatientProfile patientProfile = PatientProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .patient(patient)
+                .build();
+        patient.setPatientProfile(patientProfile);
     }
 
     @Test
@@ -108,7 +133,6 @@ public class ConsultationTest {
 
         assertThat(result.status()).isEqualTo(ConsultationStatus.ONGOING.toString());
         assertThat(result.channel()).isEqualTo(appointmentToReturn.getConsultationChannel().toString());
-        assertThat(result.consultantName()).isEqualTo(appointmentToReturn.getConsultant().getUserNameObject().getFullName());
     }
 
 

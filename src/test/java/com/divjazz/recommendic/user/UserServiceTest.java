@@ -17,6 +17,7 @@ import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +33,7 @@ import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
+    private static final Faker faker = new Faker();
     @Mock
     private UserLoginRetryHandler userLoginRetryHandler;
     @Mock
@@ -51,12 +53,9 @@ public class UserServiceTest {
     @Test
     void givenValidEmailShouldReturnConsultant() {
         var userToReturn = new Consultant(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
         given(patientRepository.findByEmail(anyString())).willReturn(Optional.empty());
         given(adminRepository.findByEmail(anyString())).willReturn(Optional.empty());
@@ -69,12 +68,9 @@ public class UserServiceTest {
     @Test
     void givenValidEmailShouldReturnPatient() {
         var userToReturn = new Patient(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
         given(patientRepository.findByEmail(anyString())).willReturn(Optional.of(userToReturn));
         given(adminRepository.findByEmail(anyString())).willReturn(Optional.empty());
@@ -99,34 +95,26 @@ public class UserServiceTest {
     void givenValidUserIdShouldReturnConsultant() {
         var userId = UUID.randomUUID().toString();
         var userToReturn = new Consultant(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
-        userToReturn.setUserId(userId);
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
         given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
 
         var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
 
-        assertThat(actualReturnedUser.getUserId()).isEqualTo(userToReturn.getUserId());
+        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
     }
     @Test
     void givenValidUserIdShouldReturnPatient() {
         var userId = UUID.randomUUID().toString();
         var userToReturn = new Patient(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
-        userToReturn.setUserId(userId);
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
         given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
@@ -134,7 +122,7 @@ public class UserServiceTest {
 
         var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
 
-        assertThat(actualReturnedUser.getUserId()).isEqualTo(userToReturn.getUserId());
+        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
     }
 
     @Test
@@ -157,12 +145,9 @@ public class UserServiceTest {
     @Test
     void shouldCallHandleSuccessAttemptForPatientWhenLoginSuccess() {
         var user = new Patient(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
@@ -177,12 +162,9 @@ public class UserServiceTest {
     @Test
     void shouldCallHandleSuccessAttemptForConsultantWhenLoginSuccess() {
         var user = new Consultant(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
@@ -198,12 +180,9 @@ public class UserServiceTest {
     @Test
     void shouldEnablePatientUserWithValidUserId() {
         var userToReturn = new Patient(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
@@ -217,12 +196,9 @@ public class UserServiceTest {
     @Test
     void shouldEnableConsultantUserWithValidUserId() {
         var userToReturn = new Consultant(
-                new UserName("Test", "User"),
-                "test_user@test.com",
-                "+234904309530",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_city", "test_state", "test_country"),
-                new UserCredential("rest_password")
+                new UserCredential(faker.text().text(20))
         );
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());

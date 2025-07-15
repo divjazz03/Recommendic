@@ -27,7 +27,7 @@ public class EmailServiceImpl implements EmailService {
         this.sender = sender;
     }
 
-    @Async("applicationTaskExecutor")
+    @Async("recommendicTaskExecutor")
     @Override
     public void sendNewAccountEmail(String name, String toEmail, String key) {
         try {
@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
 
     }
 
-    @Async("applicationTaskExecutor")
+    @Async("recommendicTaskExecutor")
     @Override
     public void sendPasswordResetEmail(String name, String toEmail, String key) {
         try {
@@ -58,7 +58,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    @Async("applicationTaskExecutor")
+    @Async("recommendicTaskExecutor")
     @Override
     public void sendNewAdminAccountEmail(String name, String toEmail, String key, String password) {
         try {

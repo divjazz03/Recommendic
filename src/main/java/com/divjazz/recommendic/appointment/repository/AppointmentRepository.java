@@ -12,21 +12,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     @Query("""
     SELECT a FROM Appointment a
-    LEFT JOIN FETCH a.patient p
-    LEFT JOIN FETCH a.consultant co
-    LEFT JOIN FETCH a.schedule ss
     WHERE a.patient.userId = :userId
-    ORDER BY ss.startTime DESC
+    ORDER BY a.schedule.startTime DESC
     """)
     Stream<Appointment> findAppointmentsByPatient_UserId(@Param("userId") String userId);
 
     @Query(""" 
     SELECT a FROM Appointment a
-     LEFT JOIN FETCH a.consultant co
-     LEFT JOIN FETCH a.schedule ss
-     LEFT JOIN FETCH a.patient p
      WHERE a.consultant.userId = :userId
-     ORDER BY ss.startTime DESC
+     ORDER BY a.schedule.startTime DESC
     """)
     Stream<Appointment> findAppointmentsByConsultant_UserId(String userId);
 }

@@ -98,7 +98,7 @@ public class WebSecurityConfig {
                     List.of(corsFrontendDomain)
             );
             corsConfiguration.setAllowedMethods(
-                    List.of("GET", "POST", "PUT", "DELETE")
+                    List.of("GET", "POST", "PATCH", "DELETE")
             );
             corsConfiguration.setAllowedHeaders(List.of("*"));
             corsConfiguration.setAllowCredentials(true);

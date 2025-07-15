@@ -48,16 +48,4 @@ public class ChatMessageService {
         List<Message> undeliveredMessages = chatMessageRepository.findByReceiverIdAndDeliveredFalse(userId);
 
     }
-
-    public List<ChatResponseMessage> getAllOfflineMessages(User recipient) {
-        var offlineMessages = chatMessageRepository.findByReceiverId(recipient.getUserId());
-        return offlineMessages.stream().map(message -> new ChatResponseMessage(
-                userService.retrieveUserByUserId(message.getSenderId()).getUserNameObject().getFullName(),
-                userService.retrieveUserByUserId(recipient.getUserId()).getUserNameObject().getFullName(),
-                message.getConsultation().getId(),
-                message.getContent(),
-                message.getTimeStamp(),
-                message.isDelivered()
-        )).collect(Collectors.toList());
-    }
 }

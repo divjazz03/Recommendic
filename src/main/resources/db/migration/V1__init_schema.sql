@@ -14,6 +14,8 @@ DROP TABLE IF EXISTS
     comment,
     article_recommendation,
     certification,
+    consultant_profiles,
+    patient_profiles,
     search,
     message CASCADE;
 DROP TYPE IF EXISTS article_search_result, article_status_enum, message_search_result, user_security_data CASCADE;
@@ -23,66 +25,53 @@ DROP INDEX IF EXISTS
     idx_consultant_email,
     idx_consultant_user_id,
     idx_search_owner_id,
-    patient_schema.idx_patient_email,
-    patient_schema.idx_patient_user_id,
+    idx_patient_email,
+    idx_patient_user_id,
     message_search_idx CASCADE;
-DROP SCHEMA IF EXISTS patient_schema, consultant_schema, admin_schema CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
-CREATE SCHEMA patient_schema;
-CREATE SCHEMA consultant_schema;
-CREATE SCHEMA admin_schema;
+
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS admin
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             CHARACTER VARYING(54) UNIQUE NOT NULL,
-    username            jsonb,
-    email               CHARACTER VARYING(54) UNIQUE NOT NULL,
-    phone_number        CHARACTER VARYING(54)                 DEFAULT NULL,
-    bio                 TEXT                                  DEFAULT NULL,
-    profile_picture     jsonb,
-    address             jsonb,
-    user_type           CHARACTER VARYING(54)        NOT NULL,
-    user_stage          CHARACTER VARYING(54)        NOT NULL,
-    enabled             BOOLEAN                      NOT NULL DEFAULT FALSE,
-    account_non_expired BOOLEAN                      NOT NULL DEFAULT TRUE,
-    account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
-    gender              CHARACTER VARYING(54)        NOT NULL,
-    role                CHARACTER VARYING(54)        NOT NULL,
-    last_login          TIMESTAMP                             DEFAULT NULL,
-    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_by          CHARACTER VARYING(54),
-    updated_by          CHARACTER VARYING(54),
+    user_id             TEXT UNIQUE NOT NULL,
+    email               TEXT UNIQUE NOT NULL,
+    user_type           TEXT        NOT NULL,
+    user_stage          TEXT        NOT NULL,
+    enabled             BOOLEAN     NOT NULL DEFAULT FALSE,
+    account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
+    account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
+    gender              TEXT        NOT NULL,
+    role                TEXT        NOT NULL,
+    last_login          TIMESTAMP            DEFAULT NULL,
+    updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_by          TEXT,
+    updated_by          TEXT,
     /*Credential embed*/
     user_credential     jsonb
 
 );
 /*                                             PATIENT                                                          */
-CREATE TABLE IF NOT EXISTS patient_schema.patient
+CREATE TABLE IF NOT EXISTS patient
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             CHARACTER VARYING(54) UNIQUE NOT NULL,
-    username            jsonb,
-    email               CHARACTER VARYING(54) UNIQUE NOT NULL,
-    phone_number        CHARACTER VARYING(54)                 DEFAULT NULL,
-    bio                 TEXT                                  DEFAULT NULL,
-    profile_picture     jsonb,
-    address             jsonb,
-    user_type           CHARACTER VARYING(54)        NOT NULL,
-    user_stage          CHARACTER VARYING(54)        NOT NULL,
-    enabled             BOOLEAN                      NOT NULL DEFAULT FALSE,
-    account_non_expired BOOLEAN                      NOT NULL DEFAULT TRUE,
-    account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
-    gender              CHARACTER VARYING(54)        NOT NULL,
-    role                CHARACTER VARYING(54)        NOT NULL,
-    last_login          TIMESTAMP                             DEFAULT NULL,
-    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_by          CHARACTER VARYING(54),
-    updated_by          CHARACTER VARYING(54),
+    user_id             TEXT UNIQUE NOT NULL,
+    email               TEXT UNIQUE NOT NULL,
+    user_type           TEXT        NOT NULL,
+    user_stage          TEXT        NOT NULL,
+    enabled             BOOLEAN     NOT NULL DEFAULT FALSE,
+    account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
+    account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
+    gender              TEXT        NOT NULL,
+    role                TEXT        NOT NULL,
+    last_login          TIMESTAMP            DEFAULT NULL,
+    updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_by          TEXT,
+    updated_by          TEXT,
     medical_categories  TEXT[],
     recommendation_id   BIGINT,
     user_credential     jsonb
@@ -91,51 +80,77 @@ CREATE TABLE IF NOT EXISTS patient_schema.patient
 CREATE TABLE IF NOT EXISTS consultant
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             CHARACTER VARYING(54) UNIQUE NOT NULL,
-    username            jsonb,
-    email               CHARACTER VARYING(54) UNIQUE NOT NULL,
-    phone_number        CHARACTER VARYING(54)                 DEFAULT NULL,
-    bio                 TEXT                                  DEFAULT NULL,
-    profile_picture     jsonb,
-    address             jsonb,
-    user_type           CHARACTER VARYING(54)        NOT NULL,
-    user_stage          CHARACTER VARYING(54)        NOT NULL,
-    enabled             BOOLEAN                      NOT NULL DEFAULT FALSE,
-    account_non_expired BOOLEAN                      NOT NULL DEFAULT TRUE,
-    account_non_locked  BOOLEAN                      NOT NULL DEFAULT TRUE,
-    gender              CHARACTER VARYING(54)        NOT NULL,
-    role                CHARACTER VARYING(54)        NOT NULL,
-    location            CHARACTER VARYING(100),
-    experience          INTEGER,
-    title               CHARACTER VARYING(100),
-    languages           CHARACTER VARYING(54)[],
-    last_login          TIMESTAMP                             DEFAULT NULL,
-    updated_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_at          TIMESTAMP                             DEFAULT CURRENT_TIMESTAMP,
-    created_by          CHARACTER VARYING(54),
-    updated_by          CHARACTER VARYING(54),
-    specialization      CHARACTER VARYING(54),
-    certified           BOOLEAN                               DEFAULT FALSE,
+    user_id             TEXT UNIQUE NOT NULL,
+    email               TEXT UNIQUE NOT NULL,
+    user_type           TEXT        NOT NULL,
+    user_stage          TEXT        NOT NULL,
+    enabled             BOOLEAN     NOT NULL DEFAULT FALSE,
+    account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
+    account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
+    gender              TEXT        NOT NULL,
+    role                TEXT        NOT NULL,
+    last_login          TIMESTAMP            DEFAULT NULL,
+    updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    created_by          TEXT,
+    updated_by          TEXT,
+    specialization      TEXT,
+    certified           BOOLEAN              DEFAULT FALSE,
     certificate_id      BIGINT,
     user_credential     jsonb,
     search_vector       tsvector GENERATED ALWAYS AS (
-                                    setweight(to_tsvector('english', coalesce(username ->> 'first_name', '')), 'A') ||
-                                    setweight(to_tsvector('english', coalesce(username ->> 'last_name', '')), 'B') ||
-                                    setweight(to_tsvector('english', coalesce(specialization, '')), 'C')
+                            setweight(to_tsvector('english', coalesce(specialization, '')), 'C')
                             ) STORED
 
+);
+
+CREATE TABLE IF NOT EXISTS patient_profiles
+(
+    id              BIGINT PRIMARY KEY REFERENCES patient (id) ON DELETE CASCADE ,
+    profile_picture jsonb,
+    address         jsonb,
+    phone_number    TEXT,
+    username        jsonb,
+    updated_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    search_vector   tsvector GENERATED ALWAYS AS (
+                            setweight(to_tsvector('english', coalesce(username ->> 'first_name', '')), 'A') ||
+                            setweight(to_tsvector('english', coalesce(username ->> 'last_name', '')), 'B') ) STORED,
+    created_by      TEXT NOT NULL,
+    updated_by      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS consultant_profiles
+(
+    id              BIGINT PRIMARY KEY REFERENCES consultant (id) ON DELETE CASCADE ,
+    profile_picture jsonb,
+    address         jsonb,
+    bio             TEXT         DEFAULT NULL,
+    phone_number    TEXT,
+    username        jsonb,
+    location        TEXT,
+    experience      INTEGER,
+    title           TEXT,
+    languages       TEXT[],
+    updated_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    search_vector   tsvector GENERATED ALWAYS AS (
+                            setweight(to_tsvector('english', coalesce(username ->> 'first_name', '')), 'A') ||
+                            setweight(to_tsvector('english', coalesce(username ->> 'last_name', '')), 'B') ) STORED,
+    created_by      TEXT NOT NULL,
+    updated_by      TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS users_confirmation
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id    CHARACTER VARYING(54)  NOT NULL,
-    expiry     TIMESTAMP(6)           NOT NULL,
-    key        CHARACTER VARYING(100) NOT NULL,
+    user_id    TEXT         NOT NULL,
+    expiry     TIMESTAMP(6) NOT NULL,
+    key        TEXT         NOT NULL,
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by CHARACTER VARYING(54)  NOT NULL,
-    updated_by CHARACTER VARYING(54)  NOT NULL
+    created_by TEXT         NOT NULL,
+    updated_by TEXT         NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS assignment
@@ -144,8 +159,8 @@ CREATE TABLE IF NOT EXISTS assignment
     admin_id   BIGINT REFERENCES admin (id),
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by CHARACTER VARYING(54) NOT NULL,
-    updated_by CHARACTER VARYING(54) NOT NULL
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL
 );
 
 
@@ -155,27 +170,27 @@ CREATE TABLE IF NOT EXISTS certification
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     consultant_id    BIGINT REFERENCES consultant (id) NOT NULL,
     assignment_id    BIGINT REFERENCES assignment (id) NOT NULL,
-    file_name        CHARACTER VARYING(255)            NOT NULL,
-    file_url         CHARACTER VARYING(255)            NOT NULL,
-    certificate_type CHARACTER VARYING(30)             NOT NULL,
+    file_name        TEXT                              NOT NULL,
+    file_url         TEXT                              NOT NULL,
+    certificate_type TEXT                              NOT NULL,
     confirmed        BOOLEAN      DEFAULT TRUE,
     updated_at       TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at       TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by       CHARACTER VARYING(54)             NOT NULL,
-    updated_by       CHARACTER VARYING(54)             NOT NULL
+    created_by       TEXT                              NOT NULL,
+    updated_by       TEXT                              NOT NULL
 
 );
 
 CREATE TABLE IF NOT EXISTS search
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    query      CHARACTER VARYING(30) NOT NULL,
-    owner_id   CHARACTER VARYING(54) NOT NULL,
-    category   CHARACTER VARYING(30) DEFAULT 'ALL',
-    updated_at TIMESTAMP(6)          DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP(6)          DEFAULT CURRENT_TIMESTAMP,
-    created_by CHARACTER VARYING(54) NOT NULL,
-    updated_by CHARACTER VARYING(54) NOT NULL
+    query      TEXT NOT NULL,
+    owner_id   TEXT NOT NULL,
+    category   TEXT         DEFAULT 'ALL',
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL
 );
 
 CREATE TYPE article_status_enum AS ENUM ('DRAFT','ARCHIVED','PUBLISHED');
@@ -184,11 +199,11 @@ CREATE TYPE article_status_enum AS ENUM ('DRAFT','ARCHIVED','PUBLISHED');
 CREATE TABLE IF NOT EXISTS article
 (
     id             BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    title          CHARACTER VARYING(54)             NOT NULL,
-    subtitle       CHARACTER VARYING(54)             NOT NULL,
+    title          TEXT                              NOT NULL,
+    subtitle       TEXT                              NOT NULL,
     content        TEXT                              NOT NULL,
     like_ids       BIGINT[],
-    tags           CHARACTER VARYING(50)[],
+    tags           TEXT[],
     writer_id      BIGINT REFERENCES consultant (id) NOT NULL,
     no_of_reads    BIGINT       DEFAULT 0,
     article_status VARCHAR(10)  DEFAULT 'DRAFT',
@@ -200,8 +215,8 @@ CREATE TABLE IF NOT EXISTS article
     updated_at     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     published_at   TIMESTAMP(6) DEFAULT NULL,
-    created_by     CHARACTER VARYING(54)             NOT NULL,
-    updated_by     CHARACTER VARYING(54)             NOT NULL
+    created_by     TEXT                              NOT NULL,
+    updated_by     TEXT                              NOT NULL
 
 );
 
@@ -209,24 +224,24 @@ CREATE TABLE IF NOT EXISTS article
 CREATE TABLE IF NOT EXISTS consultant_recommendation
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    patient_id    BIGINT REFERENCES patient_schema.patient (id) NOT NULL,
+    patient_id    BIGINT REFERENCES patient (id) NOT NULL,
     consultant_id BIGINT REFERENCES consultant (id)             NOT NULL,
     updated_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54)                         NOT NULL,
-    updated_by    CHARACTER VARYING(54)                         NOT NULL
+    created_by    TEXT                                          NOT NULL,
+    updated_by    TEXT                                          NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS article_recommendation
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    patient_id BIGINT REFERENCES patient_schema.patient (id) NOT NULL,
+    patient_id BIGINT REFERENCES patient (id) NOT NULL,
     article_id BIGINT REFERENCES article (id)                NOT NULL,
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by CHARACTER VARYING(54),
-    updated_by CHARACTER VARYING(54)
+    created_by TEXT,
+    updated_by TEXT
 );
 
 
@@ -234,8 +249,8 @@ CREATE TABLE IF NOT EXISTS article_recommendation
 CREATE TABLE IF NOT EXISTS message
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    sender_id     CHARACTER VARYING(54),
-    receiver_id   CHARACTER VARYING(54),
+    sender_id     TEXT,
+    receiver_id   TEXT,
     content       TEXT,
     timestamp     TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     search_vector tsvector GENERATED ALWAYS AS (
@@ -244,32 +259,32 @@ CREATE TABLE IF NOT EXISTS message
     delivered     BOOLEAN      DEFAULT FALSE,
     updated_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54),
-    updated_by    CHARACTER VARYING(54)
+    created_by    TEXT,
+    updated_by    TEXT
 
 );
 
 CREATE TABLE IF NOT EXISTS comment
 (
     id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id           CHARACTER VARYING(54) NOT NULL,
+    user_id           TEXT NOT NULL,
     article_id        BIGINT REFERENCES article (id),
     parent_comment_id BIGINT REFERENCES comment (id),
     updated_at        TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at        TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    created_by        CHARACTER VARYING(54),
-    updated_by        CHARACTER VARYING(54)
+    created_by        TEXT,
+    updated_by        TEXT
 );
 
-ALTER TABLE IF EXISTS consultant
-    ADD FOREIGN KEY (certificate_id) REFERENCES certification (id);
+-- ALTER TABLE IF EXISTS consultant
+--     ADD FOREIGN KEY (certificate_id) REFERENCES certification (id);
 
 CREATE INDEX IF NOT EXISTS idx_search_owner_id ON search (owner_id);
-CREATE INDEX IF NOT EXISTS idx_patient_email ON patient_schema.patient (email);
-CREATE INDEX IF NOT EXISTS idx_patient_user_id ON patient_schema.patient (user_id);
+CREATE INDEX IF NOT EXISTS idx_patient_email ON patient (email);
+CREATE INDEX IF NOT EXISTS idx_patient_user_id ON patient (user_id);
 CREATE INDEX IF NOT EXISTS idx_consultant_email ON consultant (email);
 CREATE INDEX IF NOT EXISTS idx_consultant_user_id ON consultant (user_id);
-CREATE INDEX IF NOT EXISTS idx_patient_credential ON patient_schema.patient USING GIN (user_credential);
+CREATE INDEX IF NOT EXISTS idx_patient_credential ON patient USING GIN (user_credential);
 CREATE INDEX IF NOT EXISTS idx_consultant_credential ON consultant USING GIN (user_credential);
 CREATE INDEX IF NOT EXISTS article_search_idx ON article USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS article_status_idx on article (article_status);
@@ -278,12 +293,12 @@ CREATE INDEX IF NOT EXISTS message_search_idx ON message USING GIN (search_vecto
 CREATE TYPE article_search_result AS
 (
     id              BIGINT,
-    title           CHARACTER VARYING(54),
-    subtitle        CHARACTER VARYING(54),
+    title           TEXT,
+    subtitle        TEXT,
     authorFirstName TEXT,
     authorLastName  TEXT,
     publishedAt     TIMESTAMP,
-    tags            CHARACTER VARYING(50)[],
+    tags            TEXT[],
     rank            numeric,
     highlighted     TEXT,
     upvotes         BIGINT,
@@ -294,7 +309,7 @@ CREATE TYPE article_search_result AS
 
 CREATE OR REPLACE FUNCTION search_articles(
     search_query TEXT,
-    tag_filter CHARACTER VARYING(50)[] DEFAULT NULL,
+    tag_filter TEXT[] DEFAULT NULL,
     author_filter BIGINT[] DEFAULT NULL,
     min_date TIMESTAMP(6) DEFAULT NULL,
     max_date TIMESTAMP(6) DEFAULT NULL,
@@ -332,8 +347,8 @@ BEGIN
                  (SELECT DISTINCT ON (a.id) a.id,
                                             a.title,
                                             a.subtitle,
-                                            co.username ->> 'full_name'                    as firstName,
-                                            co.username ->> 'full_name'                    as lastName,
+                                            cp.username ->> 'full_name'                    as firstName,
+                                            cp.username ->> 'full_name'                    as lastName,
                                             a.published_at,
                                             a.no_of_reads                                  as reads,
                                             a.tags                                         as tags,
@@ -350,11 +365,11 @@ BEGIN
                                              FROM comment c
                                              where c.article_id = a.id)                    as no_of_comments
                   FROM article a
-                           LEFT JOIN consultant co on co.id = a.writer_id
+                           LEFT JOIN consultant_profiles cp on cp.id= a.writer_id
                   WHERE a.article_status = 'PUBLISHED'
                     AND a.search_vector @@ tsquery_var
                     AND (tag_filter IS NULL OR a.tags @> tag_filter)
-                    AND (author_filter IS NULL OR co.id = any (author_filter))
+                    AND (author_filter IS NULL OR cp.id = any (author_filter))
                     AND (min_date IS NULL OR a.published_at >= min_date)
                     AND (max_date IS NULL OR a.published_at <= max_date))
         SELECT ra.id             as id,
@@ -407,20 +422,22 @@ BEGIN
     SELECT COUNT(DISTINCT m.id)
     FROM message m
              JOIN consultant c ON c.id = receiver_id
-             JOIN patient_schema.patient p ON p.id = receiver_id
+             JOIN patient p ON p.id = receiver_id
+            JOIN consultant_profiles cp on c.id = cp.id
+            JOIN patient_profiles pp on p.id = pp.id
     WHERE m.search_vector ||
-          setweight(to_tsvector('english', coalesce(c.username ->> 'first_name', p.username ->> 'first_name', '')),
+          setweight(to_tsvector('english', coalesce(cp.username ->> 'first_name', pp.username ->> 'first_name', '')),
                     'A') ||
-          setweight(to_tsvector('english', coalesce(c.username ->> 'last_name', p.username ->> 'last_name', '')),
+          setweight(to_tsvector('english', coalesce(cp.username ->> 'last_name', pp.username ->> 'last_name', '')),
                     'B') @@ tsquery_var
     INTO total;
 
     RETURN QUERY
         WITH ranked_messages AS (SELECT DISTINCT on (m2.id) m2.id                                                                  as id,
-                                                            coalesce(c2.username ->> 'first_name',
-                                                                     p2.username ->> 'first_name',
+                                                            coalesce(cp.username ->> 'first_name',
+                                                                     pp.username ->> 'first_name',
                                                                      '')                                                           as firstname,
-                                                            coalesce(c2.username ->> 'last_name', p2.username ->> 'last_name', '') as lastname,
+                                                            coalesce(cp.username ->> 'last_name', pp.username ->> 'last_name', '') as lastname,
                                                             ts_rank(m2.search_vector, tsquery_var) *
                                                             CASE
                                                                 WHEN m2.created_at > now() - INTERVAL '7 days'
@@ -431,14 +448,16 @@ BEGIN
                                                             ts_headline('english', m2.content, tsquery_var)                        as highlight
                                  FROM message m2
                                           JOIN consultant c2 on c2.id = receiver_id
-                                          JOIN patient_schema.patient p2 on p2.id = receiver_id
+                                          JOIN patient p2 on p2.id = receiver_id
+                                          JOIN consultant_profiles cp on c2.id = cp.id
+                                          JOIN patient_profiles pp on p2.id = pp.id
                                  WHERE m2.search_vector ||
                                        setweight(to_tsvector('english',
-                                                             coalesce(c2.username ->> 'first_name',
-                                                                      p2.username ->> 'first_name', '')),
+                                                             coalesce(cp.username ->> 'first_name',
+                                                                      pp.username ->> 'first_name', '')),
                                                  'A') ||
                                        setweight(to_tsvector('english',
-                                                             coalesce(c2.username ->> 'last_name', p2.username ->> 'last_name', '')),
+                                                             coalesce(cp.username ->> 'last_name', pp.username ->> 'last_name', '')),
                                                  'B') @@ tsquery_var)
         SELECT rm.id        as id,
                rm.rank      as rank,
@@ -473,8 +492,8 @@ BEGIN
         WITH ranked_articles AS (SELECT DISTINCT ON (a.id) a.id,
                                                            a.title                           as title,
                                                            a.subtitle,
-                                                           co.username ->> 'full_name'       as firstName,
-                                                           co.username ->> 'full_name'       as lastName,
+                                                           cp.username ->> 'full_name'       as firstName,
+                                                           cp.username ->> 'full_name'       as lastName,
                                                            a.published_at,
                                                            a.no_of_reads                     as reads,
                                                            a.tags                            as tags,
@@ -486,12 +505,12 @@ BEGIN
                                                                 WHEN a.published_at > now() - INTERVAL '30 days'
                                                                     THEN 1.2
                                                                 ELSE 1.0
-                                                                END)  / 1000                       as rank,
+                                                                END) / 1000                  as rank,
                                                            (SELECT count(c.article_id)
                                                             FROM comment c
                                                             where c.article_id = a.id)       as no_of_comments
                                  FROM article a
-                                          LEFT JOIN consultant co ON a.writer_id = co.id)
+                                          LEFT JOIN consultant_profiles cp ON a.writer_id = cp.id)
         SELECT ra.id             as id,
                ra.title          as title,
                ra.subtitle       as subtitle,
@@ -531,7 +550,7 @@ BEGIN
            user_credential
     INTO user_security_data
     FROM (select patient.id, patient.email, patient.user_id, patient.user_credential
-          from patient_schema.patient
+          from patient
           where email = input_email
           UNION
           SELECT consultant.id, consultant.email, consultant.user_id, consultant.user_credential
@@ -557,7 +576,7 @@ BEGIN
     SELECT user_credential
     INTO user_credential_out
     FROM (select patient.user_credential
-          from patient_schema.patient
+          from patient
           where email = input_email
           UNION
           SELECT consultant.user_credential
@@ -582,7 +601,7 @@ BEGIN
     SELECT user_credential
     INTO user_credential_out
     FROM (select patient.user_credential
-          from patient_schema.patient
+          from patient
           where user_id = input_user_id
           UNION
           SELECT consultant.user_credential

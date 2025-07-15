@@ -1,17 +1,20 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
-import com.divjazz.recommendic.user.dto.ConsultantDTO;
+import com.divjazz.recommendic.user.controller.consultant.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +39,7 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class ConsultantServiceTest {
-
+    private static final Faker faker = new Faker();
     @Mock
     private  UserConfirmationRepository userConfirmationRepository;
     @Mock
@@ -49,31 +52,40 @@ public class ConsultantServiceTest {
     private  ConsultantRepository consultantRepository;
     @InjectMocks
     private ConsultantService consultantService;
-
     private Consultant consultant;
     @BeforeEach
     void setup() {
         consultant = new Consultant(
-                new UserName("test_user2_firstname", "test_user2_firstname"),
-                "test_user2@test.com",
-                "+234905593953",
+                faker.internet().emailAddress(),
                 Gender.MALE,
-                new Address("test_user2_city", "test_user2_state", "test_user2_country"),
-                new UserCredential("test_user2_password")
+                new UserCredential(faker.text().text(20))
         );
         consultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
+        consultant.setEnabled(true);
+        consultant.setUserStage(UserStage.ACTIVE_USER);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(consultant)
+                .build();
     }
 
-    static Stream<Arguments> getValidConsultantDTOParameters() {
+    private static Stream<Arguments> getValidConsultantDTOParameters() {
         return Stream.of(
                 Arguments.of(
-                        new ConsultantDTO(
-                                new UserName("test_user1_firstname", "test_user1_firstname"),
-                                "test_user1@test.com",
-                                "+23490393848",
-                                Gender.MALE,
-                                new Address("test_user1_city", "test_user1_state", "test_user1_country"),
-                                "test_user1_password"
+                        new ConsultantRegistrationParams(
+                                faker.name().firstName(),
+                                faker.name().lastName(),
+                                faker.internet().emailAddress(),
+                                "kdsoidhosifbodinos",
+                                faker.phoneNumber().phoneNumber(),
+                                Gender.FEMALE.toString(),
+                                faker.address().city(),
+                                faker.address().state(),
+                                faker.address().country()
                         )
                 )
         );
@@ -81,28 +93,36 @@ public class ConsultantServiceTest {
 
     @ParameterizedTest
     @MethodSource("getValidConsultantDTOParameters")
-    void givenValidParameterShouldCreateConsultantUser(ConsultantDTO consultantDTO) {
+    void givenValidParameterShouldCreateConsultantUser(ConsultantRegistrationParams consultantRegistrationParams) {
         var savedConsultant = new Consultant(
-                consultantDTO.userName(),
-                consultantDTO.email(),
-                consultantDTO.phoneNumber(),
-                consultantDTO.gender(),
-                consultantDTO.address(),
-                new UserCredential(consultantDTO.password())
+                consultantRegistrationParams.email(),
+                Gender.valueOf(consultantRegistrationParams.gender().toUpperCase()),
+                new UserCredential(consultantRegistrationParams.password())
         );
+        savedConsultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
+        savedConsultant.setEnabled(true);
+        savedConsultant.setUserStage(UserStage.ACTIVE_USER);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(consultant)
+                .build();
         given(passwordEncoder.encode(anyString())).willReturn("Encoded Password String");
-        given(userService.isUserNotExists(anyString())).willReturn(true);
+        given(userService.isUserExists(anyString())).willReturn(true);
         given(consultantRepository.save(any(Consultant.class))).willReturn(savedConsultant);
 
-        var result = consultantService.createConsultant(consultantDTO);
+        var result = consultantService.createConsultant(consultantRegistrationParams);
 
-        assertThat(result.address()).isEqualTo(consultantDTO.address());
-        assertThat(result.firstName()).isEqualTo(consultantDTO.userName().getFirstName());
-        assertThat(result.lastName()).isEqualTo(consultantDTO.userName().getLastName());
-        assertThat(result.gender()).isEqualTo(consultantDTO.gender().toString());
+        assertThat(result.address().getCity()).isEqualTo(consultantRegistrationParams.city());
+        assertThat(result.firstName()).isEqualTo(consultantRegistrationParams.firstName());
+        assertThat(result.lastName()).isEqualTo(consultantRegistrationParams.lastName());
+        assertThat(result.gender()).isEqualToIgnoringCase(consultantRegistrationParams.gender());
     }
 
-    static Stream<Arguments> getValidMedicalSpecialty() {
+    private static Stream<Arguments> getValidMedicalSpecialty() {
         return Stream.of(
                 Arguments.of(
                         "pediatrician"
@@ -112,7 +132,7 @@ public class ConsultantServiceTest {
                 )
         );
     }
-    static Stream<Arguments> getInValidMedicalSpecialty() {
+    private static Stream<Arguments> getInValidMedicalSpecialty() {
         return Stream.of(
                 Arguments.of(
                         "cardology"
@@ -148,7 +168,7 @@ public class ConsultantServiceTest {
     @Test
     void shouldGetConsultantByMedicalSpecialization() {
         given(consultantRepository.findByMedicalCategoryIgnoreCase(anyString())).willReturn(
-                List.of(consultant)
+               Set.of(consultant)
         );
 
         var result = consultantService.getConsultantsByCategory(MedicalCategoryEnum.PEDIATRICIAN);

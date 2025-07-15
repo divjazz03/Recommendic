@@ -3,14 +3,18 @@ package com.divjazz.recommendic.user;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.PatientService;
+import net.datafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,6 +36,7 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class PatientServiceTest {
+    private static final Faker faker = new Faker();
     @Mock
     private UserConfirmationRepository userConfirmationRepository;
     @Mock
@@ -45,14 +50,27 @@ public class PatientServiceTest {
     @InjectMocks
     private PatientService patientService;
 
-    private final Patient patient  = new Patient(
-            new UserName("test_user1_firstname", "test_user1_firstname"),
-            "test_user1@test.com",
-            "+234905593953",
-            Gender.FEMALE,
-            new Address("test_user1_city", "test_user1_state", "test_user1_country"),
-            new UserCredential("test_user1_password")
-    );
+    private  Patient patient ;
+
+
+    @BeforeEach
+    void setup() {
+        patient = new Patient(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20))
+        );
+        patient.setEnabled(true);
+        patient.setMedicalCategories(new String[]{});
+        patient.setUserStage(UserStage.ACTIVE_USER);
+
+        PatientProfile patientProfile = PatientProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .patient(patient)
+                .build();
+    }
 
     static Stream<Arguments> getValidPatientDTOParameters() {
         return Stream.of(
@@ -73,7 +91,7 @@ public class PatientServiceTest {
     @MethodSource("getValidPatientDTOParameters")
     void givenValidParameterShouldCreatePatientUser(PatientDTO patientDTO) {
         given(encoder.encode(anyString())).willReturn("Encoded Password String");
-        given(userService.isUserNotExists(anyString())).willReturn(true);
+        given(userService.isUserExists(anyString())).willReturn(true);
 
         var result = patientService.createPatient(patientDTO);
 
@@ -108,8 +126,7 @@ public class PatientServiceTest {
     void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(List<String> medicalCategories) {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(patient));
 
-        boolean result = patientService.handleOnboarding(patient.getUserId(), medicalCategories);
-        assertThat(result).isTrue();
+        patientService.handleOnboarding(patient.getUserId(), medicalCategories);
     }
     @ParameterizedTest
     @MethodSource("getInValidMedicalCategories")

@@ -1,23 +1,30 @@
 package com.divjazz.recommendic.article.IT;
 
 import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.DataSeeder;
 import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.article.domain.ArticleTag;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.general.BeanConfig;
 import com.divjazz.recommendic.security.config.WebSecurityConfig;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,11 +39,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -49,7 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-@Import({WebSecurityConfig.class})
+@Import({WebSecurityConfig.class, BeanConfig.class})
 public class ArticleIT extends BaseIntegration {
 
     private static final Faker faker = new Faker();
@@ -60,9 +75,22 @@ public class ArticleIT extends BaseIntegration {
     @Autowired
     private ConsultantRepository consultantRepository;
     @Autowired
+    private ConsultantProfileRepository consultantProfileRepository;
+    @Autowired
+    private PatientProfileRepository patientProfileRepository;
+    @Autowired
     private PatientRepository patientRepository;
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .findAndRegisterModules()
+                .configure(SerializationFeature.CLOSE_CLOSEABLE, true)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private Consultant consultant;
     private Patient patient;
@@ -123,38 +151,112 @@ public class ArticleIT extends BaseIntegration {
         return Stream.of(Arguments.of(inValidArticle1),
                 Arguments.of(inValidArticle2));
     }
+    private long savePatientAndProfile(Patient patient, PatientProfile patientProfile) throws com.fasterxml.jackson.core.JsonProcessingException {
+        String savePatientSQL = """
+                INSERT INTO patient (user_id, email, user_type, user_stage, gender, role,created_by, updated_by, medical_categories,user_credential)
+                VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id;
+                """;
+        String savePatientProfile = """
+                INSERT INTO patient_profiles (id, address, phone_number, username, updated_at, created_at, created_by, updated_by)
+                VALUES (?,?,?,?,?,?,?,?) RETURNING id;
+                """;
+        long id =  jdbcTemplate.query(savePatientSQL,
+                (rs,rsnex) -> rs.getLong("id"),
+                UUID.randomUUID().toString(),
+                patient.getEmail(),
+                patient.getUserType().name(),
+                patient.getUserStage().name(),
+                patient.getGender().toString(),
+                patient.getRole().getName(),
+                "SYSTEM",
+                "SYSTEM",
+                new String[]{MedicalCategoryEnum.CARDIOLOGY.getValue()},
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(new UserCredential("random password")))
+                ).get(0);
+        return jdbcTemplate.query(savePatientProfile,
+                (rs, rowNum) -> rs.getLong("id"),
+                id,
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(patientProfile.getAddress())),
+                patientProfile.getPhoneNumber(),
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(patientProfile.getUserName())),
+                patientProfile.getUpdatedAt(),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        ).get(0);
+    }
+    private long saveConsultantAndProfile(Consultant consultant, ConsultantProfile consultantProfile) throws com.fasterxml.jackson.core.JsonProcessingException {
+        String saveConsultantSQL = """
+                INSERT INTO consultant (user_id, email, user_type, user_stage, gender, role,created_by, updated_by, specialization,user_credential)
+                VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id;
+                """;
+        String saveConsultantProfile = """
+                INSERT INTO consultant_profiles (id, address, phone_number, username, updated_at, created_at, created_by, updated_by)
+                VALUES (?,?,?,?,?,?,?,?) RETURNING id;
+                """;
+        long id =  jdbcTemplate.query(saveConsultantSQL,
+                (rs, rsN) -> rs.getLong("id"),
+                UUID.randomUUID().toString(),
+                consultant.getEmail(),
+                consultant.getUserType().name(),
+                consultant.getUserStage().name(),
+                consultant.getGender().toString(),
+                consultant.getRole().getName(),
+                "SYSTEM",
+                "SYSTEM",
+                MedicalCategoryEnum.CARDIOLOGY.getValue(),
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(new UserCredential("random password")))
+        ).get(0);
+        return jdbcTemplate.query(saveConsultantProfile,
+                (rs, rsN) -> rs.getLong("id"),
+                id,
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(consultantProfile.getAddress())),
+                consultantProfile.getPhoneNumber(),
+                DataSeeder.asJsonb(objectMapper.writeValueAsString(consultantProfile.getUserName())),
+                consultant.getUpdatedAt(),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        ).get(0);
+    }
 
     @BeforeEach
-    void setupForEachTest() {
-        consultant = new Consultant(
-                new UserName(faker.name().firstName(), faker.name().lastName()),
+    void setup() {
+        Patient unSavedPatient = new Patient(
                 faker.internet().emailAddress(),
-                faker.phoneNumber().phoneNumber(),
                 Gender.MALE,
-                new Address(faker.address().city(), faker.address().state(), faker.address().country()),
                 new UserCredential(faker.text().text(20))
         );
-        consultant.setEnabled(true);
-        consultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
-        consultant.setUserStage(UserStage.ACTIVE_USER);
-        consultant.setLocationOfInstitution(faker.location().work());
-        consultant.setTitle(faker.job().title());
-        consultant = consultantRepository.save(consultant);
+        unSavedPatient.setEnabled(true);
+        unSavedPatient.setMedicalCategories(new String[]{});
+        unSavedPatient.setUserStage(UserStage.ACTIVE_USER);
+        PatientProfile patientProfile = PatientProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .patient(unSavedPatient)
+                .build();
+        unSavedPatient.setPatientProfile(patientProfile);
+        patient = patientRepository.save(unSavedPatient);
 
-        patient = new Patient(
-                new UserName(faker.name().firstName(), faker.name().lastName()),
+        Consultant unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
-                faker.phoneNumber().phoneNumber(),
                 Gender.MALE,
-                new Address(faker.address().city(), faker.address().state(), faker.address().country()),
                 new UserCredential(faker.text().text(20))
         );
-        patient.setEnabled(true);
-        patient.setMedicalCategories(new String[]{});
-        patient.setUserStage(UserStage.ACTIVE_USER);
-
-        patient = patientRepository.save(patient);
-
+        unSavedconsultant.setEnabled(true);
+        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
+        var unSavedconsultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(unSavedconsultant)
+                .build();
+        unSavedconsultant.setProfile(unSavedconsultantProfile);
+        consultant = consultantRepository.save(unSavedconsultant);
     }
 
     @ParameterizedTest
@@ -164,7 +266,7 @@ public class ArticleIT extends BaseIntegration {
                         post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(validArticle)
-                                .with(user(consultant))
+                                .with(user(this.consultant))
                 )
                 .andExpect(status().isCreated())
                 .andReturn().getResponse();
@@ -192,7 +294,7 @@ public class ArticleIT extends BaseIntegration {
                         post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(invalidArticle)
-                                .with(user(consultant))
+                                .with(user(this.consultant))
                 )
                 .andExpect(status().isBadRequest())
                 .andReturn().getResponse();
@@ -203,10 +305,9 @@ public class ArticleIT extends BaseIntegration {
     @Test
     void shouldGetPagedArticleThatWasWrittenByConsultantAndReturn200() throws Exception {
         populateArticles();
-
         var response = mockMvc.perform(
                         get("/api/v1/articles")
-                                .with(user(consultant))
+                                .with(user(this.consultant))
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -219,7 +320,7 @@ public class ArticleIT extends BaseIntegration {
 
         var response = mockMvc.perform(
                 get("/api/v1/articles")
-                        .with(user(patient))
+                        .with(user(this.patient))
         )
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -243,7 +344,7 @@ public class ArticleIT extends BaseIntegration {
 
         var response = mockMvc.perform(
                 get("/api/v1/articles/%s".formatted(articlePopulated.getId()))
-                        .with(user(patient))
+                        .with(user(this.patient))
 
         )
                 .andExpect(status().isOk())
@@ -286,4 +387,5 @@ public class ArticleIT extends BaseIntegration {
                         .build()
         ));
     }
+
 }

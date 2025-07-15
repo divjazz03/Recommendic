@@ -6,11 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record LoginResponse(
-        @JsonProperty("user_id") String userId,
-        @JsonProperty("first_name") String firstName,
-        @JsonProperty("last_name") String lastName,
+        String userId,
         String role,
-        Address address,
         String userStage
 
 ) {

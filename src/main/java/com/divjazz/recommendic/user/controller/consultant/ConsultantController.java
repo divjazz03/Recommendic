@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,23 +55,6 @@ public class ConsultantController {
     private final ConsultantService consultantService;
 
 
-    private static ConsultantDTO getConsultantDTO(@NotNull ConsultantRegistrationParams requestParams) {
-        UserName userName = new UserName(requestParams.firstName(), requestParams.lastName());
-        String userEmail = requestParams.email();
-        String phoneNumber = requestParams.phoneNumber();
-        Gender gender = switch (requestParams.gender().toUpperCase()) {
-            case "MALE" -> Gender.MALE;
-            case "FEMALE" -> Gender.FEMALE;
-            default ->
-                    throw new IllegalArgumentException(String.format("Gender %s is not valid", requestParams.gender()));
-        };
-        Address address = new Address(
-                requestParams.city(),
-                requestParams.state(),
-                requestParams.country());
-        return new ConsultantDTO(userName, userEmail, phoneNumber, gender, address, requestParams.password());
-    }
-
     @PostMapping
     @Operation(summary = "Register a Consultant User",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
@@ -93,8 +78,7 @@ public class ConsultantController {
         RequestContext.reset();
         RequestContext.setUserId(0L);
 
-        ConsultantDTO consultantDTO = getConsultantDTO(requestParams);
-        var consultantInfoResponse = consultantService.createConsultant(consultantDTO);
+        var consultantInfoResponse = consultantService.createConsultant(requestParams);
         return new ResponseEntity<>(getResponse(consultantInfoResponse,
                 "The Consultant was successfully created, Check your email to activate your account",
                 HttpStatus.CREATED
@@ -105,25 +89,16 @@ public class ConsultantController {
 
     @GetMapping
     @Operation(summary = "Get Paginated Consultants")
-    public ResponseEntity<Response<Set<ConsultantInfoResponse>>> getConsultants(@ParameterObject Pageable pageable) {
+    public ResponseEntity<Response<PageResponse<ConsultantInfoResponse>>> getConsultants(@ParameterObject @PageableDefault Pageable pageable) {
 
-        var data = consultantService.getAllConsultants(pageable).stream()
-                .map(consultant -> new ConsultantInfoResponse(
-                        consultant.getUserId(),
-                        consultant.getUserNameObject().getLastName(),
-                        consultant.getUserNameObject().getFirstName(),
-                        consultant.getGender().toString().toLowerCase(),
-                        consultant.getPhoneNumber(),
-                        consultant.getAddress(),
-                        consultant.getMedicalCategory().toString().toLowerCase()
-                ));
-        var response = getResponse(data.collect(Collectors.toSet()), "success", HttpStatus.OK);
-        return new ResponseEntity<>(response, HttpStatus.FOUND);
+        var data = consultantService.getAllConsultants(pageable);
+        var response = getResponse(data, "success", HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{consultantId}")
     @Operation(summary = "Delete Consultant by id")
-    public ResponseEntity<Response<Void>> deleteConsultant(@RequestParam("consultant_id") String consultantId) {
+    public ResponseEntity<Response<Void>> deleteConsultant(@PathVariable String consultantId) {
         consultantService.deleteConsultantById(consultantId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

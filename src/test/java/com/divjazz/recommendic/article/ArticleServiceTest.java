@@ -10,6 +10,7 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import net.datafaker.Faker;
@@ -37,8 +38,9 @@ public class ArticleServiceTest {
     private RecommendationService recommendationService;
     @Mock
     private AuthUtils authUtils;
-    @Mock
+
     private Consultant consultantUser;
+    private ConsultantProfile consultantProfile;
     @InjectMocks
     private ArticleService articleService;
 
@@ -80,13 +82,16 @@ public class ArticleServiceTest {
     @BeforeEach
     void setup() {
         consultantUser = new Consultant(
-                new UserName("test_user2_firstname", "test_user2_firstname"),
                 "test_user2@test.com",
-                "+234905593953",
                 Gender.MALE,
-                new Address("test_user2_city", "test_user2_state", "test_user2_country"),
                 new UserCredential("test_user2_password")
         );
+        consultantProfile = ConsultantProfile.builder()
+                .consultant(consultantUser)
+                .userName(new UserName("test_user2_firstname", "test_user2_firstname"))
+                .phoneNumber("+234905593953")
+                .address(new Address("test_user2_city", "test_user2_state", "test_user2_country"))
+                .build();
     }
     @Test
     void givenValidArticleUploadRequestShouldUploadAndReturnArticle() {

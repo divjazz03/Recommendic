@@ -20,10 +20,6 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor
 public class ConsultantStat extends Auditable {
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "consultant_id")
-    private Consultant consultant;
-
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "patients_helped", columnDefinition = "text[]")
     private String[] patientsHelped;
@@ -45,6 +41,10 @@ public class ConsultantStat extends Auditable {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private String[] followUps ;
 
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
+    private Consultant consultant;
 
     public void addPatientsHelpedIds (String patientsHelpedId) {
         patientsHelped = ArrayUtils.add(patientsHelped, patientsHelpedId);

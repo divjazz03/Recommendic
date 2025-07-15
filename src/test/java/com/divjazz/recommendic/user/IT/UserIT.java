@@ -45,11 +45,8 @@ public class UserIT extends BaseIntegration {
         user = User.builder()
                 .role(Role.CONSULTANT)
                 .userId(UUID.randomUUID().toString())
-                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
-                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
                 .enabled(true)
                 .userType(UserType.CONSULTANT)
-                .phoneNumber(faker.phoneNumber().phoneNumber())
                 .gender(Gender.MALE)
                 .userCredential(new UserCredential(faker.text().text(23)))
                 .build();

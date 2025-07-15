@@ -110,19 +110,19 @@ public class AdminController {
     @GetMapping("/admins")
     public ResponseEntity<Response<Set<AdminInfoResponse>>> getAdmins(@ParameterObject Pageable pageable) {
 
-        var admins = adminService.getAllAdmins(pageable);
-        var data = admins.stream()
-                .map(admin -> new AdminInfoResponse(
-                        admin.getUserId(),
-                        admin.getUserNameObject().getLastName(),
-                        admin.getUserNameObject().getFirstName(),
-                        admin.getEmail(),
-                        admin.getGender().name(),
-                        admin.getAddress()
-                )).collect(Collectors.toSet());
-        var response = getResponse(data,
-                "Successfully Retrieved all admin entries",
-                HttpStatus.OK);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+//        var admins = adminService.getAllAdmins(pageable);
+//        var data = admins.stream()
+//                .map(admin -> new AdminInfoResponse(
+//                        admin.getUserId(),
+//                        admin.getUserNameObject().getLastName(),
+//                        admin.getUserNameObject().getFirstName(),
+//                        admin.getEmail(),
+//                        admin.getGender().name(),
+//                        admin.getAddress()
+//                )).collect(Collectors.toSet());
+//        var response = getResponse(data,
+//                "Successfully Retrieved all admin entries",
+//                HttpStatus.OK);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 }

@@ -7,14 +7,20 @@ import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.appointment.mapper.AppointmentMapper;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
+import com.divjazz.recommendic.appointment.repository.AppointmentCustomRepository;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
+import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
+import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
+import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,9 +35,12 @@ import java.util.stream.Stream;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+    private final AppointmentCustomRepository appointmentCustomRepository;
     private final ScheduleRepository scheduleRepository;
     private final ConsultantRepository consultantRepository;
     private final PatientRepository patientRepository;
+    private final ConsultantProfileRepository consultantProfileRepository;
+    private final PatientProfileRepository patientProfileRepository;
     private final AuthUtils authUtils;
 
     public Appointment getAppointmentById(Long appointmentId) {
@@ -51,6 +60,10 @@ public class AppointmentService {
         Patient patient = patientRepository.findByUserId(authUtils.getCurrentUser().getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s does not exist"
                         .formatted(appointmentCreationRequest.consultantId())));
+        ConsultantProfile consultantProfile = consultantProfileRepository.findById(consultant.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Consultant doesn't have a profile"));
+        PatientProfile patientProfile = patientProfileRepository.findById(patient.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Patient doesn't have a profile"));
 
         boolean appointmentIsOccupiedBooked = appointmentStream
                 .anyMatch(appointment -> {
@@ -77,7 +90,7 @@ public class AppointmentService {
 
         appointment = appointmentRepository.save(appointment);
 
-        return AppointmentMapper.appointmentToDTO(appointment);
+        return AppointmentMapper.appointmentProjectionToDTO(new AppointmentProjection(appointment,patientProfile,consultantProfile));
     }
 
     @Transactional(readOnly = true)
@@ -88,5 +101,12 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public Stream<Appointment> getAppointmentsByConsultantId(String consultantId) {
         return appointmentRepository.findAppointmentsByConsultant_UserId(consultantId);
+    }
+
+    public Stream<AppointmentProjection> getAppointmentDetailsByConsultantId(String consultantId) {
+        return appointmentCustomRepository.findAppointmentDetailsByConsultantUserId(consultantId);
+    }
+    public Stream<AppointmentProjection> getAppointmentDetailsByPatientId(String patientId) {
+        return appointmentCustomRepository.findAppointmentDetailsByConsultantUserId(patientId);
     }
 }

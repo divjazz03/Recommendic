@@ -12,32 +12,32 @@ CREATE TABLE IF NOT EXISTS schedule_slot
     consultant_id        BIGINT REFERENCES consultant (id)               NOT NULL,
     start_time           TIME NOT NULL ,
     end_time             TIME NOT NULL ,
-    utf_offset           VARCHAR(6) NOT NULL,
+    utf_offset           VARCHAR NOT NULL,
     consultation_channel session_channel[]                           NOT NULL,
     is_recurring         BOOLEAN                        DEFAULT FALSE,
     recurrence_rule      TEXT,
     is_active            BOOLEAN                        DEFAULT FALSE,
-    name                 VARCHAR(54)                    NOT NULL ,
-    updated_at           TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at           TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by           CHARACTER VARYING(54),
-    updated_by           CHARACTER VARYING(54)
+    name                 TEXT                    NOT NULL ,
+    updated_at           TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at           TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by           TEXT,
+    updated_by           TEXT
 );
 
 CREATE TABLE IF NOT EXISTS appointment
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
-    patient_id    BIGINT REFERENCES patient_schema.patient (id),
-    consultant_id BIGINT REFERENCES consultant (id),
-    schedule_slot_id BIGINT REFERENCES schedule_slot (id),
+    patient_id    BIGINT REFERENCES patient (id) ON DELETE RESTRICT NOT NULL ,
+    consultant_id BIGINT REFERENCES consultant (id) ON DELETE RESTRICT NOT NULL ,
+    schedule_slot_id BIGINT REFERENCES schedule_slot (id) NOT NULL ,
     note          TEXT,
     status        appointment_status        DEFAULT 'REQUESTED',
     date          date NOT NULL ,
     selected_channel session_channel,
-    updated_at    TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at    TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54),
-    updated_by    CHARACTER VARYING(54)
+    updated_at    TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by    TEXT,
+    updated_by    TEXT
 );
 
 
@@ -51,12 +51,14 @@ CREATE TABLE IF NOT EXISTS consultation
     summary         TEXT,
     started_at    TIMESTAMP,
     ended_at      TIMESTAMP,
-    updated_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at    TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by    CHARACTER VARYING(54),
-    updated_by    CHARACTER VARYING(54)
+    updated_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by    TEXT,
+    updated_by    TEXT
 );
+
 ALTER TABLE message ADD COLUMN IF NOT EXISTS consultation_id BIGINT REFERENCES consultation (id);
+
 CREATE OR REPLACE FUNCTION update_consultation_search_vector()
 RETURNS TRIGGER AS $$
     BEGIN
@@ -64,6 +66,7 @@ RETURNS TRIGGER AS $$
                              setweight(to_tsvector('english', coalesce(NEW.status::text, '')), 'A');
     END;
     $$ LANGUAGE plpgsql;
+
 CREATE TRIGGER trg_update_search_vector
     BEFORE INSERT OR UPDATE ON consultation
     FOR EACH ROW EXECUTE FUNCTION update_consultation_search_vector();

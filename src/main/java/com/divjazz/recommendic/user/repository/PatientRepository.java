@@ -1,7 +1,9 @@
 package com.divjazz.recommendic.user.repository;
 
+import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
+import com.divjazz.recommendic.user.dto.PatientAndProfileDTO;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Patient;
 import org.springframework.data.domain.Page;
@@ -20,10 +22,10 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     Optional<Patient> findByUserId(String userId);
     Optional<Patient> findByEmail(String email);
     boolean existsByEmail(String email);
+    boolean existsByUserId(String userId);
+
 
     void deleteByUserId(String userId);
-
-    @Query(value = "select * from consultation where patient_id=:patientId", nativeQuery = true)
-    Set<Consultation> findAllConsultationByPatientId(String patientId);
+    ;
 
 }

@@ -13,6 +13,7 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -34,6 +35,7 @@ public class RecommendationService {
         return consultantRecommendationRepository.findByPatient(patient).orElse(Set.of());
 
     }
+    @Async("recommendicTaskExecutor")
     public void createArticleRecommendationsForPatient(Patient patient) {
         var medicalCategories = patient.getMedicalCategories().stream()
                 .map(MedicalCategoryEnum::fromValue)
@@ -50,9 +52,19 @@ public class RecommendationService {
         articleRecommendationRepository.saveAll(articlesByConsultantSpecialty);
 
     }
+    @Async("recommendicTaskExecutor")
     public void createArticleRecommendationForPatient(Patient patient, Article article) {
         articleRecommendationRepository.save(new ArticleRecommendation(patient, article));
     }
+    @Async("recommendicTaskExecutor")
+    public void createConsultantRecommendationForPatient(Patient patient) {
+        Set<Consultant> consultants = new HashSet<>();
+
+        patient.getMedicalCategories()
+                .forEach(category -> consultants.addAll(consultantService.getConsultantsByCategory(MedicalCategoryEnum.fromValue(category))));
+        consultants.forEach(consultant -> consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient)));
+    }
+    @Async("recommendicTaskExecutor")
     public void createConsultantRecommendationForPatient(Patient patient, Consultant consultant){
         consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient));
     }

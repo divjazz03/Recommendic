@@ -54,14 +54,15 @@ public class AdminService {
         var profilePicture = new ProfilePicture();
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
         profilePicture.setName("149071.png");
-        user.setProfilePicture(profilePicture);
-        user.setUserType(UserType.ADMIN);
-        if (userService.isUserNotExists(user.getEmail())) {
+        if (!userService.isUserExists(user.getEmail())) {
             adminRepository.save(user);
             var userConfirmation = new UserConfirmation(user);
-            UserEvent userEvent = new UserEvent(user,
+            UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
-                    Map.of("key", userConfirmation.getKey(), "password", response.normalPassword()));
+                    Map.of("key", userConfirmation.getKey(),
+                            "password", response.normalPassword(),
+                            "firstname", "",
+                            "email", user.getEmail()));
             applicationEventPublisher.publishEvent(userEvent);
             return new AdminCredentialResponse(user.getEmail(),
                     password);

@@ -7,8 +7,12 @@ import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
 import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.repository.ConsultationCustomRepository;
+import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +26,9 @@ public class ConsultationService {
 
     private final AppointmentService appointmentService;
     private final ConsultationRepository consultationRepository;
+    private final ConsultantService consultantService;
+    private final PatientService patientService;
+    private final ConsultationCustomRepository consultationCustomRepository;
 
 
     @Transactional
@@ -54,6 +61,14 @@ public class ConsultationService {
     @Transactional(readOnly = true)
     public Stream<Consultation> retrieveConsultationsByPatientId(String patientId) {
         return consultationRepository.findConsultationsByPatientUserId(patientId);
+    }
+    @Transactional(readOnly = true)
+    public Stream<ConsultationProjection> retrieveConsultationDetailByPatientId(String patientId) {
+        return consultationCustomRepository.findConsultationDetailsByPatientUserId(patientId);
+    }
+    @Transactional(readOnly = true)
+    public Stream<ConsultationProjection> retrieveConsultationDetailByConsultantId(String consultantId) {
+        return consultationCustomRepository.findConsultationDetailsByConsultantUserId(consultantId);
     }
     @Transactional(readOnly = true)
     public Stream<Consultation> retrieveConsultationsByConsultantId(String consultantId) {

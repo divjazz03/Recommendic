@@ -3,7 +3,9 @@ package com.divjazz.recommendic.user.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
+@Getter
 public enum MedicalCategoryEnum {
     PEDIATRICIAN("pediatrician","Dealing with care and basic treatment of children"),
     CARDIOLOGY("cardiology","Dealing with treatment of the heart"),
@@ -28,13 +30,6 @@ public enum MedicalCategoryEnum {
         this.value = value;
     }
 
-    public String getDescription() {
-        return description;
-    }
-    public String getValue() {
-        return value;
-    }
-
     @JsonCreator
     public static MedicalCategoryEnum fromValue(String value) throws IllegalArgumentException {
         if (value != null) {
@@ -45,6 +40,6 @@ public enum MedicalCategoryEnum {
             }
             throw new IllegalArgumentException("Invalid medical category: %s".formatted(value));
         }
-        throw new IllegalArgumentException("name cannot be null");
+        throw new IllegalArgumentException("value cannot be null");
     }
 }

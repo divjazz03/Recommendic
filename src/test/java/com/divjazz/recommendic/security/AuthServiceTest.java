@@ -77,7 +77,6 @@ public class AuthServiceTest {
     void givenIncorrectPasswordShouldThrowBadCredentialsException(LoginRequest loginRequest) {
         var user = User.builder()
                 .email(loginRequest.email())
-                .phoneNumber("")
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)
@@ -97,14 +96,11 @@ public class AuthServiceTest {
     void givenCorrectPasswordAndEmailShouldReturnALoginResponse(LoginRequest loginRequest) {
         var user = User.builder()
                 .email(loginRequest.email())
-                .phoneNumber("")
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)
                 .role(Role.CONSULTANT)
                 .enabled(false)
-                .userName(new UserName("test_first_name", "test_last_name"))
-                .address(new Address("test_city", "test_state", "test_country"))
                 .build();
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
         given(httpServletRequest.getSession()).willReturn(new MockHttpSession());
@@ -113,9 +109,6 @@ public class AuthServiceTest {
                         .authenticated(user, "[protected]",
                                 List.of(new SimpleGrantedAuthority(user.getRole().getPermissions()))));
         var result = authService.handleUserLogin(loginRequest, httpServletRequest);
-        assertThat(result.address()).isEqualTo(user.getAddress());
-        assertThat(result.firstName()).isEqualTo(user.getUserNameObject().getFirstName());
-        assertThat(result.lastName()).isEqualTo(user.getUserNameObject().getLastName());
         assertThat(result.role()).isEqualTo(user.getRole().getName());
         assertThat(result.userStage()).isEqualTo(user.getUserStage().toString());
 

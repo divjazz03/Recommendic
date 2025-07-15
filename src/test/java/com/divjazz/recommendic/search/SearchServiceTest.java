@@ -57,7 +57,6 @@ public class SearchServiceTest {
     void givenUserExistsButInvalidCategoryShouldThrowIllegalArgumentException() {
         var user = User.builder()
                 .email("testemail@test.com")
-                .phoneNumber("")
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)

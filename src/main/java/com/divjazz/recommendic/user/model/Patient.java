@@ -2,44 +2,41 @@ package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 import java.util.Arrays;
 import java.util.Set;
 
 @Entity
-@Table(name = "patient", schema = "patient_schema")
+@Table(name = "patient")
 @Getter
 @Setter
 public class Patient extends User {
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "medical_categories", columnDefinition = "text[]")
     private String[] medicalCategories;
+
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private PatientProfile patientProfile;
+
     protected Patient() {
     }
 
     public Patient(
-            UserName userName,
             String email,
-            String phoneNumber,
-            Gender gender,
-            Address address, UserCredential userCredential) {
+            Gender gender, UserCredential userCredential) {
 
-        super(userName, email, phoneNumber, gender, address, Role.PATIENT, userCredential);
-        super.setUserType(UserType.PATIENT);
+        super(email, gender, Role.PATIENT, userCredential, UserType.PATIENT);
         medicalCategories = new String[0];
     }
 

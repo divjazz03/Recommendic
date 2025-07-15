@@ -46,10 +46,7 @@ public class AuthService {
             httpServletRequest.getSession().setAttribute("user", authenticatedUser.getEmail());
             httpServletRequest.getSession().setAttribute("role", authenticatedUser.getRole().getName());
             return new LoginResponse(authenticatedUser.getUserId(),
-                    authenticatedUser.getUserNameObject().getFirstName(),
-                    authenticatedUser.getUserNameObject().getLastName(),
                     authenticatedUser.getRole().getName(),
-                    authenticatedUser.getAddress(),
                     authenticatedUser.getUserStage().toString());
         } catch (BadCredentialsException ex) {
             var unauthenticatedUser = generalUserService.retrieveUserByEmail(unAuthenticated.getEmail());

@@ -4,10 +4,7 @@ import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.enums.UserStage;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -27,74 +24,51 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Setter
 @Builder
 public class User extends Auditable implements UserDetails {
-
-    @Type(JsonBinaryType.class)
-    @Column(name = "username", nullable = false, columnDefinition = "jsonb")
-    private UserName userName;
-
     @Column(nullable = false)
     private String email;
     @Column(name = "user_id", nullable = false)
     private String userId;
-
-    @Column(nullable = false)
-    private String phoneNumber;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
-
-    @Type(JsonBinaryType.class)
-    @Column(name = "address", nullable = false, columnDefinition = "jsonb")
-    private Address address;
-
     @Column(name = "last_login")
+    @Setter
     private LocalDateTime lastLogin;
-
-    @Type(JsonBinaryType.class)
-    @Column(name = "profile_picture", nullable = false, columnDefinition = "jsonb")
-    private ProfilePicture profilePicture;
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
-
     @Type(JsonBinaryType.class)
     @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
     private UserCredential userCredential;
-
     @Column(name = "user_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserType userType;
-
     @Column(name = "user_stage", nullable = false)
     @Enumerated(EnumType.STRING)
+    @Setter
     private UserStage userStage;
-
+    @Setter
     private boolean accountNonExpired;
-
+    @Setter
     private boolean accountNonLocked;
+    @Setter
     private boolean enabled;
 
-    public User(UserName userName,
+    public User(
                 String email,
-                String phoneNumber,
                 Gender gender,
-                Address address,
                 Role role,
-                UserCredential userCredential) {
-        this.userName = userName;
+                UserCredential userCredential, UserType userType) {
         this.email = email;
-        this.phoneNumber = phoneNumber;
         this.gender = gender;
-        this.address = address;
         this.role = role;
         this.userCredential = userCredential;
         this.userId = UUID.randomUUID().toString();
         this.accountNonLocked = true;
         this.accountNonExpired = true;
+        this.userType = userType;
         this.enabled = false;
     }
 
@@ -113,8 +87,6 @@ public class User extends Auditable implements UserDetails {
     public String getUsername() {
         return email;
     }
-
-    public UserName getUserNameObject() {return userName;}
 
     @Override
     public boolean isAccountNonExpired() {
