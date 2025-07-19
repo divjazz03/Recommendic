@@ -24,19 +24,20 @@ public class ConsultationController {
 
     private final ConsultationService consultationService;
 
-    @PostMapping(value = "/start/{appointment_id}")
+    @PostMapping(value = "/{id}/start")
     @Operation(summary = "Starts a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable("appointment_id") Long appointmentId) {
-        ConsultationResponse response = consultationService.startConsultation(appointmentId);
-        return ResponseEntity.created(URI.create("/start/"+appointmentId))
-                .body(getResponse(response,"success", HttpStatus.CREATED));
+    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable Long id) {
+        ConsultationResponse response = consultationService.startConsultation(id);
+        return ResponseEntity.created(URI.create("/start/"+ id))
+                .body(getResponse(response, HttpStatus.CREATED));
     }
 
-    @PostMapping(value = "/complete/{id}")
+    @PostMapping(value = "/{id}/complete")
     @Operation(summary = "Finalizes a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable("id") Long id, @RequestBody ConsultationCompleteRequest request) {
+    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable Long id, @RequestBody ConsultationCompleteRequest request) {
         ConsultationResponse response = consultationService.completeConsultation(id, request.summary());
-        return ResponseEntity.ok(getResponse(response,"success", HttpStatus.CREATED));
+        return ResponseEntity.ok(getResponse(response, HttpStatus.OK
+        ));
     }
 
 

@@ -26,6 +26,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -92,7 +93,7 @@ public class PatientController {
 
         var infoResponse = patientService.createPatient(patient);
 
-        var response = getResponse(infoResponse, "success", HttpStatus.OK);
+        var response = getResponse(infoResponse, HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -101,7 +102,6 @@ public class PatientController {
     public ResponseEntity<Response<PageResponse<PatientInfoResponse>>> patients(@ParameterObject @PageableDefault Pageable pageable) {
         var patients = patientService.getAllPatients(pageable);
         var response = getResponse(patients,
-                "Success in retrieving the Patient Users",
                 HttpStatus.OK
         );
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -110,11 +110,12 @@ public class PatientController {
     @GetMapping("/{userId}")
     public ResponseEntity<Response<PatientInfoResponse>> getPatientDetail(@PathVariable String userId) {
         var patientInfo = patientService.getPatientDetailById(userId);
-        return ResponseEntity.ok(getResponse(patientInfo, "Success", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(patientInfo,  HttpStatus.OK));
     }
 
     @DeleteMapping("/{userId}")
     @Operation(summary = "Delete Patient by id")
+    @PreAuthorize(value = "hasAuthority('ROLE_ADMIN') or #userId.equals(@authUtils.currentUser.userId)")
     public ResponseEntity<Response<Void>> deletePatient(@PathVariable String userId) {
         patientService.deletePatientByUserId(userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -139,7 +140,6 @@ public class PatientController {
 
         var result = patientService.getRecommendationForPatient(userId);
         var response = getResponse(result,
-                "Success in retrieving the Patient Users",
                 HttpStatus.OK
         );
         return ResponseEntity.ok().body(response);

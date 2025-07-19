@@ -190,4 +190,10 @@ public class ConsultantService {
 
         return true;
     }
+
+    public ConsultantInfoResponse getConsultantByUserId(String userId) {
+        return consultantRepository.findByUserId(userId)
+                .map(this::toConsultantInfoResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
+    }
 }

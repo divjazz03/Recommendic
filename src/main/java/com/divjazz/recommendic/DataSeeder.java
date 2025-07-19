@@ -41,7 +41,7 @@ public class DataSeeder implements ApplicationRunner {
     private final Faker faker = new Faker();
     private final ObjectMapper objectMapper;
 
-    private Random random;
+    private final Random random = new Random();
 
     public static Patient generateFakePatient(Faker faker, int i) {
         String password = faker.lorem().characters(12, true, true, true);
@@ -55,14 +55,6 @@ public class DataSeeder implements ApplicationRunner {
         patient.setUserStage(UserStage.ACTIVE_USER);
         return patient;
     }
-//    private static DriverManagerDataSource dataSource() {
-//        DriverManagerDataSource ds = new DriverManagerDataSource();
-//        ds.setDriverClassName("org.postgresql.Driver");
-//        ds.setUrl("jdbc:postgresql://localhost:5432/recommendic");
-//        ds.setUsername("divjazz");
-//        ds.setPassword("june12003");
-//        return ds;
-//    }
 
     public static PatientProfile generateFakePatientProfile(Faker faker, Patient patient) {
         UserName userName = new UserName(faker.name().firstName(), faker.name().lastName());
@@ -128,8 +120,6 @@ public class DataSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        List<Object[]> consultants = new ArrayList<>(BATCH_SIZE);
-        List<Object[]> consultantProfiles = new ArrayList<>(BATCH_SIZE);
 
         CompletableFuture<Void> patientTask = CompletableFuture.runAsync(() -> {
             List<Object[]> patients = new ArrayList<>(BATCH_SIZE);
@@ -251,7 +241,9 @@ public class DataSeeder implements ApplicationRunner {
 
 
         CompletableFuture<Void> consultantTask = CompletableFuture.runAsync(() -> {
-            for (int i = 0; i < 100000; i++) {
+            List<Object[]> consultants = new ArrayList<>(BATCH_SIZE);
+            List<Object[]> consultantProfiles = new ArrayList<>(BATCH_SIZE);
+            for (int i = 0; i < 1000000; i++) {
                 var consultant = generateFakeConsultant(faker, i);
                 var consultantProfile = generateFakeConsultantProfile(faker, consultant);
                 String usernameObj;
@@ -294,8 +286,7 @@ public class DataSeeder implements ApplicationRunner {
                         consultant.getRole().name(),
                         "SYSTEM",
                         "SYSTEM",
-                        consultant.getUserStage() == UserStage.ONBOARDING ? null :
-                                MedicalCategoryEnum.CARDIOLOGY.getValue(),
+                        MedicalCategoryEnum.CARDIOLOGY.getValue(),
                         asJsonb(userCredential)
                 });
                 consultantProfiles.add(new Object[]{
@@ -305,6 +296,7 @@ public class DataSeeder implements ApplicationRunner {
                         faker.lorem().paragraph(30),
                         consultantProfile.getPhoneNumber(),
                         asJsonb(usernameObj),
+                        consultantProfile.getLocationOfInstitution(),
                         random.nextInt(10),
                         consultantProfile.getTitle(),
                         new String[]{"English"},
@@ -358,6 +350,7 @@ public class DataSeeder implements ApplicationRunner {
                                 profileRow[8],
                                 profileRow[9],
                                 profileRow[10],
+                                profileRow[11]
                         });
 
                     }
@@ -373,7 +366,7 @@ public class DataSeeder implements ApplicationRunner {
             }
         });
 
-        CompletableFuture.allOf(patientTask, consultantTask).join();
+        CompletableFuture.allOf(consultantTask).join();
         log.info("Finished seeding data");
 
     }

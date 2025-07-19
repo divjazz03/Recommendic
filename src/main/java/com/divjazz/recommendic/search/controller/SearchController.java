@@ -44,7 +44,7 @@ public class SearchController {
             @RequestParam(name = "query") String query) {
 
         var results = searchService.executeQueryForAuthorizedUsers(query, category);
-        var response = getResponse(results, "Search Successful", HttpStatus.OK);
+        var response = getResponse(results,  HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -55,7 +55,7 @@ public class SearchController {
                                                                                        @PageableDefault Pageable pageable) {
         PageResponse<ArticleSearchResponse> results = articleService.searchPageArticle(query,
                 pageable);
-        return ResponseEntity.ok(getResponse(results, "Success", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(results,  HttpStatus.OK));
 
     }
 

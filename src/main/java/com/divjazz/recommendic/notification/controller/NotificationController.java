@@ -25,7 +25,7 @@ public class NotificationController {
     ) {
         PageResponse<NotificationDTO> notifications = notificationService.getNotificationsForAuthenticatedUser(pageable);
 
-        return ResponseEntity.ok(RequestUtils.getResponse(notifications, "success", HttpStatus.OK));
+        return ResponseEntity.ok(RequestUtils.getResponse(notifications,  HttpStatus.OK));
     }
     @PostMapping
     public ResponseEntity<Void> seeNotification(@RequestBody Long notificationId) {

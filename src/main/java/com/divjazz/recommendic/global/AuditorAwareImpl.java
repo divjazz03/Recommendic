@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.global;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 @Component
 public class AuditorAwareImpl implements AuditorAware<String> {
-    @NotNull
     @Override
     public Optional<String> getCurrentAuditor() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();

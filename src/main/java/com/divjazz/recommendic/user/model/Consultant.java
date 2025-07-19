@@ -74,6 +74,9 @@ public class Consultant extends User{
     }
 
     public MedicalCategory getMedicalCategory() {
+        if (medicalCategory == null) {
+            return null;
+        }
         var categoryEnum =  MedicalCategoryEnum.fromValue(medicalCategory);
         return new MedicalCategory(categoryEnum.getValue(),categoryEnum.getDescription());
     }

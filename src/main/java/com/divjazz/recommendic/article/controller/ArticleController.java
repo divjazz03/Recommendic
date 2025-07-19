@@ -44,7 +44,7 @@ public class ArticleController {
 
         return ResponseEntity
                 .created(URI.create(request.getRequestURI()))
-                .body(getResponse(result,"successful", HttpStatus.OK));
+                .body(getResponse(result,HttpStatus.OK));
     }
 
     @GetMapping
@@ -57,13 +57,13 @@ public class ArticleController {
             case null, default -> null;
         };
 
-        return ResponseEntity.ok(getResponse(results, "Successful", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(results,  HttpStatus.OK));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get an article by id")
     public ResponseEntity<Response<ArticleDTO>> getArticleById(@PathVariable("id") long articleId) {
         var article = articleService.getArticleById(articleId);
-        return ResponseEntity.ok(getResponse(article, "success", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(article,  HttpStatus.OK));
     }
 }

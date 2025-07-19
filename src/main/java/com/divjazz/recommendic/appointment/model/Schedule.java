@@ -1,17 +1,21 @@
 package com.divjazz.recommendic.appointment.model;
 
+import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.converter.ZoneOffsetConverter;
 import com.divjazz.recommendic.user.model.Consultant;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
 
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.util.Set;
 
 @Entity
 @Table(name = "schedule_slot")
@@ -41,7 +45,8 @@ public class Schedule extends Auditable {
     @Column(name = "is_recurring")
     private boolean isRecurring;
     @Column (name = "recurrence_rule")
-    private String recurrenceRule;
+    @Type(JsonBinaryType.class)
+    private RecurrenceRule recurrenceRule;
     @Column (name = "is_active")
     boolean isActive;
 

@@ -32,13 +32,12 @@ public class RequestUtils {
 
     public static<T> Response<T> getResponse(
                                        T data,
-                                       String message,
                                        HttpStatusCode status) {
         return new Response<>(
                 now().format(ISO_LOCAL_DATE_TIME),
                 status.value(),
                 HttpStatus.valueOf(status.value()),
-                message,
+                "Success",
                 EMPTY,
                 data
         );

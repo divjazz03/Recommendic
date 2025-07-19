@@ -8,11 +8,14 @@ import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
+import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.AdminProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
@@ -31,17 +34,17 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.*;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
 public class ConsultantIT extends BaseIntegration {
@@ -52,13 +55,16 @@ public class ConsultantIT extends BaseIntegration {
     @Autowired
     public ConsultantRepository consultantRepository;
     @Autowired
+    public AdminRepository adminRepository;
+    @Autowired
     public JacksonTester<Response<ConsultantInfoResponse>> jacksonTester;
     @Autowired
     private JacksonTester<Response<GlobalControllerExceptionAdvice.ValidationErrorResponse>> validationErrorresponseJacksonTester;
-
+    @Autowired
     private JacksonTester<Response<PageResponse<ConsultantInfoResponse>>> consultantPageResponseJacksonTester;
 
     public Consultant consultant;
+    public Admin admin;
 
     @BeforeEach
     void setUp() {
@@ -83,6 +89,24 @@ public class ConsultantIT extends BaseIntegration {
                 .build();
         unSavedConsultant.setProfile(consultantProfile);
         consultant = consultantRepository.save(unSavedConsultant);
+        Admin unSavedAdmin = new Admin(
+                FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("adminPassword")
+                );
+        unSavedAdmin.setEnabled(true);
+        unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
+
+        AdminProfile adminProfile = AdminProfile.builder()
+                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
+                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .admin(unSavedAdmin)
+                .build();
+        unSavedAdmin.setAdminProfile(adminProfile);
+
+        admin = adminRepository.save(unSavedAdmin);
+
     }
 
     @Test
@@ -165,7 +189,7 @@ public class ConsultantIT extends BaseIntegration {
                 ).andExpect(status().isForbidden());
     }
     @Test
-    void shouldGetPatientsWhenAuthorizedAndIFExists() throws Exception{
+    void shouldGetConsultantsWhenAuthorizedAndIFExists() throws Exception {
         populateConsultants();
         var responseString = mockMvc.perform(
                         get(CONSULTANT_BASE_ENDPOINT)
@@ -174,6 +198,85 @@ public class ConsultantIT extends BaseIntegration {
                 .andReturn().getResponse().getContentAsString();
         var consultantResponse = consultantPageResponseJacksonTester.parse(responseString).getObject();
         assertThat(consultantResponse.data().empty()).isFalse();
+    }
+    @Test
+    void shouldDeleteConsultantIFExists() throws Exception {
+        Consultant unsavedConsultant = new Consultant(
+                FAKER.internet().emailAddress(),
+                Gender.FEMALE,
+                new UserCredential(FAKER.text().text(20))
+        );
+        unsavedConsultant.setEnabled(true);
+        unsavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
+
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
+                .consultant(unsavedConsultant)
+                .build();
+        unsavedConsultant.setProfile(consultantProfile);
+        var savedConsultant = consultantRepository.save(unsavedConsultant);
+        var consultantUserId = savedConsultant.getUserId();
+
+        mockMvc.perform(
+                delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, consultantUserId))
+                        .with(user(admin))
+        ).andExpect(status().isNoContent());
+        mockMvc.perform(
+                    get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, consultantUserId))
+                        .with(user(admin))
+        ).andExpect(status().isNotFound());
+    }
+    @Test
+    void shouldDeleteIfConsultantIsThisUser() throws Exception {
+        mockMvc.perform(
+                delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
+                        .with(user(consultant))
+        ).andExpect(status().isNoContent());
+        mockMvc.perform(
+                get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
+                        .with(user(admin))
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn404IfUserTobeDeletedDoesNotExist() throws Exception {
+        mockMvc.perform(
+                delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, UUID.randomUUID()))
+                        .with(user(admin))
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldHandleOnboardingRequestAndReturnOk() throws Exception {
+
+        var consultantInOnboardingStage = new Consultant(FAKER.internet().emailAddress(), Gender.MALE, new UserCredential("password"));
+        consultantInOnboardingStage.setUserStage(UserStage.ONBOARDING);
+        consultantInOnboardingStage.setEnabled(true);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
+                .consultant(consultantInOnboardingStage)
+                .build();
+        consultantInOnboardingStage.setProfile(consultantProfile);
+        consultantRepository.save(consultantInOnboardingStage);
+
+        var onboardingData = """
+                {
+                    "medicalSpecialization": "pediatrician"
+                }
+                """;
+
+        mockMvc.perform(
+                post("%s/%s/onboard".formatted(CONSULTANT_BASE_ENDPOINT, consultantInOnboardingStage.getUserId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(onboardingData)
+                        .with(user(consultantInOnboardingStage))
+
+        ).andExpect(status().isOk());
     }
 
     private void populateConsultants() {

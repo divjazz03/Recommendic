@@ -7,11 +7,14 @@ import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
+import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.AdminProfile;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
@@ -40,7 +43,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
 public class PatientIT extends BaseIntegration {
@@ -57,8 +59,11 @@ public class PatientIT extends BaseIntegration {
     private JacksonTester<Response<PageResponse<PatientInfoResponse>>> patientsPageResponseJacksonTester;
     @Autowired
     private PatientRepository patientRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     private Patient patient;
+    private Admin admin;
 
 
     @BeforeEach
@@ -80,6 +85,23 @@ public class PatientIT extends BaseIntegration {
                 .build();
         unsavedPatient.setPatientProfile(patientProfile);
         patient = patientRepository.save(unsavedPatient);
+        Admin unSavedAdmin = new Admin(
+                FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("adminPassword")
+        );
+        unSavedAdmin.setEnabled(true);
+        unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
+
+        AdminProfile adminProfile = AdminProfile.builder()
+                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
+                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .admin(unSavedAdmin)
+                .build();
+        unSavedAdmin.setAdminProfile(adminProfile);
+
+        admin = adminRepository.save(unSavedAdmin);
 
     }
 
@@ -197,11 +219,11 @@ public class PatientIT extends BaseIntegration {
 
         mockMvc.perform(
                 delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patientId))
-                        .with(user(patient))
+                        .with(user(admin))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
                 get("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patientId))
-                        .with(user(patient))
+                        .with(user(admin))
         ).andExpect(status().isNotFound());
     }
 
@@ -209,7 +231,19 @@ public class PatientIT extends BaseIntegration {
     void shouldReturn404IfUserTobeDeletedDoesNotExist() throws Exception {
         mockMvc.perform(
                 delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT, UUID.randomUUID()))
-                        .with(user(patient))
+                        .with(user(admin))
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeleteIfConsultantIsThisUser() throws Exception {
+        mockMvc.perform(
+                delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patient.getUserId()))
+                        .with(user(admin))
+        ).andExpect(status().isNoContent());
+        mockMvc.perform(
+                get("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patient.getUserId()))
+                        .with(user(admin))
         ).andExpect(status().isNotFound());
     }
 

@@ -2,20 +2,21 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.controller.admin.AdminCredentialResponse;
+import com.divjazz.recommendic.user.controller.admin.AdminRegistrationParams;
 import com.divjazz.recommendic.user.controller.admin.GenerateAdminPasswordResponse;
-import com.divjazz.recommendic.user.dto.AdminDTO;
 import com.divjazz.recommendic.user.enums.EventType;
-import com.divjazz.recommendic.user.enums.UserType;
+import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Assignment;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
+import net.datafaker.Faker;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,36 +40,45 @@ public class AdminService {
 
 
     @Transactional
-    public AdminCredentialResponse createAdmin(AdminDTO adminDTO) throws UserAlreadyExistsException {
+    public AdminCredentialResponse createAdmin(AdminRegistrationParams adminRegistrationParams) throws UserAlreadyExistsException {
+
         GenerateAdminPasswordResponse response = generateAdminPassword();
         String password = response.encryptedPassword();
         UserCredential userCredential = new UserCredential(response.encryptedPassword());
 
-        Admin user = new Admin(
-                adminDTO.userName(),
-                adminDTO.email(),
-                adminDTO.number(),
-                adminDTO.gender(),
-                adminDTO.address(), Role.ADMIN, userCredential
+        var user = new Admin(
+                adminRegistrationParams.email(),
+                Gender.valueOf(adminRegistrationParams.gender().toUpperCase()),
+                userCredential
         );
+        user.setEnabled(true);
+        user.setUserStage(UserStage.ACTIVE_USER);
         var profilePicture = new ProfilePicture();
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
         profilePicture.setName("149071.png");
-        if (!userService.isUserExists(user.getEmail())) {
-            adminRepository.save(user);
-            var userConfirmation = new UserConfirmation(user);
-            UserEvent userEvent = new UserEvent(user.getUserType(),
-                    EventType.REGISTRATION,
-                    Map.of("key", userConfirmation.getKey(),
-                            "password", response.normalPassword(),
-                            "firstname", "",
-                            "email", user.getEmail()));
-            applicationEventPublisher.publishEvent(userEvent);
-            return new AdminCredentialResponse(user.getEmail(),
-                    password);
-        } else {
-            throw new UserAlreadyExistsException(user.getEmail());
-        }
+        var userProfile = AdminProfile.builder()
+                .admin(user)
+                .address(new Address(
+                        adminRegistrationParams.city(),
+                        adminRegistrationParams.state(),
+                        adminRegistrationParams.country()))
+                .phoneNumber(adminRegistrationParams.phoneNumber())
+                .profilePicture(profilePicture)
+                .userName(new UserName(adminRegistrationParams.firstName(), adminRegistrationParams.lastName()))
+                .build();
+        user.setAdminProfile(userProfile);
+        adminRepository.save(user);
+        var userConfirmation = new UserConfirmation(user);
+        UserEvent userEvent = new UserEvent(user.getUserType(),
+                EventType.REGISTRATION,
+                Map.of("key", userConfirmation.getKey(),
+                        "password", response.normalPassword(),
+                        "firstname", "",
+                        "email", user.getEmail()));
+        applicationEventPublisher.publishEvent(userEvent);
+        return new AdminCredentialResponse(user.getEmail(),
+                password);
+
     }
 
 
@@ -79,10 +89,9 @@ public class AdminService {
     }
 
     private GenerateAdminPasswordResponse generateAdminPassword() {
-//        Faker faker = new Faker();
-//        String password = faker.internet().password(8, 15, true);
-//        return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
-        return null;
+        Faker faker = new Faker();
+        String password = faker.internet().password(8, 15, true);
+        return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
 
     }
 

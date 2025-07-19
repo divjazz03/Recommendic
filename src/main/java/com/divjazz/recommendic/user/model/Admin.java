@@ -3,23 +3,30 @@ package com.divjazz.recommendic.user.model;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.AdminProfile;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Entity
+@Setter
 public class Admin extends User {
     @OneToMany(mappedBy = "adminAssigned",
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private Set<Assignment> assignment;
+    @OneToOne(mappedBy = "admin", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private AdminProfile adminProfile;
 
 
     protected Admin() {
@@ -27,13 +34,9 @@ public class Admin extends User {
 
 
     public Admin(
-            UserName userName,
             String email,
-            String phoneNumber,
-            Gender gender,
-            Address address,
-            Role role, UserCredential userCredential) {
-        super( email, gender, role, userCredential, UserType.ADMIN);
+            Gender gender, UserCredential userCredential) {
+        super( email, gender, Role.ADMIN, userCredential, UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
     public void addAssignment(Assignment assignment) {

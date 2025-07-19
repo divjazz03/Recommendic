@@ -23,6 +23,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository
@@ -66,12 +67,12 @@ public class AppointmentCustomRepository {
                        pf.address as patient_address,
                        pf.phone_number as patient_phone_number,
                        pf.username as patient_username,
-                       pf.patient_id as patient_id,
+                       pf.id as patient_id,
                        
                        cf.address as consultant_address,
                        cf.phone_number as consultant_phone_number,
                        cf.username as consultant_username,
-                       cf.consultant_id as consultant_id,
+                       cf.id as consultant_id,
                        cf.title as consultant_title,
                        cf.location as consultant_location,
                        cf.languages as consultant_languages
@@ -79,8 +80,8 @@ public class AppointmentCustomRepository {
                 LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
                 LEFT JOIN patient p ON a.patient_id = p.id
                 LEFT JOIN consultant co ON a.consultant_id = co.id
-                LEFT JOIN patient_profiles pf ON co.id = pf.patient_id
-                LEFT JOIN consultant_profiles cf ON co.id = cf.consultant_id
+                LEFT JOIN patient_profiles pf ON co.id = pf.id
+                LEFT JOIN consultant_profiles cf ON co.id = cf.id
                 WHERE co.user_id = ?
                 """;
         return jdbcTemplate.queryForStream(sql, (rs, rowNum) -> getAppointmentProjectionFromResultSet(rs)
@@ -121,12 +122,12 @@ public class AppointmentCustomRepository {
                        pf.address as patient_address,
                        pf.phone_number as patient_phone_number,
                        pf.username as patient_username,
-                       pf.patient_id as patient_id,
+                       pf.id as patient_id,
                        
                        cf.address as consultant_address,
                        cf.phone_number as consultant_phone_number,
                        cf.username as consultant_username,
-                       cf.consultant_id as consultant_id,
+                       cf.id as consultant_id,
                        cf.title as consultant_title,
                        cf.location as consultant_location,
                        cf.languages as consultant_languages
@@ -134,8 +135,8 @@ public class AppointmentCustomRepository {
                 LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
                 LEFT JOIN patient p ON a.patient_id = p.id
                 LEFT JOIN consultant co ON a.consultant_id = co.id
-                LEFT JOIN patient_profiles pf ON co.id = pf.patient_id
-                LEFT JOIN consultant_profiles cf ON co.id = cf.consultant_id
+                LEFT JOIN patient_profiles pf ON co.id = pf.id
+                LEFT JOIN consultant_profiles cf ON co.id = cf.id
                 WHERE p.user_id = ?
                 """;
         return jdbcTemplate.queryForStream(sql, (rs, rowNum) -> getAppointmentProjectionFromResultSet(rs)
@@ -176,8 +177,10 @@ public class AppointmentCustomRepository {
 
         var schedule = Schedule.builder()
                 .consultant(consultant)
-                .consultationChannels(Arrays.stream(((String[])resultSet.getArray("session_channels").getArray())).map(ConsultationChannel::valueOf)
-                        .toArray(ConsultationChannel[]::new))
+                .consultationChannels(
+                        Arrays.stream(((String[])resultSet.getArray("session_channels").getArray()))
+                                .map(ConsultationChannel::valueOf).toArray(ConsultationChannel[]::new)
+                        )
                 .endTime(resultSet.getTime("session_end_time").toLocalTime())
                 .startTime(resultSet.getTime("session_start_time").toLocalTime())
                 .isActive(resultSet.getBoolean("session_active"))

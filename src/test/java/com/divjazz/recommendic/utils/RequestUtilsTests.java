@@ -78,7 +78,7 @@ public class RequestUtilsTests {
     @MethodSource
     public <T> void getResponseShouldReturnAResponseObjectWithCorrectDataIfItExistsAndResponseCode(T data, HttpStatus status){
 
-        var response = RequestUtils.getResponse(data,TEST_MESSAGE,status);
+        var response = RequestUtils.getResponse(data,status);
         var expectedResponse = new Response<>(
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 status.value(),
@@ -101,7 +101,7 @@ public class RequestUtilsTests {
 
     @Test
     public void getResponseShouldReturnNullIfDataIsNull(){
-        var response = RequestUtils.getResponse(null,TEST_MESSAGE,HttpStatus.OK);
+        var response = RequestUtils.getResponse(null,HttpStatus.OK);
         assertNull(response.data());
     }
 

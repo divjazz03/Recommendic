@@ -64,6 +64,7 @@ RETURNS TRIGGER AS $$
     BEGIN
         NEW.search_vector := setweight(to_tsvector('english', coalesce(NEW.channel::text, 'CHAT')), 'B') ||
                              setweight(to_tsvector('english', coalesce(NEW.status::text, '')), 'A');
+    RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
 

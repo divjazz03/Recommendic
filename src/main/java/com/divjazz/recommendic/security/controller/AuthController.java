@@ -30,7 +30,7 @@ public class AuthController {
                                                          HttpServletRequest httpServletRequest) {
         var result = authService.handleUserLogin(loginRequest,httpServletRequest);
 
-        return ResponseEntity.ok(getResponse(result,"success", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(result, HttpStatus.OK));
     }
     @GetMapping("/me")
     public CurrentUser me() {
@@ -48,7 +48,7 @@ public class AuthController {
     @Operation(summary = "Confirm token got from email send after account creation")
     public ResponseEntity<Response<String>> verifyEmailConfirmationToken(@RequestParam("token") String token) {
         String response = authService.handleConfirmationTokenValidation(token);
-        return ResponseEntity.ok(getResponse(response, "success", HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(response, HttpStatus.OK));
     }
 
     public record CurrentUser(String principal){}

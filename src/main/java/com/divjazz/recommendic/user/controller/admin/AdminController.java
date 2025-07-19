@@ -65,23 +65,13 @@ public class AdminController {
                     content = {@Content(mediaType = "application.json")})
     })
     @PostMapping("/create")
-    public ResponseEntity<Response<AdminCredentialResponse>> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams, HttpServletRequest httpServletRequest) {
-        RequestContext.reset();
-        RequestContext.setUserId(0L);
-        AdminDTO adminDTO = new AdminDTO(
-                new UserName(requestParams.firstName(), requestParams.lastName()), requestParams.email(), requestParams.phoneNumber(),
-                switch (requestParams.gender().toUpperCase()) {
-                    case "MALE" -> Gender.MALE;
-                    case "FEMALE" -> Gender.FEMALE;
-                    default -> throw new IllegalArgumentException("No such Gender");
-                },
-                new Address(requestParams.city(), requestParams.state(), requestParams.country())
-        );
-        AdminCredentialResponse adminResponse = adminService.createAdmin(adminDTO);
+    public ResponseEntity<Response<AdminCredentialResponse>> createAdmin(@RequestBody @Valid AdminRegistrationParams requestParams) {
+
+        AdminCredentialResponse adminResponse = adminService.createAdmin(requestParams);
 
         var response = getResponse(
                 adminResponse,
-                "The Admin Account was Successfully created, Check your Email to enable your Account",
+
                 HttpStatus.CREATED);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);

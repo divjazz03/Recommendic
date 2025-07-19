@@ -6,6 +6,8 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -26,6 +28,7 @@ public class Consultation extends Auditable {
     private String summary;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConsultationStatus consultationStatus;
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -33,6 +36,7 @@ public class Consultation extends Auditable {
     private LocalDateTime endedAt;
     @Column (name = "channel")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConsultationChannel channel;
 
 

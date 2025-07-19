@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.global.exception;
 
+import com.divjazz.recommendic.consultation.exception.ConsultationStartedBeforeAppointmentException;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
@@ -45,6 +46,13 @@ public class GlobalControllerExceptionAdvice {
                 "Something happened on our end and we are hard at work to fix it"));
     }
 
+    @ExceptionHandler(ConsultationStartedBeforeAppointmentException.class)
+    public ResponseEntity<Response<String>> handleConsultationStartedBeforeAppointedTime(
+            ConsultationStartedBeforeAppointmentException ex
+    ) {
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST,ex,ex.getMessage()));
+    }
+
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Response<Object>> handleAccountDisabled(DisabledException ex) {
@@ -53,7 +61,7 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)
     public ResponseEntity<Response<Object>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex,null));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(getErrorResponse(HttpStatus.CONFLICT, ex,null));
     }
 
     @ExceptionHandler(ConfirmationTokenExpiredException.class)
@@ -92,7 +100,7 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Response<String>> handleHttpClientError(HttpClientErrorException ex) {
-        return new ResponseEntity<>(getResponse(ex.getResponseBodyAsString(), "failed", ex.getStatusCode()),
+        return new ResponseEntity<>(getResponse(ex.getResponseBodyAsString(), ex.getStatusCode()),
                 ex.getStatusCode());
     }
     @ExceptionHandler(CredentialExpiredException.class)
