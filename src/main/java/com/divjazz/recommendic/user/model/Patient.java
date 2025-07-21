@@ -13,6 +13,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ import java.util.Set;
 @Table(name = "patient")
 @Getter
 @Setter
-public class Patient extends User {
+public class Patient extends User implements Serializable {
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "medical_categories", columnDefinition = "text[]")
     private String[] medicalCategories;

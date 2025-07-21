@@ -87,6 +87,7 @@ public class ConsultantService {
                     .build();
             user.setProfile(consultantProfile);
             var savedConsultant = consultantRepository.save(user);
+            userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
                     Map.of("key", userConfirmation.getKey(),

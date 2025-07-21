@@ -52,7 +52,7 @@ public class AppointmentService {
     public AppointmentDTO createAppointment(AppointmentCreationRequest appointmentCreationRequest) {
         Stream<Appointment> appointmentStream = getAppointmentsByConsultantId(appointmentCreationRequest.consultantId());
         Schedule schedule = scheduleRepository.findById(appointmentCreationRequest.scheduleId())
-                .orElseThrow(() -> new EntityNotFoundException("Schedule was not found"));
+                .orElseThrow(() -> new EntityNotFoundException("ScheduleRecurrence was not found"));
         Consultant consultant  = consultantRepository
                 .findByUserId(appointmentCreationRequest.consultantId())
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s does not exist"
@@ -76,7 +76,7 @@ public class AppointmentService {
                         });
 
         if (appointmentIsOccupiedBooked) {
-            throw new AppointmentBookedException("Date: %s with Time: %s".formatted(appointmentCreationRequest.appointmentDate(),
+            throw new AppointmentBookedException("Date: %s with ScheduleTime: %s".formatted(appointmentCreationRequest.appointmentDate(),
                     appointmentCreationRequest.startTime()));
         }
         Appointment appointment = Appointment.builder()

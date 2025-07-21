@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.controller.admin;
 
-import com.divjazz.recommendic.global.validation.annotations.Gender;
+import com.divjazz.recommendic.global.validation.annotation.Gender;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;

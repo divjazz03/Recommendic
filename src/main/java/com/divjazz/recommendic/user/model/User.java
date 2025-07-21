@@ -9,6 +9,7 @@ import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredenti
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
@@ -16,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -27,7 +29,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Builder
-public class User extends Auditable implements UserDetails {
+public class User extends Auditable implements UserDetails, Serializable {
     @Column(nullable = false)
     private String email;
     @Column(name = "user_id", nullable = false)

@@ -1,10 +1,8 @@
 package com.divjazz.recommendic.global.validation;
 
-import com.divjazz.recommendic.global.validation.annotations.Gender;
+import com.divjazz.recommendic.global.validation.annotation.Gender;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
-import java.util.Locale;
 
 public class GenderValidator implements ConstraintValidator<Gender, String> {
     @Override

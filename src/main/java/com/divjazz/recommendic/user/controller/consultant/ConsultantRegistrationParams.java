@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.controller.consultant;
 
-import com.divjazz.recommendic.global.validation.annotations.Gender;
+import com.divjazz.recommendic.global.validation.annotation.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;

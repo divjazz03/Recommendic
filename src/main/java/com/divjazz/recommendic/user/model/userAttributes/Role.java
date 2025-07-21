@@ -3,8 +3,10 @@ package com.divjazz.recommendic.user.model.userAttributes;
 
 import lombok.Getter;
 
+import java.io.Serializable;
+
 @Getter
-public enum Role {
+public enum Role implements Serializable {
 
     PATIENT("ROLE_PATIENT", "PATIENT"),
     CONSULTANT("ROLE_CONSULTANT","CONSULTANT"),

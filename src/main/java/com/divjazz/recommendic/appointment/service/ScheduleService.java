@@ -44,6 +44,7 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
+
         var consultant =(Consultant) authUtils.getCurrentUser();
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
@@ -53,6 +54,7 @@ public class ScheduleService {
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
                 .isRecurring(creationRequest.isRecurring())
+                .recurrenceRule(creationRequest.recurrenceRule())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .build();
         schedule = scheduleRepository.save(schedule);

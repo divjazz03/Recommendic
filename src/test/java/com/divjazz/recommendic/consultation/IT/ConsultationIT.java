@@ -112,7 +112,7 @@ public class ConsultationIT extends BaseIntegration {
                 .startTime(LocalTime.now())
                 .consultationChannels(Set.of(ConsultationChannel.VOICE).toArray(ConsultationChannel[]::new))
                 .consultant(consultant)
-                .name("First Schedule")
+                .name("First ScheduleRecurrence")
                 .build();
 
         schedule = scheduleRepository.save(unsavedSchedule);
@@ -164,7 +164,7 @@ public class ConsultationIT extends BaseIntegration {
                 .startTime(startTime)
                 .consultationChannels(Set.of(ConsultationChannel.VOICE).toArray(ConsultationChannel[]::new))
                 .consultant(consultant)
-                .name("First Schedule")
+                .name("First ScheduleRecurrence")
                 .build();
 
         var savedSchedule = scheduleRepository.save(unsavedSchedule);

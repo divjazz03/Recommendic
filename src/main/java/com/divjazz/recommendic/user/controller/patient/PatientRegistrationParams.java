@@ -1,8 +1,7 @@
 package com.divjazz.recommendic.user.controller.patient;
 
-import com.divjazz.recommendic.global.validation.annotations.Gender;
+import com.divjazz.recommendic.global.validation.annotation.Gender;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 
 

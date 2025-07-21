@@ -6,9 +6,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public class ApiAuthentication extends UsernamePasswordAuthenticationToken {
+public class ApiAuthentication extends UsernamePasswordAuthenticationToken implements Serializable {
     private static final String PASSWORD_PROTECTED = "[PASSWORD_PROTECTED]";
     private static final String EMAIL_PROTECTED = "[EMAIL_PROTECTED]";
     private User user;

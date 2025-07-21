@@ -14,10 +14,14 @@ import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepo
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,20 +40,21 @@ public class AuthService {
         if (userLoginRetryHandler.isAccountLocked(loginRequest.email())) {
             throw new LockedException("Your account has been locked due to too many tries. Please try again later");
         }
-        ApiAuthentication unAuthenticated = ApiAuthentication
-                .unAuthenticated(loginRequest.email(), loginRequest.password());
+        UsernamePasswordAuthenticationToken unAuthenticated = UsernamePasswordAuthenticationToken
+                .unauthenticated(loginRequest.email(), loginRequest.password());
         try {
             UsernamePasswordAuthenticationToken authenticated = (UsernamePasswordAuthenticationToken) customAuthenticationProvider.authenticate(unAuthenticated);
 
             var authenticatedUser = (User) authenticated.getPrincipal();
             generalUserService.updateLoginAttempt(authenticatedUser, LoginType.LOGIN_SUCCESS);
-            httpServletRequest.getSession().setAttribute("user", authenticatedUser.getEmail());
+            HttpSession session = httpServletRequest.getSession(true);
+            session.setAttribute("email", authenticatedUser.getEmail());
             httpServletRequest.getSession().setAttribute("role", authenticatedUser.getRole().getName());
             return new LoginResponse(authenticatedUser.getUserId(),
                     authenticatedUser.getRole().getName(),
                     authenticatedUser.getUserStage().toString());
         } catch (BadCredentialsException ex) {
-            var unauthenticatedUser = generalUserService.retrieveUserByEmail(unAuthenticated.getEmail());
+            var unauthenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());
             generalUserService.updateLoginAttempt(unauthenticatedUser, LoginType.LOGIN_FAILED);
             throw new AuthenticationException("Invalid credentials try again");
         }

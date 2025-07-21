@@ -106,4 +106,6 @@ springdoc:
 
 logging:
   level:
-    org.flywaydb: info
+    org.flywaydb: warn
+    io.zonky.test: warn
+    org.springframework.security.authentication: debug

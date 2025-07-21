@@ -74,22 +74,10 @@ public class ArticleIT extends BaseIntegration {
     @Autowired
     private ConsultantRepository consultantRepository;
     @Autowired
-    private ConsultantProfileRepository consultantProfileRepository;
-    @Autowired
-    private PatientProfileRepository patientProfileRepository;
-    @Autowired
     private PatientRepository patientRepository;
     @Autowired
     private ArticleRepository articleRepository;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
-    private final ObjectMapper objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .findAndRegisterModules()
-                .configure(SerializationFeature.CLOSE_CLOSEABLE, true)
-                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private Consultant consultant;
     private Patient patient;
@@ -150,75 +138,6 @@ public class ArticleIT extends BaseIntegration {
         return Stream.of(Arguments.of(inValidArticle1),
                 Arguments.of(inValidArticle2));
     }
-    private long savePatientAndProfile(Patient patient, PatientProfile patientProfile) throws com.fasterxml.jackson.core.JsonProcessingException {
-        String savePatientSQL = """
-                INSERT INTO patient (user_id, email, user_type, user_stage, gender, role,created_by, updated_by, medical_categories,user_credential)
-                VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id;
-                """;
-        String savePatientProfile = """
-                INSERT INTO patient_profiles (id, address, phone_number, username, updated_at, created_at, created_by, updated_by)
-                VALUES (?,?,?,?,?,?,?,?) RETURNING id;
-                """;
-        long id =  jdbcTemplate.query(savePatientSQL,
-                (rs,rsnex) -> rs.getLong("id"),
-                UUID.randomUUID().toString(),
-                patient.getEmail(),
-                patient.getUserType().name(),
-                patient.getUserStage().name(),
-                patient.getGender().toString(),
-                patient.getRole().getName(),
-                "SYSTEM",
-                "SYSTEM",
-                new String[]{MedicalCategoryEnum.CARDIOLOGY.getValue()},
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(new UserCredential("random password")))
-                ).get(0);
-        return jdbcTemplate.query(savePatientProfile,
-                (rs, rowNum) -> rs.getLong("id"),
-                id,
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(patientProfile.getAddress())),
-                patientProfile.getPhoneNumber(),
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(patientProfile.getUserName())),
-                patientProfile.getUpdatedAt(),
-                LocalDateTime.now(),
-                "SYSTEM",
-                "SYSTEM"
-        ).get(0);
-    }
-    private long saveConsultantAndProfile(Consultant consultant, ConsultantProfile consultantProfile) throws com.fasterxml.jackson.core.JsonProcessingException {
-        String saveConsultantSQL = """
-                INSERT INTO consultant (user_id, email, user_type, user_stage, gender, role,created_by, updated_by, specialization,user_credential)
-                VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id;
-                """;
-        String saveConsultantProfile = """
-                INSERT INTO consultant_profiles (id, address, phone_number, username, updated_at, created_at, created_by, updated_by)
-                VALUES (?,?,?,?,?,?,?,?) RETURNING id;
-                """;
-        long id =  jdbcTemplate.query(saveConsultantSQL,
-                (rs, rsN) -> rs.getLong("id"),
-                UUID.randomUUID().toString(),
-                consultant.getEmail(),
-                consultant.getUserType().name(),
-                consultant.getUserStage().name(),
-                consultant.getGender().toString(),
-                consultant.getRole().getName(),
-                "SYSTEM",
-                "SYSTEM",
-                MedicalCategoryEnum.CARDIOLOGY.getValue(),
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(new UserCredential("random password")))
-        ).get(0);
-        return jdbcTemplate.query(saveConsultantProfile,
-                (rs, rsN) -> rs.getLong("id"),
-                id,
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(consultantProfile.getAddress())),
-                consultantProfile.getPhoneNumber(),
-                DataSeeder.asJsonb(objectMapper.writeValueAsString(consultantProfile.getUserName())),
-                consultant.getUpdatedAt(),
-                LocalDateTime.now(),
-                "SYSTEM",
-                "SYSTEM"
-        ).get(0);
-    }
-
     @BeforeEach
     void setup() {
         Patient unSavedPatient = new Patient(
