@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.security.utils;
 
+import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -19,11 +20,8 @@ public class AuthUtils {
     public User getCurrentUser() {
         if (Objects.isNull(userHolder.getUser())) {
             var authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-            if (authenticationToken.getPrincipal() instanceof String principal) {
-                userHolder.setUser(generalUserService.retrieveUserByEmail(principal));
-            } else if (authenticationToken.getPrincipal() instanceof User user){
-                userHolder.setUser(user);
-            }
+            var sessionUser = (SessionUser) authenticationToken.getPrincipal();
+                userHolder.setUser(generalUserService.retrieveUserByEmail(sessionUser.getEmail()));
         }
         return userHolder.getUser();
     }

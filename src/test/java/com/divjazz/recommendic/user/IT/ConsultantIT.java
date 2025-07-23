@@ -72,7 +72,7 @@ public class ConsultantIT extends BaseIntegration {
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
                 new UserCredential("password"));
-        unSavedConsultant.setEnabled(true);
+        unSavedConsultant.getUserPrincipal().setEnabled(true);
         unSavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
         unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedConsultant.setCertified(true);
@@ -94,7 +94,7 @@ public class ConsultantIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential("adminPassword")
                 );
-        unSavedAdmin.setEnabled(true);
+        unSavedAdmin.getUserPrincipal().setEnabled(true);
         unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
 
         AdminProfile adminProfile = AdminProfile.builder()
@@ -193,7 +193,7 @@ public class ConsultantIT extends BaseIntegration {
         populateConsultants();
         var responseString = mockMvc.perform(
                         get(CONSULTANT_BASE_ENDPOINT)
-                                .with(user(consultant))
+                                .with(user(consultant.getUserPrincipal()))
                 ).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         var consultantResponse = consultantPageResponseJacksonTester.parse(responseString).getObject();
@@ -206,7 +206,7 @@ public class ConsultantIT extends BaseIntegration {
                 Gender.FEMALE,
                 new UserCredential(FAKER.text().text(20))
         );
-        unsavedConsultant.setEnabled(true);
+        unsavedConsultant.getUserPrincipal().setEnabled(true);
         unsavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
 
@@ -222,22 +222,22 @@ public class ConsultantIT extends BaseIntegration {
 
         mockMvc.perform(
                 delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, consultantUserId))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
                     get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, consultantUserId))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
     @Test
     void shouldDeleteIfConsultantIsThisUser() throws Exception {
         mockMvc.perform(
                 delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
                 get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
 
@@ -245,7 +245,7 @@ public class ConsultantIT extends BaseIntegration {
     void shouldReturn404IfUserTobeDeletedDoesNotExist() throws Exception {
         mockMvc.perform(
                 delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT, UUID.randomUUID()))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
 
@@ -254,7 +254,7 @@ public class ConsultantIT extends BaseIntegration {
 
         var consultantInOnboardingStage = new Consultant(FAKER.internet().emailAddress(), Gender.MALE, new UserCredential("password"));
         consultantInOnboardingStage.setUserStage(UserStage.ONBOARDING);
-        consultantInOnboardingStage.setEnabled(true);
+        consultantInOnboardingStage.getUserPrincipal().setEnabled(true);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
                 .phoneNumber(FAKER.phoneNumber().phoneNumber())
@@ -274,7 +274,7 @@ public class ConsultantIT extends BaseIntegration {
                 post("%s/%s/onboard".formatted(CONSULTANT_BASE_ENDPOINT, consultantInOnboardingStage.getUserId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onboardingData)
-                        .with(user(consultantInOnboardingStage))
+                        .with(user(consultantInOnboardingStage.getUserPrincipal()))
 
         ).andExpect(status().isOk());
     }
@@ -287,7 +287,7 @@ public class ConsultantIT extends BaseIntegration {
                             FAKER.internet().emailAddress(),
                             Gender.FEMALE,
                             new UserCredential("password"));
-                    unSavedConsultant.setEnabled(true);
+                    unSavedConsultant.getUserPrincipal().setEnabled(true);
                     unSavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
                     unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
                     unSavedConsultant.setCertified(true);

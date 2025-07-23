@@ -21,7 +21,7 @@ import java.util.Set;
 @Table(name = "patient")
 @Getter
 @Setter
-public class Patient extends User implements Serializable {
+public class Patient extends User {
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "medical_categories", columnDefinition = "text[]")
     private String[] medicalCategories;

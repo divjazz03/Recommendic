@@ -73,7 +73,7 @@ public class PatientIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential(FAKER.text().text(20))
         );
-        unsavedPatient.setEnabled(true);
+        unsavedPatient.getUserPrincipal().setEnabled(true);
         unsavedPatient.setMedicalCategories(new String[]{});
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
@@ -90,7 +90,7 @@ public class PatientIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential("adminPassword")
         );
-        unSavedAdmin.setEnabled(true);
+        unSavedAdmin.getUserPrincipal().setEnabled(true);
         unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
 
         AdminProfile adminProfile = AdminProfile.builder()
@@ -187,7 +187,7 @@ public class PatientIT extends BaseIntegration {
         populatePatients();
         var responseString = mockMvc.perform(
                         get(PATIENT_BASE_ENDPOINT)
-                                .with(user(patient))
+                                .with(user(patient.getUserPrincipal()))
                 ).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         var patientResponse = patientsPageResponseJacksonTester.parse(responseString).getObject();
@@ -201,7 +201,7 @@ public class PatientIT extends BaseIntegration {
                 Gender.FEMALE,
                 new UserCredential(FAKER.text().text(20))
         );
-        unsavedPatient.setEnabled(true);
+        unsavedPatient.getUserPrincipal().setEnabled(true);
         unsavedPatient.setMedicalCategories(new String[]{});
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
@@ -219,11 +219,11 @@ public class PatientIT extends BaseIntegration {
 
         mockMvc.perform(
                 delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patientId))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
                 get("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patientId))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
 
@@ -231,7 +231,7 @@ public class PatientIT extends BaseIntegration {
     void shouldReturn404IfUserTobeDeletedDoesNotExist() throws Exception {
         mockMvc.perform(
                 delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT, UUID.randomUUID()))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
 
@@ -239,11 +239,11 @@ public class PatientIT extends BaseIntegration {
     void shouldDeleteIfConsultantIsThisUser() throws Exception {
         mockMvc.perform(
                 delete("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patient.getUserId()))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
                 get("%s/%s".formatted(PATIENT_BASE_ENDPOINT,patient.getUserId()))
-                        .with(user(admin))
+                        .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
 
@@ -252,7 +252,7 @@ public class PatientIT extends BaseIntegration {
 
         var patientInOnboardingStage = new Patient(FAKER.internet().emailAddress(), Gender.MALE, new UserCredential("password"));
         patientInOnboardingStage.setUserStage(UserStage.ONBOARDING);
-        patientInOnboardingStage.setEnabled(true);
+        patientInOnboardingStage.getUserPrincipal().setEnabled(true);
         patientInOnboardingStage.setMedicalCategories(new String[]{});
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
@@ -273,7 +273,7 @@ public class PatientIT extends BaseIntegration {
                 post("%s/%s/onboard".formatted(PATIENT_BASE_ENDPOINT,patientInOnboardingStage.getUserId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onboardingData)
-                        .with(user(patientInOnboardingStage))
+                        .with(user(patientInOnboardingStage.getUserPrincipal()))
 
         ).andExpect(status().isOk());
     }
@@ -287,7 +287,7 @@ public class PatientIT extends BaseIntegration {
                             Gender.FEMALE,
                             new UserCredential(FAKER.text().text(20))
                     );
-                    unsavedPatient.setEnabled(true);
+                    unsavedPatient.getUserPrincipal().setEnabled(true);
                     unsavedPatient.setMedicalCategories(new String[]{});
                     unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 

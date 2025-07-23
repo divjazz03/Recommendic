@@ -2,7 +2,7 @@ package com.divjazz.recommendic.security.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
-import com.divjazz.recommendic.security.ApiAuthentication;
+import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.LoginResponse;
@@ -16,17 +16,23 @@ import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final GeneralUserService generalUserService;
@@ -43,15 +49,19 @@ public class AuthService {
         UsernamePasswordAuthenticationToken unAuthenticated = UsernamePasswordAuthenticationToken
                 .unauthenticated(loginRequest.email(), loginRequest.password());
         try {
-            UsernamePasswordAuthenticationToken authenticated = (UsernamePasswordAuthenticationToken) customAuthenticationProvider.authenticate(unAuthenticated);
-
-            var authenticatedUser = (User) authenticated.getPrincipal();
+            Authentication authenticated = customAuthenticationProvider.authenticate(unAuthenticated);
+            var authenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());
             generalUserService.updateLoginAttempt(authenticatedUser, LoginType.LOGIN_SUCCESS);
-            HttpSession session = httpServletRequest.getSession(true);
-            session.setAttribute("email", authenticatedUser.getEmail());
-            httpServletRequest.getSession().setAttribute("role", authenticatedUser.getRole().getName());
+
+            log.info("Login success {}", authenticatedUser.getUserPrincipal().getUsername());
+            httpServletRequest.getSession(true).setAttribute("email", authenticatedUser.getUserPrincipal().getUsername());
+            httpServletRequest.getSession(true).setAttribute("role", authenticatedUser.getUserPrincipal().getRole().name());
+            httpServletRequest.getSession(true).setAttribute("authorities",authenticated.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(":")));
+
             return new LoginResponse(authenticatedUser.getUserId(),
-                    authenticatedUser.getRole().getName(),
+                    authenticatedUser.getUserPrincipal().getRole().getName(),
                     authenticatedUser.getUserStage().toString());
         } catch (BadCredentialsException ex) {
             var unauthenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());

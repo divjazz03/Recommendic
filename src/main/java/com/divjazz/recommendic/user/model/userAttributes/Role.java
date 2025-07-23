@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.io.Serializable;
 
 @Getter
-public enum Role implements Serializable {
+public enum Role {
 
     PATIENT("ROLE_PATIENT", "PATIENT"),
     CONSULTANT("ROLE_CONSULTANT","CONSULTANT"),

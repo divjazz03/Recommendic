@@ -13,6 +13,7 @@ import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
@@ -28,6 +29,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -65,54 +67,67 @@ public class AuthServiceTest {
                 )
         );
     }
+
     @ParameterizedTest
     @MethodSource("getValidLoginRequest")
     void givenRequestIfAccountLockedShouldThrowLockedException(LoginRequest loginRequest) {
         given(userLoginRetryHandler.isAccountLocked(loginRequest.email())).willReturn(true);
 
-        assertThatExceptionOfType(LockedException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest,httpServletRequest));
+        assertThatExceptionOfType(LockedException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest, httpServletRequest));
     }
+
     @ParameterizedTest
     @MethodSource("getValidLoginRequest")
     void givenIncorrectPasswordShouldThrowBadCredentialsException(LoginRequest loginRequest) {
         var user = User.builder()
-                .email(loginRequest.email())
+                .userPrincipal(UserPrincipal.builder()
+                        .userCredential(new UserCredential("password"))
+                        .enabled(true)
+                        .role(Role.PATIENT)
+                        .email("test@email.com")
+                        .accountNonLocked(true)
+                        .accountNonExpired(true)
+                        .build())
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)
-                .role(Role.CONSULTANT)
-                .enabled(false)
-                        .build();
+                .build();
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
         given(generalUserService.retrieveUserByEmail(anyString())).willReturn(user);
         given(customAuthenticationProvider.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid Credentials"));
 
-        assertThatExceptionOfType(BadCredentialsException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest,httpServletRequest));
-        then(generalUserService).should(times(1)).updateLoginAttempt(any(User.class),eq(LoginType.LOGIN_FAILED));
+        assertThatExceptionOfType(BadCredentialsException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest, httpServletRequest));
+        then(generalUserService).should(times(1)).updateLoginAttempt(any(User.class), eq(LoginType.LOGIN_FAILED));
     }
 
     @ParameterizedTest
     @MethodSource("getValidLoginRequest")
     void givenCorrectPasswordAndEmailShouldReturnALoginResponse(LoginRequest loginRequest) {
         var user = User.builder()
-                .email(loginRequest.email())
+                .userPrincipal(UserPrincipal.builder()
+                        .userCredential(new UserCredential("password"))
+                        .enabled(true)
+                        .role(Role.PATIENT)
+                        .email("test@email.com")
+                        .accountNonLocked(true)
+                        .accountNonExpired(true)
+                        .build())
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)
-                .role(Role.CONSULTANT)
-                .enabled(false)
                 .build();
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
         given(httpServletRequest.getSession()).willReturn(new MockHttpSession());
         given(customAuthenticationProvider.authenticate(any(Authentication.class)))
-                .willReturn(ApiAuthentication
+                .willReturn(UsernamePasswordAuthenticationToken
                         .authenticated(user, "[protected]",
-                                List.of(new SimpleGrantedAuthority(user.getRole().getPermissions()))));
+                                List.of(new SimpleGrantedAuthority(user.getUserPrincipal().getRole().getPermissions()))));
         var result = authService.handleUserLogin(loginRequest, httpServletRequest);
-        assertThat(result.role()).isEqualTo(user.getRole().getName());
+        assertThat(result.role()).isEqualTo(user.getUserPrincipal().getRole().getName());
         assertThat(result.userStage()).isEqualTo(user.getUserStage().toString());
 
     }
+
     @Test
     void givenInvalidTokenShouldThrowNotFoundException() {
         given(userConfirmationRepository.findByKey(anyString())).willReturn(Optional.empty());
@@ -132,6 +147,7 @@ public class AuthServiceTest {
         assertThatExceptionOfType(ConfirmationTokenExpiredException.class)
                 .isThrownBy(() -> authService.handleConfirmationTokenValidation(confirmationToken.getKey()));
     }
+
     @Test
     void givenExistsTokenAndNotExpiredShouldReturnConfirmed() {
         var confirmationToken = new UserConfirmation();

@@ -61,7 +61,7 @@ public class ConsultationTest {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        consultant.setEnabled(true);
+        consultant.getUserPrincipal().setEnabled(true);
         consultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -74,7 +74,7 @@ public class ConsultationTest {
                 .build();
         consultant.setProfile(consultantProfile);
 
-        patient.setEnabled(true);
+        patient.getUserPrincipal().setEnabled(true);
         patient.setMedicalCategories(new String[]{});
         patient.setUserStage(UserStage.ACTIVE_USER);
 

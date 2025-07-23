@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.security.filter;
 
+import com.divjazz.recommendic.security.SessionUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,19 +17,36 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Slf4j
 public class AuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("email") != null) {
+        if (session != null
+                && session.getAttribute("role") != null
+                && session.getAttribute("email") != null
+                && session.getAttribute("authorities") != null) {
+
             String email = (String) session.getAttribute("email");
             String role = (String) session.getAttribute("role");
-            List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
-            Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (session.getAttribute("authorities") instanceof String authorities ) {
+                try {
+                    Collection<? extends GrantedAuthority> grantedAuthorities =  Arrays.stream(authorities.split(":"))
+                            .map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+                    var userSession = new SessionUser(email,role,grantedAuthorities);
+                    Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(userSession,null,grantedAuthorities);
+
+                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+                    securityContext.setAuthentication(authentication);
+                    SecurityContextHolder.setContext(securityContext);
+                } catch (Exception e) {
+                    log.error("Error authenticating: {}", e.getMessage());
+                }
+            }
+
         }
         filterChain.doFilter(request, response);
     }

@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.controller;
 
 
+import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.User;
@@ -30,7 +31,7 @@ public class UserController {
         User user = userService.retrieveCurrentUser();
         return ResponseEntity.ok(new CurrentUser(
                 user.getUserId(),
-                user.getRole().getName(),
+                user.getUserPrincipal().getRole().getName(),
                 user.getUserType(),
                 user.getUserStage()
         ));

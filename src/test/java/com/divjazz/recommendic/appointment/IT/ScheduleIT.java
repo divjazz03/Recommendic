@@ -156,7 +156,7 @@ public class ScheduleIT extends BaseIntegration {
     void shouldCreateScheduleForCurrentUser(String createScheduleRequest) throws Exception {
         var result = mockMvc.perform(
                 post(BASE_URL)
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createScheduleRequest)
         ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
@@ -169,7 +169,7 @@ public class ScheduleIT extends BaseIntegration {
     void shouldNotCreateScheduleButReturn400(String invalidCreateScheduleRequest) throws Exception {
         var result = mockMvc.perform(
                 post(BASE_URL)
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidCreateScheduleRequest)
         ).andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();

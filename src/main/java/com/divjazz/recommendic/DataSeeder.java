@@ -148,9 +148,9 @@ public class DataSeeder implements ApplicationRunner {
                             "state", patientProfile.getProfilePicture().getPictureUrl()
                     ));
                     userCredential = objectMapper.writeValueAsString(Map.of(
-                            "password", patient.getUserCredential().getPassword(),
-                            "expiry", patient.getUserCredential().getExpiry(),
-                            "last_modified", patient.getUserCredential().getLastModified()
+                            "password", patient.getUserPrincipal().getUserCredential().getPassword(),
+                            "expiry", patient.getUserPrincipal().getUserCredential().getExpiry(),
+                            "last_modified", patient.getUserPrincipal().getUserCredential().getLastModified()
                     ));
 
                 } catch (JsonProcessingException e) {
@@ -158,14 +158,14 @@ public class DataSeeder implements ApplicationRunner {
                 }
                 patients.add(new Object[]{
                         patient.getUserId(),
-                        patient.getEmail(),
+                        patient.getUserPrincipal().getUsername(),
                         patient.getUserType().name(),
                         patient.getUserStage().name(),
-                        patient.isEnabled(),
-                        patient.isAccountNonExpired(),
-                        patient.isAccountNonLocked(),
+                        patient.getUserPrincipal().isEnabled(),
+                        patient.getUserPrincipal().isAccountNonExpired(),
+                        patient.getUserPrincipal().isAccountNonLocked(),
                         patient.getGender().name(),
-                        patient.getRole().getName(),
+                        patient.getUserPrincipal().getRole().getName(),
                         "SYSTEM",
                         "SYSTEM",
                         patient.getUserStage() == UserStage.ONBOARDING ? null :
@@ -266,9 +266,9 @@ public class DataSeeder implements ApplicationRunner {
                             "state", consultantProfile.getProfilePicture().getPictureUrl()
                     ));
                     userCredential = objectMapper.writeValueAsString(Map.of(
-                            "password", consultant.getUserCredential().getPassword(),
-                            "expiry", consultant.getUserCredential().getExpiry(),
-                            "last_modified", consultant.getUserCredential().getLastModified()
+                            "password", consultant.getUserPrincipal().getUserCredential().getPassword(),
+                            "expiry", consultant.getUserPrincipal().getUserCredential().getExpiry(),
+                            "last_modified", consultant.getUserPrincipal().getUserCredential().getLastModified()
                     ));
 
                 } catch (JsonProcessingException e) {
@@ -276,14 +276,14 @@ public class DataSeeder implements ApplicationRunner {
                 }
                 consultants.add(new Object[]{
                         consultant.getUserId(),
-                        consultant.getEmail(),
+                        consultant.getUserPrincipal().getUsername(),
                         consultant.getUserType().name(),
                         consultant.getUserStage().name(),
-                        consultant.isEnabled(),
-                        consultant.isAccountNonExpired(),
-                        consultant.isAccountNonLocked(),
+                        consultant.getUserPrincipal().isEnabled(),
+                        consultant.getUserPrincipal().isAccountNonExpired(),
+                        consultant.getUserPrincipal().isAccountNonLocked(),
                         consultant.getGender().name(),
-                        consultant.getRole().name(),
+                        consultant.getUserPrincipal().getRole().name(),
                         "SYSTEM",
                         "SYSTEM",
                         MedicalCategoryEnum.CARDIOLOGY.getValue(),

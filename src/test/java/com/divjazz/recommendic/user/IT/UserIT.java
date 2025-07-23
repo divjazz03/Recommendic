@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.IT;
 
 import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.controller.UserController;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
@@ -42,12 +43,14 @@ public class UserIT extends BaseIntegration {
     @BeforeEach
     void setup() {
         user = User.builder()
-                .role(Role.CONSULTANT)
+                .userPrincipal(UserPrincipal.builder()
+                        .role(Role.CONSULTANT)
+                        .enabled(true)
+                        .userCredential(new UserCredential(faker.text().text(23)))
+                        .build())
                 .userId(UUID.randomUUID().toString())
-                .enabled(true)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.MALE)
-                .userCredential(new UserCredential(faker.text().text(23)))
                 .build();
     }
 
@@ -56,7 +59,7 @@ public class UserIT extends BaseIntegration {
     void shouldReturnCurrentAuthenticatedUser() throws Exception {
         var response = mockMvc.perform(
                 get("/api/v1/users")
-                        .with(user(user))
+                        .with(user(user.getUserPrincipal()))
         ).andExpect(status().isOk())
                 .andReturn().getResponse();
         var currentUser = currentUserJacksonTester.parseObject(response.getContentAsString());

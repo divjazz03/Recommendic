@@ -1,8 +1,9 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
-import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.controller.UserController;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.model.Admin;
@@ -17,7 +18,6 @@ import com.divjazz.recommendic.user.repository.UserRepository;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +64,9 @@ public class GeneralUserService {
         if (authentication.getPrincipal() == null || authentication.getPrincipal().equals("anonymousUser")) {
             throw new AuthenticationException("No authentication found in context please login");
         }
-            return (User) authentication.getPrincipal();
+        var sessionUser = (SessionUser) authentication.getPrincipal();
+
+        return retrieveUserByEmail(sessionUser.getEmail());
     }
 
     public User retrieveUserByUserId(String id) {
@@ -74,7 +76,7 @@ public class GeneralUserService {
     @Transactional
     public void enableUser(String userId) {
         User user = findUserByUserId(userId);
-        user.setEnabled(true);
+        user.getUserPrincipal().setEnabled(true);
         switch (user.getUserType()) {
             case CONSULTANT -> consultantRepository.save((Consultant) user);
             case PATIENT -> patientRepository.save((Patient) user);
@@ -83,9 +85,9 @@ public class GeneralUserService {
     }
 
     private User findUserByEmail(String email) {
-        Optional<Patient> patient = patientRepository.findByEmail(email);
-        Optional<Consultant> consultant = consultantRepository.findByEmail(email);
-        Optional<Admin> admin = adminRepository.findByEmail(email);
+        Optional<Patient> patient = patientRepository.findByUserPrincipal_Email(email);
+        Optional<Consultant> consultant = consultantRepository.findByUserPrincipal_Email(email);
+        Optional<Admin> admin = adminRepository.findByUserPrincipal_Email(email);
         if (patient.isPresent()){
             return patient.get();
         }
@@ -121,10 +123,10 @@ public class GeneralUserService {
         RequestContext.setUserId(user.getId());
         switch (loginType) {
             case LOGIN_FAILED -> {
-                userLoginRetryHandler.handleFailedAttempts(user.getEmail());
+                userLoginRetryHandler.handleFailedAttempts(user.getUserPrincipal().getUsername());
             }
             case LOGIN_SUCCESS -> {
-                userLoginRetryHandler.handleSuccessFulAttempt(user.getEmail());
+                userLoginRetryHandler.handleSuccessFulAttempt(user.getUserPrincipal().getUsername());
                 user.setLastLogin(LocalDateTime.now());
                 switch (user.getUserType()) {
                     case CONSULTANT -> consultantRepository.save((Consultant) user);
@@ -136,9 +138,9 @@ public class GeneralUserService {
     }
 
     public boolean isUserExists(String email) {
-        return patientRepository.existsByEmail(email) ||
-                consultantRepository.existsByEmail(email) ||
-                adminRepository.existsByEmail(email) ;
+        return patientRepository.existsByUserPrincipal_Email(email) ||
+                consultantRepository.existsByUserPrincipal_Email(email) ||
+                adminRepository.existsByUserPrincipal_Email(email) ;
     }
     public boolean isUserExistsByUserId(String userId) {
         return patientRepository.existsByUserId(userId) ||

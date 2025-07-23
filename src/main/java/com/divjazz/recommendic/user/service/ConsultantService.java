@@ -91,7 +91,7 @@ public class ConsultantService {
             UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
                     Map.of("key", userConfirmation.getKey(),
-                            "email", user.getEmail(),
+                            "email", user.getUserPrincipal().getUsername(),
                             "firstname", consultantProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
             return new ConsultantInfoResponse(

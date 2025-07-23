@@ -60,7 +60,7 @@ public class PatientServiceTest {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        patient.setEnabled(true);
+        patient.getUserPrincipal().setEnabled(true);
         patient.setMedicalCategories(new String[]{});
         patient.setUserStage(UserStage.ACTIVE_USER);
 

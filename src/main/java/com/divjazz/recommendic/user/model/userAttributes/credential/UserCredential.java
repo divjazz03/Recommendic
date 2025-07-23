@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserCredential implements Serializable {
+public class UserCredential {
 
     private String password;
     private String expiry;

@@ -4,6 +4,7 @@ import com.divjazz.recommendic.user.service.GeneralUserService;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -44,7 +45,7 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return ApiAuthentication.class.isAssignableFrom(authentication);
+        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
 }

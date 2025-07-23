@@ -1,11 +1,13 @@
 package com.divjazz.recommendic.security.controller;
 
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.service.AuthService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.Session;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,8 +36,8 @@ public class AuthController {
     }
     @GetMapping("/me")
     public CurrentUser me() {
-        String principal = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return new CurrentUser(principal);
+        SessionUser principal = (SessionUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return new CurrentUser(principal.getEmail());
     }
     @PostMapping("/logout")
     @Operation(summary = "Log user out")

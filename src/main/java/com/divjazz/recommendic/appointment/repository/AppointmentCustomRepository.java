@@ -7,6 +7,7 @@ import com.divjazz.recommendic.appointment.repository.projection.AppointmentProj
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
 import com.divjazz.recommendic.global.converter.ZoneOffsetConverter;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -145,31 +146,35 @@ public class AppointmentCustomRepository {
 
     private AppointmentProjection getAppointmentProjectionFromResultSet(ResultSet resultSet) throws SQLException {
         Patient patient = (Patient) Patient.builder()
-                .userCredential(objectMapper.convertValue(resultSet.getString("patient_credential"),
-                        UserCredential.class))
+                .userPrincipal(UserPrincipal.builder()
+                        .userCredential(objectMapper.convertValue(resultSet.getString("patient_credential"),
+                                UserCredential.class))
+                        .enabled(resultSet.getBoolean("patient_enabled"))
+                        .role(Role.PATIENT)
+                        .email(resultSet.getString("patient_email"))
+                        .accountNonExpired(true)
+                        .accountNonLocked(true)
+                        .build())
                 .gender(Gender.valueOf(resultSet.getString("patient_gender")))
                 .userType(UserType.PATIENT)
-                .enabled(resultSet.getBoolean("patient_enabled"))
                 .userId(resultSet.getString("patient_user_id"))
-                .role(Role.PATIENT)
-                .email(resultSet.getString("patient_email"))
-                .accountNonExpired(true)
-                .accountNonLocked(true)
                 .userStage(UserStage.valueOf(resultSet.getString("patient_stage")))
                 .build();
         patient.setMedicalCategories((String[]) resultSet.getArray("patient_medical").getArray());
 
         Consultant consultant = (Consultant) Consultant.builder()
-                .userCredential(objectMapper.convertValue(resultSet.getString("consultant_credential"),
-                        UserCredential.class))
+                .userPrincipal(UserPrincipal.builder()
+                        .email(resultSet.getString("consultant_email"))
+                        .role(Role.CONSULTANT)
+                        .userCredential(objectMapper.convertValue(resultSet.getString("consultant_credential"),
+                                UserCredential.class))
+                        .enabled(resultSet.getBoolean("consultant_enabled"))
+                        .accountNonExpired(true)
+                        .accountNonLocked(true)
+                        .build())
                 .gender(Gender.valueOf(resultSet.getString("consultant_gender")))
                 .userType(UserType.CONSULTANT)
-                .enabled(resultSet.getBoolean("consultant_enabled"))
                 .userId(resultSet.getString("consultant_user_id"))
-                .role(Role.CONSULTANT)
-                .email(resultSet.getString("consultant_email"))
-                .accountNonExpired(true)
-                .accountNonLocked(true)
                 .userStage(UserStage.valueOf(resultSet.getString("consultant_stage")))
                 .build();
         consultant.setMedicalCategory(MedicalCategoryEnum.valueOf(resultSet.getString("consultant_specialization")));

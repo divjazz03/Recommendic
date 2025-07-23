@@ -61,7 +61,7 @@ public class ConsultantServiceTest {
                 new UserCredential(faker.text().text(20))
         );
         consultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
-        consultant.setEnabled(true);
+        consultant.getUserPrincipal().setEnabled(true);
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -100,7 +100,7 @@ public class ConsultantServiceTest {
                 new UserCredential(consultantRegistrationParams.password())
         );
         savedConsultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
-        savedConsultant.setEnabled(true);
+        savedConsultant.getUserPrincipal().setEnabled(true);
         savedConsultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))

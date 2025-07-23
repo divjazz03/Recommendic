@@ -79,7 +79,7 @@ public class PatientService {
             UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
                     Map.of("key", userConfirmation.getKey(),
-                            "email", user.getEmail(),
+                            "email", user.getUserPrincipal().getUsername(),
                             "firstname", patientProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
             recommendationService.createConsultantRecommendationForPatient(savedPatient);

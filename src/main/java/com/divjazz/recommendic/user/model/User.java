@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.global.Auditable;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -29,9 +30,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Builder
-public class User extends Auditable implements UserDetails, Serializable {
-    @Column(nullable = false)
-    private String email;
+public class User extends Auditable {
+
     @Column(name = "user_id", nullable = false)
     private String userId;
     @Column(nullable = false)
@@ -40,12 +40,6 @@ public class User extends Auditable implements UserDetails, Serializable {
     @Column(name = "last_login")
     @Setter
     private LocalDateTime lastLogin;
-    @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private Role role;
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
-    private UserCredential userCredential;
     @Column(name = "user_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserType userType;
@@ -53,64 +47,18 @@ public class User extends Auditable implements UserDetails, Serializable {
     @Enumerated(EnumType.STRING)
     @Setter
     private UserStage userStage;
-    @Setter
-    private boolean accountNonExpired;
-    @Setter
-    private boolean accountNonLocked;
-    @Setter
-    private boolean enabled;
+    @Embedded
+    private UserPrincipal userPrincipal;
 
     public User(
                 String email,
                 Gender gender,
                 Role role,
                 UserCredential userCredential, UserType userType) {
-        this.email = email;
         this.gender = gender;
-        this.role = role;
-        this.userCredential = userCredential;
         this.userId = UUID.randomUUID().toString();
-        this.accountNonLocked = true;
-        this.accountNonExpired = true;
         this.userType = userType;
-        this.enabled = false;
-    }
-
-    @Override
-    public Set<? extends GrantedAuthority> getAuthorities() {
-
-        return Set.of(new SimpleGrantedAuthority(role.getName()));
-    }
-
-    @Override
-    public String getPassword() {
-        return getUserCredential().getPassword();
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return accountNonExpired;
-    }
-
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return accountNonLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return !userCredential.isExpired();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
+        userPrincipal = new UserPrincipal(email,userCredential,role);
     }
 
     @Override
@@ -120,13 +68,13 @@ public class User extends Auditable implements UserDetails, Serializable {
 
         User user = (User) o;
 
-        return Objects.equals(email, user.email)
+        return Objects.equals(this.userPrincipal.getUsername(), user.getUserPrincipal().getUsername())
                 && Objects.equals(userId, user.userId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getUserId(), this.getEmail());
+        return 2025;
     }
 }
 

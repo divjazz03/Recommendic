@@ -8,6 +8,7 @@ import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
@@ -29,6 +30,7 @@ public class Consultant extends User{
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
             mappedBy = "ownerOfCertification", orphanRemoval = true)
+    @JsonIgnore
     private Set<Certification> certificates;
 
     @OneToMany(fetch = FetchType.LAZY,
@@ -36,6 +38,7 @@ public class Consultant extends User{
             orphanRemoval = true,
             mappedBy = "consultant"
     )
+    @JsonIgnore
     private Set<Article> articles;
 
 

@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface AdminRepository extends JpaRepository<Admin, Long> {
-    Optional<Admin> findByEmail(String email);
+    Optional<Admin> findByUserPrincipal_Email(String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByUserPrincipal_Email(String email);
     boolean existsByUserId(String userId);
 
     Optional<Admin> findByUserId(String id);

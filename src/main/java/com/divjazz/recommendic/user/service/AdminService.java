@@ -51,7 +51,7 @@ public class AdminService {
                 Gender.valueOf(adminRegistrationParams.gender().toUpperCase()),
                 userCredential
         );
-        user.setEnabled(true);
+        user.getUserPrincipal().setEnabled(true);
         user.setUserStage(UserStage.ACTIVE_USER);
         var profilePicture = new ProfilePicture();
         profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
@@ -74,9 +74,9 @@ public class AdminService {
                 Map.of("key", userConfirmation.getKey(),
                         "password", response.normalPassword(),
                         "firstname", "",
-                        "email", user.getEmail()));
+                        "email", user.getUserPrincipal().getUsername()));
         applicationEventPublisher.publishEvent(userEvent);
-        return new AdminCredentialResponse(user.getEmail(),
+        return new AdminCredentialResponse(user.getUserPrincipal().getUsername(),
                 password);
 
     }
@@ -84,7 +84,7 @@ public class AdminService {
 
     public Admin getAdminByEmail(String email) {
         return adminRepository
-                .findByEmail(email)
+                .findByUserPrincipal_Email(email)
                 .orElseThrow(() -> new EntityNotFoundException("Admin with email: %s not found".formatted(email)));
     }
 

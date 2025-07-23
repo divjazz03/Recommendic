@@ -145,7 +145,7 @@ public class ArticleIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        unSavedPatient.setEnabled(true);
+        unSavedPatient.getUserPrincipal().setEnabled(true);
         unSavedPatient.setMedicalCategories(new String[]{});
         unSavedPatient.setUserStage(UserStage.ACTIVE_USER);
         PatientProfile patientProfile = PatientProfile.builder()
@@ -162,7 +162,7 @@ public class ArticleIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        unSavedconsultant.setEnabled(true);
+        unSavedconsultant.getUserPrincipal().setEnabled(true);
         unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
         var unSavedconsultantProfile = ConsultantProfile.builder()
@@ -184,7 +184,7 @@ public class ArticleIT extends BaseIntegration {
                         post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(validArticle)
-                                .with(user(this.consultant))
+                                .with(user(this.consultant.getUserPrincipal()))
                 )
                 .andExpect(status().isCreated())
                 .andReturn().getResponse();
@@ -200,7 +200,7 @@ public class ArticleIT extends BaseIntegration {
                         post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(validArticle)
-                                .with(user(patient))
+                                .with(user(patient.getUserPrincipal()))
                 )
                 .andExpect(status().isForbidden());
     }
@@ -212,7 +212,7 @@ public class ArticleIT extends BaseIntegration {
                         post("/api/v1/articles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(invalidArticle)
-                                .with(user(this.consultant))
+                                .with(user(this.consultant.getUserPrincipal()))
                 )
                 .andExpect(status().isBadRequest())
                 .andReturn().getResponse();
@@ -225,7 +225,7 @@ public class ArticleIT extends BaseIntegration {
         populateArticles();
         var response = mockMvc.perform(
                         get("/api/v1/articles")
-                                .with(user(this.consultant))
+                                .with(user(this.consultant.getUserPrincipal()))
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -238,7 +238,7 @@ public class ArticleIT extends BaseIntegration {
 
         var response = mockMvc.perform(
                 get("/api/v1/articles")
-                        .with(user(this.patient))
+                        .with(user(this.patient.getUserPrincipal()))
         )
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -262,7 +262,7 @@ public class ArticleIT extends BaseIntegration {
 
         var response = mockMvc.perform(
                 get("/api/v1/articles/%s".formatted(articlePopulated.getId()))
-                        .with(user(this.patient))
+                        .with(user(this.patient.getUserPrincipal()))
 
         )
                 .andExpect(status().isOk())

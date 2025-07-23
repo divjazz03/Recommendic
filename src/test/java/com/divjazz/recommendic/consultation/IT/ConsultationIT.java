@@ -73,7 +73,7 @@ public class ConsultationIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential(FAKER.text().text(20))
         );
-        unsavedPatient.setEnabled(true);
+        unsavedPatient.getUserPrincipal().setEnabled(true);
         unsavedPatient.setMedicalCategories(new String[]{});
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
@@ -91,7 +91,7 @@ public class ConsultationIT extends BaseIntegration {
                 Gender.MALE,
                 new UserCredential(FAKER.text().text(20))
         );
-        unsavedConsultant.setEnabled(true);
+        unsavedConsultant.getUserPrincipal().setEnabled(true);
         unsavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
 
@@ -133,7 +133,7 @@ public class ConsultationIT extends BaseIntegration {
     void shouldNotStartConsultationIfAppointmentNotFound() throws Exception {
         mockMvc.perform(
                 post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, 400000L))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
     @Test
@@ -149,7 +149,7 @@ public class ConsultationIT extends BaseIntegration {
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
                 post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
     }
@@ -180,14 +180,14 @@ public class ConsultationIT extends BaseIntegration {
         var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(
                 post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isBadRequest());
     }
     @Test
     void shouldStartConsultationIfAppointmentExistsAndNotStarted() throws Exception {
         var result = mockMvc.perform(
                 post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         log.info("result: {}", result);
 
@@ -205,7 +205,7 @@ public class ConsultationIT extends BaseIntegration {
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
                 post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
     }
@@ -229,7 +229,7 @@ public class ConsultationIT extends BaseIntegration {
                 post("%s/%s/complete".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonSummary)
-                        .with(user(consultant))
+                        .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"));
 

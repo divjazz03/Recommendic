@@ -5,6 +5,7 @@ import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.search.repository.SearchRepository;
 import com.divjazz.recommendic.search.service.SearchService;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -56,12 +57,15 @@ public class SearchServiceTest {
     @Test
     void givenUserExistsButInvalidCategoryShouldThrowIllegalArgumentException() {
         var user = User.builder()
-                .email("testemail@test.com")
+                .userPrincipal(UserPrincipal.builder()
+                        .email("testemail@test.com")
+                        .role(Role.CONSULTANT)
+                        .enabled(false)
+                        .build())
                 .userStage(UserStage.ONBOARDING)
                 .userType(UserType.CONSULTANT)
                 .gender(Gender.FEMALE)
-                .role(Role.CONSULTANT)
-                .enabled(false)
+
                 .build();
         var invalidCategoryString = "apppoinntmemt";
         var query = "some query";

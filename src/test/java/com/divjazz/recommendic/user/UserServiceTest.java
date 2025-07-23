@@ -1,14 +1,14 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -57,13 +57,14 @@ public class UserServiceTest {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        given(patientRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByEmail(anyString())).willReturn(Optional.of(userToReturn));
+        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
+        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
+        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.of(userToReturn));
 
         var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
 
-        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
     }
     @Test
     void givenValidEmailShouldReturnPatient() {
@@ -72,20 +73,21 @@ public class UserServiceTest {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20))
         );
-        given(patientRepository.findByEmail(anyString())).willReturn(Optional.of(userToReturn));
-        given(adminRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByEmail(anyString())).willReturn(Optional.empty());
+        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.of(userToReturn));
+        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
+        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
 
         var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
 
-        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
 
     }
     @Test
     void givenInvalidEmailShouldThrowNotFound() {
-        given(patientRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByEmail(anyString())).willReturn(Optional.empty());
+        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
+        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
+        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
 
         assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> generalUserService.retrieveUserByEmail("test_user@test.com"));
 
@@ -105,7 +107,8 @@ public class UserServiceTest {
 
         var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
 
-        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
     }
     @Test
     void givenValidUserIdShouldReturnPatient() {
@@ -122,20 +125,24 @@ public class UserServiceTest {
 
         var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
 
-        assertThat(actualReturnedUser.getEmail()).isEqualTo(userToReturn.getEmail());
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername()).isEqualTo(userToReturn.getUserPrincipal().getUsername());
     }
 
     @Test
     void shouldCallHandleFailedAttemptWhenLoginFailed() {
         var user = User.builder()
-                .userCredential(new UserCredential("test_password"))
+                .userPrincipal(UserPrincipal.builder()
+                        .email("test_user@test.com")
+                        .role(Role.PATIENT)
+                        .enabled(true)
+                        .userCredential(new UserCredential("password"))
+                        .build())
                 .userId(UUID.randomUUID().toString())
                 .userType(UserType.CONSULTANT)
-                .email("test_user@test.com")
                 .build();
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_FAILED);
 
-        then(userLoginRetryHandler).should(times(1)).handleFailedAttempts(eq(user.getEmail()));
+        then(userLoginRetryHandler).should(times(1)).handleFailedAttempts(eq(user.getUserPrincipal().getUsername()));
         then(userLoginRetryHandler).should(never()).handleSuccessFulAttempt(anyString());
         then(consultantRepository).shouldHaveNoInteractions();
         then(patientRepository).shouldHaveNoInteractions();
@@ -190,7 +197,7 @@ public class UserServiceTest {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.empty());
 
         generalUserService.enableUser(userToReturn.getUserId());
-        assertThat(userToReturn.isEnabled()).isTrue();
+        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
     }
 
     @Test
@@ -206,7 +213,7 @@ public class UserServiceTest {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
 
         generalUserService.enableUser(userToReturn.getUserId());
-        assertThat(userToReturn.isEnabled()).isTrue();
+        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
     }
 
 
