@@ -33,7 +33,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     WHERE c.appointment.patient.userId = :userId or c.appointment.consultant.userId = :userId
     """)
     Set<Consultation> getAllConsultationsByAppointment_Patient_UserIdOrAppointment_Consultant_UserId(
-            @Param("userId") String userId);
+            @Param("targetId") String userId);
 
     @Query(value = """
      select c from Consultation c

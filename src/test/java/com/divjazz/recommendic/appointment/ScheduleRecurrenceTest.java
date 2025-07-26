@@ -4,6 +4,7 @@ package com.divjazz.recommendic.appointment;
 import com.divjazz.recommendic.appointment.domain.DaysOfWeek;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
+import com.divjazz.recommendic.appointment.dto.RecurrenceRuleRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleCreationRequest;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
@@ -85,9 +86,15 @@ public class ScheduleRecurrenceTest {
                 "+01:00",
                 Set.of("voice"),
                 true,
-                new RecurrenceRule(RecurrenceFrequency.DAILY, Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
+                new RecurrenceRuleRequest(RecurrenceFrequency.DAILY, Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
                 true
         );
+        var recurrenceRule = new RecurrenceRule(
+                creationRequest.recurrenceRule().frequency(),
+                creationRequest.recurrenceRule().weekDays(),
+                creationRequest.recurrenceRule().interval(),
+                creationRequest.recurrenceRule().endDate()
+                );
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
@@ -95,7 +102,7 @@ public class ScheduleRecurrenceTest {
                 .isActive(creationRequest.isActive())
                 .isRecurring(creationRequest.isRecurring())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
-                .recurrenceRule(creationRequest.recurrenceRule())
+                .recurrenceRule(recurrenceRule)
                 .isRecurring(true)
                 .consultationChannels(creationRequest.channels().stream().map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
                         .toArray(ConsultationChannel[]::new))

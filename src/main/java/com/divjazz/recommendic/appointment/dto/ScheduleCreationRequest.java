@@ -1,9 +1,10 @@
 package com.divjazz.recommendic.appointment.dto;
 
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.validation.annotation.*;
+import com.divjazz.recommendic.appointment.validation.schedule.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -30,7 +31,7 @@ public record ScheduleCreationRequest(
         Set<String> channels,
         boolean isRecurring,
         @ScheduleRecurrenceRule
-        RecurrenceRule recurrenceRule,
+        @Valid RecurrenceRuleRequest recurrenceRule,
         boolean isActive
 ) {
 }

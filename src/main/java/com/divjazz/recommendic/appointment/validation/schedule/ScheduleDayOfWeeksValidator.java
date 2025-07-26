@@ -1,7 +1,7 @@
-package com.divjazz.recommendic.appointment.validation;
+package com.divjazz.recommendic.appointment.validation.schedule;
 
 import com.divjazz.recommendic.appointment.domain.DaysOfWeek;
-import com.divjazz.recommendic.appointment.validation.annotation.ScheduleDayOfWeeks;
+import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleDayOfWeeks;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

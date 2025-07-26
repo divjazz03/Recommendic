@@ -46,6 +46,16 @@ public abstract class Auditable {
     }
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return 2025;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Auditable auditable = (Auditable) o;
+
+        return id == auditable.id;
     }
 }

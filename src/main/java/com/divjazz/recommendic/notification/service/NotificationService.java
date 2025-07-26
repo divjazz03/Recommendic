@@ -22,7 +22,7 @@ public class NotificationService {
     public NotificationDTO createNotification(NotificationDTO notificationDTO) {
         Notification notification = new Notification(notificationDTO.header(),
                 notificationDTO.summary(),
-                notificationDTO.userId(),
+                notificationDTO.targetId(),
                 false,
                 notificationDTO.category());
         notificationRepository.save(notification);

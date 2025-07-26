@@ -1,0 +1,17 @@
+package com.divjazz.recommendic.appointment.validation.schedule.annotation;
+
+import com.divjazz.recommendic.appointment.validation.schedule.ScheduleChannelValidation;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+
+import java.lang.annotation.*;
+
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
+@Constraint(validatedBy = ScheduleChannelValidation.class)
+public @interface ScheduleChannel {
+    String message() default "";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}

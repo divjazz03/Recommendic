@@ -1,11 +1,10 @@
-package com.divjazz.recommendic.appointment.validation;
+package com.divjazz.recommendic.appointment.validation.schedule;
 
-import com.divjazz.recommendic.appointment.validation.annotation.ScheduleChannel;
+import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 

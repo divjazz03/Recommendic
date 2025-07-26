@@ -68,10 +68,10 @@ public class UserRepository {
 //                select
 //                u.id,
 //                u.email,
-//                u.userId,
+//                u.targetId,
 //                u.userCredential
 //                from User u
-//                where u.userId=?1
+//                where u.targetId=?1
 //            """)
-//    Optional<UserSecurityProjectionDTO> findById_Security_Projection(String userId);
+//    Optional<UserSecurityProjectionDTO> findById_Security_Projection(String targetId);
 }

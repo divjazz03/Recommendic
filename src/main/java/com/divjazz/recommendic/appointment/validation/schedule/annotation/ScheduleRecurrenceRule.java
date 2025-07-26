@@ -1,6 +1,6 @@
-package com.divjazz.recommendic.appointment.validation.annotation;
+package com.divjazz.recommendic.appointment.validation.schedule.annotation;
 
-import com.divjazz.recommendic.appointment.validation.ScheduleChannelValidation;
+import com.divjazz.recommendic.appointment.validation.schedule.ScheduleRecurrenceRuleValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -9,8 +9,8 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
-@Constraint(validatedBy = ScheduleChannelValidation.class)
-public @interface ScheduleChannel {
+@Constraint(validatedBy = ScheduleRecurrenceRuleValidator.class)
+public @interface ScheduleRecurrenceRule {
     String message() default "";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

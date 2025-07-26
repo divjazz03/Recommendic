@@ -50,4 +50,6 @@ public class Schedule extends Auditable {
     @Column (name = "is_active")
     boolean isActive;
 
+
+
 }

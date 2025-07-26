@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.appointment.service;
 
+import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.dto.ScheduleCreationRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -46,6 +47,12 @@ public class ScheduleService {
     public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
 
         var consultant =(Consultant) authUtils.getCurrentUser();
+        var recurrenceRule = new RecurrenceRule(
+                creationRequest.recurrenceRule().frequency(),
+                creationRequest.recurrenceRule().weekDays(),
+                creationRequest.recurrenceRule().interval(),
+                creationRequest.recurrenceRule().endDate()
+        );
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
                 .consultant(consultant)
@@ -54,7 +61,7 @@ public class ScheduleService {
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
                 .isRecurring(creationRequest.isRecurring())
-                .recurrenceRule(creationRequest.recurrenceRule())
+                .recurrenceRule(recurrenceRule)
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .build();
         schedule = scheduleRepository.save(schedule);

@@ -124,7 +124,7 @@ public class PatientController {
     @PostMapping("/{userId}/onboard")
     @Operation(summary = "Set Patient Area of Interest")
     public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
-            @PathVariable @Parameter(name = "userId", description = "User id") String userId,
+            @PathVariable @Parameter(name = "targetId", description = "User id") String userId,
             @RequestBody
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Onboarding Request")
             PatientOnboardingRequest request

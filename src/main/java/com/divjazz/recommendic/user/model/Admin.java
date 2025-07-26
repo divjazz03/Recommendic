@@ -51,7 +51,7 @@ public class Admin extends User {
 
     @Override
     public String toString() {
-        return "Admin{" + "userId="+super.getUserId()+
+        return "Admin{" + "targetId="+super.getUserId()+
                 '}';
     }
 }

@@ -1,6 +1,6 @@
-package com.divjazz.recommendic.appointment.validation;
+package com.divjazz.recommendic.appointment.validation.schedule;
 
-import com.divjazz.recommendic.appointment.validation.annotation.ScheduleDate;
+import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleDate;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

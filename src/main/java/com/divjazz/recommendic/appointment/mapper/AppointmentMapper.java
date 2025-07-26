@@ -10,17 +10,17 @@ import java.time.format.DateTimeFormatter;
 
 public class AppointmentMapper {
 
-    public static AppointmentDTO appointmentProjectionToDTO (AppointmentProjection appointment) {
-        var endDateIsNotNull = appointment.appointment().getEndDateAndTime() != null;
+    public static AppointmentDTO appointmentToDTO (Appointment appointment) {
+        var endDateIsNotNull = appointment.getEndDateAndTime() != null;
         return new AppointmentDTO(
-                appointment.appointment().getPatient().getUserId(),
-                appointment.patientProfile().getUserName().getFullName(),
-                appointment.appointment().getPatient().getUserId(),
-                appointment.consultantProfile().getUserName().getFullName(),
-                appointment.appointment().getStatus().toString(),
-                appointment.appointment().getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                endDateIsNotNull? appointment.appointment().getEndDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
-                appointment.appointment().getConsultationChannel().toString()
+                appointment.getPatient().getUserId(),
+                appointment.getPatient().getPatientProfile().getUserName().getFullName(),
+                appointment.getPatient().getUserId(),
+                appointment.getConsultant().getProfile().getUserName().getFullName(),
+                appointment.getStatus().toString(),
+                appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                endDateIsNotNull? appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
+                appointment.getConsultationChannel().toString()
         );
     }
 }

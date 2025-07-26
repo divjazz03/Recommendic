@@ -61,7 +61,7 @@ public class Patient extends User {
     }
     @Override
     public String toString() {
-        return "Patient{" + "userId="+super.getUserId() + '}';
+        return "Patient{" + "targetId="+super.getUserId() + '}';
     }
 
 

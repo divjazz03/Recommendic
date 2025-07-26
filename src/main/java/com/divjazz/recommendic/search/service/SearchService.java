@@ -75,13 +75,13 @@ public class SearchService {
                     // All categories in search option from the frontend
                     case ALL -> {
                         var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.getUserId());
-                        var appointments = appointmentService.getAppointmentDetailsByPatientId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
                         var articles = articleService.searchArticle(
                                 query,
                                 Pageable.ofSize(10)
                         );
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentProjectionToDTO)
+                                .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toUnmodifiableSet());
                         Set<ConsultationResponse> consultationsResult = consultations
                                 .map(ConsultationMapper::consultationToConsultationResponse)
@@ -116,9 +116,9 @@ public class SearchService {
                     }
 
                     case APPOINTMENT -> {
-                        var appointments = appointmentService.getAppointmentDetailsByPatientId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentProjectionToDTO)
+                                .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
 
                         results.add(
@@ -135,9 +135,9 @@ public class SearchService {
                     // All categories in search option from the frontend
                     case ALL -> {
                         var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.getUserId());
-                        var appointments = appointmentService.getAppointmentDetailsByConsultantId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentProjectionToDTO)
+                                .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
                         Set<ConsultationResponse> consultationsResult = consultations
                                 .map(ConsultationMapper::consultationToConsultationResponse)
@@ -160,9 +160,9 @@ public class SearchService {
                     }
                     case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
                     case APPOINTMENT -> {
-                        var appointments = appointmentService.getAppointmentDetailsByConsultantId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentProjectionToDTO)
+                                .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.APPOINTMENT, appointmentDTOSet));
                     }

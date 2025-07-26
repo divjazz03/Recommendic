@@ -1,12 +1,13 @@
-package com.divjazz.recommendic.appointment.validation;
+package com.divjazz.recommendic.appointment.validation.schedule;
 
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.validation.annotation.ScheduleRecurrenceRule;
+import com.divjazz.recommendic.appointment.dto.RecurrenceRuleRequest;
+import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleRecurrenceRule;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class ScheduleRecurrenceRuleValidator implements ConstraintValidator<ScheduleRecurrenceRule, RecurrenceRule> {
+public class ScheduleRecurrenceRuleValidator implements ConstraintValidator<ScheduleRecurrenceRule, RecurrenceRuleRequest> {
 
     @Override
     public void initialize(ScheduleRecurrenceRule constraintAnnotation) {
@@ -14,7 +15,7 @@ public class ScheduleRecurrenceRuleValidator implements ConstraintValidator<Sche
     }
 
     @Override
-    public boolean isValid(RecurrenceRule recurrenceRule, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(RecurrenceRuleRequest recurrenceRule, ConstraintValidatorContext constraintValidatorContext) {
             if (recurrenceRule == null) return true;
             try {
                 var recurrence = recurrenceRule.frequency();

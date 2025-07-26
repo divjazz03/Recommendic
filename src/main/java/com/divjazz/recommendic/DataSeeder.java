@@ -213,7 +213,7 @@ public class DataSeeder implements ApplicationRunner {
                         String userId = (String) profileRow[0];
                         Long generatedId = returned.get(userId);
                         if (generatedId == null) {
-                            throw new IllegalStateException("No generated ID for userId: %s".formatted(userId));
+                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(userId));
                         }
 
                         remappedProfiles.add(new Object[]{
@@ -335,7 +335,7 @@ public class DataSeeder implements ApplicationRunner {
                         String userId = (String) profileRow[0];
                         Long generatedId = returned.get(userId);
                         if (generatedId == null) {
-                            throw new IllegalStateException("No generated ID for userId: %s".formatted(userId));
+                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(userId));
                         }
 
                         remappedProfiles.add(new Object[]{

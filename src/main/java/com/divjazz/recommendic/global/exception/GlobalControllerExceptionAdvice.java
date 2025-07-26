@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,6 +34,15 @@ public class GlobalControllerExceptionAdvice {
     public record ValidationErrorResponse(String message, List<FieldError> errors){
     }
     public record FieldError(String field, String error){}
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationDeniedException e) {
+        log.error(e.getMessage(),e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED,
+                        e,
+                        "You are not authorized to perform this action"));
+    }
 
     @ExceptionHandler(TransactionException.class)
     public ResponseEntity<Response<String>> handleTransactionException(TransactionException ex) {
