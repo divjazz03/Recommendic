@@ -38,8 +38,9 @@ public class NotificationServiceTest {
                 faker.text().text(12),
                 faker.text().text(45),
                 UUID.randomUUID().toString(),
+                "0L",
                 false,
-                NotificationCategory.CONSULTATION_STARTED
+                NotificationCategory.CONSULTATION
         );
         var result = notificationService.createNotification(notificationDTO);
         assertThat(result.header()).isEqualTo(notificationDTO.header());
@@ -55,7 +56,8 @@ public class NotificationServiceTest {
                 "body",
                 UUID.randomUUID().toString(),
                 false,
-                NotificationCategory.CONSULTATION_STARTED
+                NotificationCategory.CONSULTATION,
+                "34L"
         );
         given(notificationRepository.findById(anyLong())).willReturn(Optional.of(notification));
 

@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.appointment.controller;
 
+import com.divjazz.recommendic.appointment.dto.AppointmentCancellationRequest;
 import com.divjazz.recommendic.appointment.dto.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.dto.AppointmentCreationResponse;
 import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
@@ -9,6 +10,7 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,4 +42,13 @@ public class AppointmentController {
         appointmentService.confirmAppointment(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Response<String>> cancelAppointment(@PathVariable long id,
+                                                              @Valid @RequestBody AppointmentCancellationRequest appointmentCancellationRequest) {
+        appointmentService.cancelAppointment(id, appointmentCancellationRequest.reason());
+        return ResponseEntity.ok(getResponse("Appointment Cancelled", HttpStatus.OK));
+    }
+
+
 }

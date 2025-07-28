@@ -3,7 +3,7 @@ DROP TYPE IF EXISTS notification_category;
 
 
 CREATE TYPE notification_category
-    AS ENUM ('NEW_ARTICLE', 'NEW_APPOINTMENT', 'CONSULTATION_STARTED', 'CONSULTATION_ENDED');
+AS ENUM ('ARTICLE', 'APPOINTMENT', 'CONSULTATION', 'USER', 'CHAT');
 
 CREATE TABLE IF NOT EXISTS notification (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS notification (
     category notification_category NOT NULL ,
     seen    boolean,
     user_id       TEXT NOT NULL,
+    subject_id    TEXT NOT NULL,
     updated_at    TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by    TEXT,

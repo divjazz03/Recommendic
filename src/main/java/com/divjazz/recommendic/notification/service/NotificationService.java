@@ -3,6 +3,7 @@ package com.divjazz.recommendic.notification.service;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.dto.NotificationDTO;
+import com.divjazz.recommendic.notification.enums.NotificationCategory;
 import com.divjazz.recommendic.notification.model.Notification;
 import com.divjazz.recommendic.notification.repository.NotificationRepository;
 import com.divjazz.recommendic.security.utils.AuthUtils;
@@ -24,7 +25,8 @@ public class NotificationService {
                 notificationDTO.summary(),
                 notificationDTO.targetId(),
                 false,
-                notificationDTO.category());
+                notificationDTO.category(),
+                String.valueOf(notificationDTO.subjectId()));
         notificationRepository.save(notification);
         return notificationDTO;
     }
@@ -38,6 +40,7 @@ public class NotificationService {
                 notification.getHeader(),
                 notification.getSummary(),
                 notification.getForUserId(),
+                notification.getSubjectId(),
                 notification.isSeen(),
                 notification.getCategory()
         );
@@ -49,6 +52,7 @@ public class NotificationService {
                 .map(notification -> new NotificationDTO(notification.getHeader(),
                         notification.getSummary(),
                         notification.getForUserId(),
+                        notification.getCategory() == NotificationCategory.USER ? notification.getSubjectId():Long.parseLong(notification.getSubjectId()),
                         notification.isSeen(),
                         notification.getCategory())
                 ));

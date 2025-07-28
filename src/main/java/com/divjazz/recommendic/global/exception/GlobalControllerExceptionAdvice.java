@@ -35,11 +35,11 @@ public class GlobalControllerExceptionAdvice {
     }
     public record FieldError(String field, String error){}
 
-    @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationDeniedException e) {
-        log.error(e.getMessage(),e);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED,
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(getErrorResponse(HttpStatus.FORBIDDEN,
                         e,
                         "You are not authorized to perform this action"));
     }
@@ -110,6 +110,7 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<Response<String>> handleHttpClientError(HttpClientErrorException ex) {
+        log.error(ex.getMessage(), ex);
         return new ResponseEntity<>(getResponse(ex.getResponseBodyAsString(), ex.getStatusCode()),
                 ex.getStatusCode());
     }
@@ -135,6 +136,18 @@ public class GlobalControllerExceptionAdvice {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Response<String>> handleEntityNotFound(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex, null));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Response<String>> handleGeneralException(RuntimeException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity.internalServerError().body(new Response<>(
+                LocalDateTime.now().toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Something happened on our end and we are hard at work to fix it",
+                null,
+                null));
     }
 
 

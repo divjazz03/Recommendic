@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "notification")
@@ -23,7 +25,9 @@ public class Notification extends Auditable {
     private String forUserId;
     @Column(name = "seen")
     private boolean seen;
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(value = SqlTypes.NAMED_ENUM)
     @Column(name = "category")
     private NotificationCategory category;
+    @Column(name = "subject_id")
+    private String subjectId;
 }

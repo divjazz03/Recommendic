@@ -4,7 +4,7 @@ DROP TYPE IF EXISTS session_channel,consultation_status, appointment_status;
 
 CREATE TYPE session_channel AS ENUM ('VOICE','CHAT', 'VIDEO','IN_PERSON');
 CREATE TYPE consultation_status AS ENUM ('ONGOING','COMPLETED', 'MISSED');
-CREATE TYPE  appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELED');
+CREATE TYPE  appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELLED');
 
 CREATE TABLE IF NOT EXISTS schedule_slot
 (

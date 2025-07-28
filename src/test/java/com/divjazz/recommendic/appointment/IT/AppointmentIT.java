@@ -3,7 +3,10 @@ package com.divjazz.recommendic.appointment.IT;
 import com.divjazz.recommendic.BaseIntegration;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
+import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
+import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
+import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -24,6 +27,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Set;
@@ -45,6 +49,8 @@ public class AppointmentIT extends BaseIntegration {
     private ConsultantRepository consultantRepository;
     @Autowired
     private ScheduleRepository scheduleRepository;
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     private Consultant consultant;
     private Schedule schedule;
@@ -154,5 +160,59 @@ public class AppointmentIT extends BaseIntegration {
         ).andExpect(status().isNotFound()).andReturn().getResponse().getContentAsString();
 
         log.info("appointment = {}", result);
+    }
+
+    @Test
+    void shouldCancelAppointmentIfAppointmentExistsAndIsNotAlreadyCancelled() throws Exception {
+        var requestPayLoad = "{\"reason\": \"Just because\"}";
+
+        Appointment appointment = Appointment.builder()
+                .consultant(consultant)
+                .patient(patient)
+                .schedule(schedule)
+                .status(AppointmentStatus.REQUESTED)
+                .appointmentDate(LocalDate.of(2025, 4, 21))
+                .consultationChannel(ConsultationChannel.VOICE)
+                .build();
+
+        appointment = appointmentRepository.save(appointment);
+
+
+
+
+        mockMvc.perform(
+                post(BASE_URL + "/"+ appointment.getId() + "/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestPayLoad)
+                        .with(user(patient.getUserPrincipal()))
+
+        ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    void shouldNotCancelAppointmentIfAppointmentExistsButNotAuthorizedTo() throws Exception {
+        var requestPayLoad = "{\"reason\": \"Just because\"}";
+
+        Appointment appointment = Appointment.builder()
+                .consultant(consultant)
+                .patient(patient)
+                .schedule(schedule)
+                .status(AppointmentStatus.REQUESTED)
+                .appointmentDate(LocalDate.of(2025, 4, 21))
+                .consultationChannel(ConsultationChannel.VOICE)
+                .build();
+
+        appointment = appointmentRepository.save(appointment);
+
+
+
+
+        mockMvc.perform(
+                post(BASE_URL + "/"+ appointment.getId() + "/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestPayLoad)
+                        .with(user(consultant.getUserPrincipal()))
+
+        ).andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
     }
 }

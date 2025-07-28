@@ -10,6 +10,7 @@ import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -68,6 +69,7 @@ public class AppointmentService {
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_REQUESTED,
                 Map.of("name", patient.getPatientProfile().getUserName().getFullName(),
+                        "subjectId", appointment.getId(),
                         "targetId", consultant.getUserId(),
                         "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
                         "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
@@ -86,18 +88,39 @@ public class AppointmentService {
     public void confirmAppointment(Long appointmentId) {
         Appointment appointment = getAppointmentById(appointmentId);
         if (!authUtils.getCurrentUser().getUserId().equals(appointment.getConsultant().getUserId())) {
-            throw new AuthorizationDeniedException("You do not have authority to confirm this appointment");
+            throw new AuthorizationException("You do not have authority to confirm this appointment");
         }
         appointment.setStatus(AppointmentStatus.CONFIRMED);
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_CONFIRMED,
                 Map.of("name", appointment.getConsultant().getProfile().getUserName().getFullName(),
+                        "subjectId", appointment.getId(),
                         "targetId", appointment.getPatient().getUserId(),
                         "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
                         "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
-        appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public void cancelAppointment(long id, String reason) {
+        var appointment = appointmentRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Appointment does not exist or has been deleted"));
+        var userIsAuthorizedToCancel = authUtils.getCurrentUser().getUserId().equals(appointment.getPatient().getUserId());
+        if (!userIsAuthorizedToCancel) {
+            throw new AuthorizationException("You do not have authority to cancel this appointment");
+        }
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        AppointmentEvent appointmentEvent = new AppointmentEvent(
+                AppointmentEventType.APPOINTMENT_CANCELLED,
+                Map.of("targetId", appointment.getConsultant().getUserId(),
+                        "subjectId", appointment.getId(),
+                        "reason", reason,
+                        "name", ((Patient) authUtils.getCurrentUser()).getPatientProfile().getUserName().getFullName(),
+                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
+                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                );
+        applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
     public Stream<Appointment> getAppointmentsByPatientId(String patientId) {
@@ -108,7 +131,6 @@ public class AppointmentService {
     public Stream<Appointment> getAppointmentsByConsultantId(String consultantId) {
         return appointmentRepository.findAppointmentsByConsultant_UserId(consultantId);
     }
-
 
     private LocalDate getADateFromWeeklySchedule(Schedule schedule) {
         Set<String> daysOfWeek = schedule.getRecurrenceRule().weekDays();
@@ -134,6 +156,7 @@ public class AppointmentService {
             return localDate1;
         }
     }
+
     private LocalDate getADateFromMonthlySchedule(Schedule schedule) {
         LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
         if (Objects.nonNull(localDate)) {
