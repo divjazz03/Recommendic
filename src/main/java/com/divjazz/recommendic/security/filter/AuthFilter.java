@@ -53,6 +53,12 @@ public class AuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().matches("^/api/v1/auth/login");
+        return request.getRequestURI().matches("^/api/v1/auth/login") ||
+                request.getRequestURI().matches("^/api-docs") ||
+                request.getRequestURI().matches("^/swagger-ui/.*") ||
+                request.getRequestURI().matches("^/actuator?(/.*)") ||
+                request.getRequestURI().matches("^/favicon.ico") ||
+                request.getRequestURI().matches("^/api/v1/medical-categories") ||
+                request.getRequestURI().matches("^/api/v1/users");
     }
 }

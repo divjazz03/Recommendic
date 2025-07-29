@@ -138,17 +138,17 @@ public class GlobalControllerExceptionAdvice {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex, null));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Response<String>> handleGeneralException(RuntimeException e) {
-        log.error(e.getMessage(), e);
-        return ResponseEntity.internalServerError().body(new Response<>(
-                LocalDateTime.now().toString(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something happened on our end and we are hard at work to fix it",
-                null,
-                null));
-    }
+//    @ExceptionHandler(RuntimeException.class)
+//    public ResponseEntity<Response<String>> handleGeneralException(RuntimeException e) {
+//        log.error(e.getMessage(), e);
+//        return ResponseEntity.internalServerError().body(new Response<>(
+//                LocalDateTime.now().toString(),
+//                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+//                HttpStatus.INTERNAL_SERVER_ERROR,
+//                "Something happened on our end and we are hard at work to fix it",
+//                null,
+//                null));
+//    }
 
 
 }

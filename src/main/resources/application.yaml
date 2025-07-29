@@ -52,8 +52,6 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       auto-commit: true
-      max-lifetime: ${HIKARI_MAX_LIFETIME:60000}
-      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:20000}
   jpa:
     show-sql: false
     open-in-view: false
@@ -78,7 +76,7 @@ spring:
       host: ${VERIFY_EMAIL_HOST}
     username: ${EMAIL_ID}
   profiles:
-    active: test
+    active: ${ACTIVE_PROFILES:test}
 
 management:
   endpoint:

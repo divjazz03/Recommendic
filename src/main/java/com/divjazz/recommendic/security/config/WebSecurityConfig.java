@@ -53,7 +53,7 @@ public class WebSecurityConfig {
         return NoOpPasswordEncoder.getInstance();
     }
 
-    private static final String[] WHITELIST_PATHS = {"/api/v1/users","/api/v1/medical_categories","/error",
+    private static final String[] WHITELIST_PATHS = {"/api/v1/users","/api/v1/medical-categories","/error",
             "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*", "/actuator/**", "/favicon.ico",
             "/api/v1/auth/*"
     };
