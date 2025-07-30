@@ -32,7 +32,7 @@ public class RedisConfig {
     }
     @Bean
     @Primary
-    public RedisCacheConfiguration generalCacheConfiguration(RedisConnectionFactory redisConnectionFactory) {
+    public RedisCacheConfiguration generalCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
                 .prefixCacheNameWith("recommendic::")
                 .entryTtl(Duration.ofMinutes(10))

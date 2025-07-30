@@ -33,7 +33,7 @@ public class UserRepository {
                 email
         );
 
-        return Optional.of(securityProjectionDTO);
+        return Optional.ofNullable(securityProjectionDTO);
     }
 
     
@@ -47,7 +47,7 @@ public class UserRepository {
                 email
         );
 
-        return Optional.of(credentialJsonB);
+        return Optional.ofNullable(credentialJsonB);
     }
 
     
@@ -61,7 +61,7 @@ public class UserRepository {
                 email
         );
 
-        return Optional.of(credentialJsonB);
+        return Optional.ofNullable(credentialJsonB);
     }
 
 //    @Query(value = """

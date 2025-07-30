@@ -4,6 +4,7 @@ import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.CustomUserDetailsService;
 import com.divjazz.recommendic.security.filter.AuthFilter;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,10 +54,11 @@ public class WebSecurityConfig {
         return NoOpPasswordEncoder.getInstance();
     }
 
-    private static final String[] WHITELIST_PATHS = {"/api/v1/users","/api/v1/medical-categories","/error",
-            "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*", "/actuator/**", "/favicon.ico",
-            "/api/v1/auth/*"
-    };
+    @Getter
+    private static final List<String> WHITELIST_PATHS = List.of(
+            "/api/v1/medical-categories","/error",
+            "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*",
+            "/actuator/**", "/favicon.ico", "/api/v1/auth/*");
 
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
@@ -66,7 +68,7 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(WHITELIST_PATHS).permitAll()
+                        .requestMatchers(WHITELIST_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/v1/consultants","/api/v1/patients").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)

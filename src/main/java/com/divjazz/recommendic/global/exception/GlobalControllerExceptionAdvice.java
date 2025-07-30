@@ -66,7 +66,9 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Response<Object>> handleAccountDisabled(DisabledException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,ex,null));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,
+                ex,
+                "Your account is disabled, please confirm your email"));
     }
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)

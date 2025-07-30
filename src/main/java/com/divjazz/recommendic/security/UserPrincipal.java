@@ -39,6 +39,8 @@ public class UserPrincipal implements UserDetails {
         this.userCredential = userCredential;
         this.email = email;
         this.enabled = false;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
     }
 
     @Override

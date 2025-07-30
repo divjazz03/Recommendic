@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.security.filter;
 
 import com.divjazz.recommendic.security.SessionUser;
+import com.divjazz.recommendic.security.config.WebSecurityConfig;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,15 +14,18 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class AuthFilter extends OncePerRequestFilter {
+
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
@@ -53,12 +57,7 @@ public class AuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().matches("^/api/v1/auth/login") ||
-                request.getRequestURI().matches("^/api-docs") ||
-                request.getRequestURI().matches("^/swagger-ui/.*") ||
-                request.getRequestURI().matches("^/actuator?(/.*)") ||
-                request.getRequestURI().matches("^/favicon.ico") ||
-                request.getRequestURI().matches("^/api/v1/medical-categories") ||
-                request.getRequestURI().matches("^/api/v1/users");
+        return WebSecurityConfig.getWHITELIST_PATHS().stream()
+                .anyMatch(skipPath -> antPathMatcher.match(skipPath, request.getRequestURI()));
     }
 }
