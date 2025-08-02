@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.controller;
 
 
 import com.divjazz.recommendic.security.SessionUser;
+import com.divjazz.recommendic.security.controller.AuthController;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.User;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +37,11 @@ public class UserController {
                 user.getUserType(),
                 user.getUserStage()
         ));
+    }
+    @GetMapping("/me")
+    public AuthController.CurrentUser me() {
+        SessionUser principal = (SessionUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return new AuthController.CurrentUser(principal.getEmail());
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CurrentUser(String userId, String role, UserType userType, UserStage userStage){}

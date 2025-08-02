@@ -19,14 +19,14 @@ public class ScheduleRecurrenceRuleValidator implements ConstraintValidator<Sche
             if (recurrenceRule == null) return true;
             try {
                 var recurrence = recurrenceRule.frequency();
-                boolean recurrenceIsNotDailyAndWeekdayIsNullOrEmpty = !RecurrenceFrequency.DAILY.equals(recurrence)
+                boolean recurrenceIsNotDailyAndWeekdayIsNullOrEmpty = RecurrenceFrequency.WEEKLY.equals(recurrence)
                         && (recurrenceRule.weekDays() == null
                         || recurrenceRule.weekDays().isEmpty());
 
                 if (recurrenceIsNotDailyAndWeekdayIsNullOrEmpty) {
                         constraintValidatorContext.disableDefaultConstraintViolation();
                         constraintValidatorContext.buildConstraintViolationWithTemplate(
-                                "if recurrence frequency is not daily then weekdays must have at least one element"
+                                "if recurrence frequency is weekly then weekdays must have at least one element"
                         ).addConstraintViolation();
                         return false;
                 }

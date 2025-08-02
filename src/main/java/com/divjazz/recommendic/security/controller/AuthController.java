@@ -34,11 +34,7 @@ public class AuthController {
 
         return ResponseEntity.ok(getResponse(result, HttpStatus.OK));
     }
-    @GetMapping("/me")
-    public CurrentUser me() {
-        SessionUser principal = (SessionUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return new CurrentUser(principal.getEmail());
-    }
+
     @PostMapping("/logout")
     @Operation(summary = "Log user out")
     public ResponseEntity<Void> logout(HttpServletRequest request) {

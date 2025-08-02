@@ -18,6 +18,8 @@ import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredenti
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -26,11 +28,11 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 public class ConsultationCustomRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcClient jdbcClient;
     private final ObjectMapper objectMapper;
 
 
@@ -91,10 +93,13 @@ public class ConsultationCustomRepository {
                 LEFT JOIN consultant co ON a.consultant_id = co.id
                 LEFT JOIN patient_profiles pf ON co.id = pf.id
                 LEFT JOIN consultant_profiles cf ON co.id = cf.id
-                WHERE co.user_id = ?
+                WHERE co.user_id = :id
                 """;
-        return jdbcTemplate.queryForStream(sql, (rs, rowNum) -> getConsultationProjectionFromResultSet(rs)
-                , consultantUserId);
+        return jdbcClient
+                .sql(sql)
+                .param("id", consultantUserId)
+                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
+                .stream();
     }
 
 
@@ -155,10 +160,12 @@ public class ConsultationCustomRepository {
                 LEFT JOIN consultant co ON a.consultant_id = co.id
                 LEFT JOIN patient_profiles pf ON co.id = pf.id
                 LEFT JOIN consultant_profiles cf ON co.id = cf.id
-                WHERE p.user_id = ?
+                WHERE p.user_id = :id
                 """;
-        return jdbcTemplate.queryForStream(sql, (rs, rowNum) -> getConsultationProjectionFromResultSet(rs)
-                , patientUserId);
+        return jdbcClient.sql(sql)
+                .param("id", patientUserId)
+                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
+                .stream();
 
     }
     private ConsultationProjection getConsultationProjectionFromResultSet(ResultSet resultSet) throws SQLException {
