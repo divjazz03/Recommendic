@@ -34,10 +34,15 @@ public class ScheduleController {
 
     @GetMapping("/me")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
-    public ResponseEntity<Response<Set<ScheduleDisplay>>> getMySchedule() {
+    public ResponseEntity<Response<Set<ScheduleDisplay>>> getMySchedules() {
         var schedules = scheduleService.getMySchedules();
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(getResponse(schedules, HttpStatus.OK));
+        return ResponseEntity.ok(getResponse(schedules, HttpStatus.OK));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Response<ScheduleResponseDTO>> getScheduleById(@PathVariable long id) {
+        var schedule = scheduleService.getScheduleById(id);
+        return ResponseEntity.ok(getResponse(schedule, HttpStatus.OK));
     }
 
     @PatchMapping("/{id}")

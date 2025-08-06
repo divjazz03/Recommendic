@@ -64,21 +64,16 @@ public class ScheduleService {
 
         schedule = scheduleRepository.save(schedule);
 
-        return new ScheduleResponseDTO(
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().getId(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.isRecurring(),
-                schedule.getRecurrenceRule() != null
-                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null ,
-                schedule.isActive()
-        );
+        return toScheduleResponseDTO(schedule);
     }
     @Transactional(readOnly = true)
     public Set<ScheduleDisplay> getMySchedules() {
-        return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().getId(), Pageable.ofSize(3));
+        return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().getId(), Pageable.ofSize(10));
+    }
+    public ScheduleResponseDTO getScheduleById(long id) {
+        var schedule =  scheduleRepository
+                .findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
+        return toScheduleResponseDTO(schedule);
     }
     @Transactional(readOnly = true)
     public List<Schedule> getSchedulesByConsultantId(String consultantId) {
@@ -123,17 +118,7 @@ public class ScheduleService {
             schedule.setRecurrenceRule(null);
         }
 
-        return new ScheduleResponseDTO(
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().getId(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.isRecurring(),
-                schedule.getRecurrenceRule() != null
-                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null ,
-                schedule.isActive()
-        );
+        return toScheduleResponseDTO(schedule);
     }
 
 
@@ -160,6 +145,7 @@ public class ScheduleService {
     }
     private ScheduleDisplay toScheduleDisplay(Schedule schedule) {
         return new ScheduleDisplay(
+                schedule.getId(),
                 schedule.getName(),
                 schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
                 schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
@@ -170,6 +156,21 @@ public class ScheduleService {
                 schedule.isActive(),
                 schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 0
+        );
+    }
+
+    private ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
+        return new ScheduleResponseDTO(
+                schedule.getId(),
+                schedule.getName(),
+                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getZoneOffset().getId(),
+                fromConsultationChannels(schedule.getConsultationChannels()),
+                schedule.isRecurring(),
+                schedule.getRecurrenceRule() != null
+                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null ,
+                schedule.isActive()
         );
     }
 }

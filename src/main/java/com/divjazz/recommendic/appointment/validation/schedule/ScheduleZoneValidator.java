@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.DateTimeException;
+import java.util.Objects;
 
 public class ScheduleZoneValidator implements ConstraintValidator<ScheduleZone, String> {
     @Override
@@ -14,6 +15,7 @@ public class ScheduleZoneValidator implements ConstraintValidator<ScheduleZone, 
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
+        if(Objects.isNull(s)) return true;
         try {
             java.time.ZoneOffset.of(s);
             return true;
