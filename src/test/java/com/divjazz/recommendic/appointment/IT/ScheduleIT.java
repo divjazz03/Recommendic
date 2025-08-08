@@ -95,7 +95,7 @@ public class ScheduleIT extends BaseIntegration {
                     "zoneOffset": "+01:00",
                     "channels": ["voice","in_person"],
                     "recurrenceRule": {
-                        "recurrenceFrequency": "one-of",
+                        "frequency": "one-of",
                         "weekDays": ["moday", "wednsday"],
                         "interval": 2,
                         "endDate": "2023-0s1-23"
@@ -111,7 +111,7 @@ public class ScheduleIT extends BaseIntegration {
                     "zoneOffset": "+01:00",
                     "channels": ["voice","in_person"],
                     "recurrenceRule": {
-                        "recurrenceFrequency": "weekly",
+                        "frequency": "weekly",
                         "weekDays": [],
                         "interval": 2,
                         "endDate": "2023-0s1-23"
@@ -143,7 +143,7 @@ public class ScheduleIT extends BaseIntegration {
                             "zoneOffset": "+01:00",
                             "channels": ["voice","in_person"],
                             "recurrenceRule": {
-                                "recurrenceFrequency": "one-off",
+                                "frequency": "one-off",
                                 "weekDays": ["monday", "wednesday"],
                                 "interval": 2,
                                 "endDate": "2023-01-23"
@@ -160,7 +160,7 @@ public class ScheduleIT extends BaseIntegration {
                             "zoneOffset": "+01:00",
                             "channels": ["voice","in_person"],
                             "recurrenceRule": {
-                                "recurrenceFrequency": "weekly",
+                                "frequency": "weekly",
                                 "weekDays": ["monday", "wednesday", "friday"],
                                 "interval": 1,
                                 "endDate": "2023-01-23"
@@ -256,7 +256,7 @@ public class ScheduleIT extends BaseIntegration {
     }
 
     @Test
-    void shouldModifyTheSchedule() throws Exception {
+    void shouldModifyTheScheduleAndReturn200() throws Exception {
         populateAppointmentForThisUser();
         var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).get(0);
         var modificationRequest = """
@@ -285,7 +285,92 @@ public class ScheduleIT extends BaseIntegration {
         log.info("Response {}", result);
     }
 
+    @Test
+    void shouldNotModifyScheduleTheScheduleAndReturn403() throws Exception {
+        populateAppointmentForThisUser();
+        var unSavedconsultant = new Consultant(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("sjfskjvnksjfns"));
+        unSavedconsultant.setCertified(true);
+        unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
+        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
 
+        var consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(unSavedconsultant)
+                .build();
+        unSavedconsultant.setProfile(consultantProfile);
+        var consultant = consultantRepository.save(unSavedconsultant);
+        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).get(0);
+        var modificationRequest = """
+                        {
+                            "name":"My schedule Modified",
+                            "startTime": "11:30",
+                            "endTime": "14:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["voice","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isRecurring": true,
+                            "isActive": true
+                        }
+                        """;
+        var result = mockMvc.perform(
+                patch(BASE_URL+"/%s".formatted(schedule.getId()))
+                        .with(user(consultant.getUserPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(modificationRequest)
+        ).andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+
+        log.info("Response {}", result);
+    }
+
+
+    @Test
+    void shouldDeleteScheduleAndReturn200() throws Exception {
+        populateAppointmentForThisUser();
+
+        var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).get(0);
+        mockMvc.perform(
+                delete(BASE_URL+"/%s".formatted(schedule.getId()))
+                        .with(user(consultant.getUserPrincipal()))
+        ).andExpect(status().isNoContent());
+    }
+    @Test
+    void shouldNotDeleteScheduleAndReturn403() throws Exception {
+        populateAppointmentForThisUser();
+        var unSavedconsultant = new Consultant(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("sjfskjvnksjfns"));
+        unSavedconsultant.setCertified(true);
+        unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
+        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+
+        var consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(unSavedconsultant)
+                .build();
+        unSavedconsultant.setProfile(consultantProfile);
+        var consultant = consultantRepository.save(unSavedconsultant);
+        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).get(0);
+        mockMvc.perform(
+                delete(BASE_URL+"/%s".formatted(schedule.getId()))
+                        .with(user(this.consultant.getUserPrincipal()))
+        ).andExpect(status().isNoContent());
+    }
 
 
 

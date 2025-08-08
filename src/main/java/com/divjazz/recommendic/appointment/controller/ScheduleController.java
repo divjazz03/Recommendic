@@ -53,4 +53,10 @@ public class ScheduleController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(getResponse(schedule, HttpStatus.CREATED));
     }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT','ROLE_ADMIN')")
+    public ResponseEntity<Response<Void>> deleteSchedule(@PathVariable long id) {
+        scheduleService.deleteScheduleById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS appointment
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
     patient_id    BIGINT REFERENCES patient (id) ON DELETE RESTRICT NOT NULL ,
     consultant_id BIGINT REFERENCES consultant (id) ON DELETE RESTRICT NOT NULL ,
-    schedule_slot_id BIGINT REFERENCES schedule_slot (id) NOT NULL ,
+    schedule_slot_id BIGINT REFERENCES schedule_slot (id) ON DELETE CASCADE NOT NULL  ,
     note          TEXT,
     status        appointment_status        DEFAULT 'REQUESTED',
     date          date NOT NULL ,

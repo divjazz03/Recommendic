@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ScheduleService {
 
-    private final ScheduleRepository scheduleRepository;
     public final ScheduleCustomRepository scheduleCustomRepository;
+    private final ScheduleRepository scheduleRepository;
     private final AuthUtils authUtils;
 
     @Transactional
     public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
 
-        var consultant =(Consultant) authUtils.getCurrentUser();
+        var consultant = (Consultant) authUtils.getCurrentUser();
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
                 .consultant(consultant)
@@ -66,25 +66,29 @@ public class ScheduleService {
 
         return toScheduleResponseDTO(schedule);
     }
+
     @Transactional(readOnly = true)
     public Set<ScheduleDisplay> getMySchedules() {
         return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().getId(), Pageable.ofSize(10));
     }
+
     public ScheduleResponseDTO getScheduleById(long id) {
-        var schedule =  scheduleRepository
+        var schedule = scheduleRepository
                 .findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
         return toScheduleResponseDTO(schedule);
     }
+
     @Transactional(readOnly = true)
     public List<Schedule> getSchedulesByConsultantId(String consultantId) {
         return scheduleRepository.findAllByConsultant_UserId(consultantId).toList();
     }
+
     @Transactional
     public ScheduleResponseDTO modifySchedule(long id, ScheduleModificationRequest modificationRequest) {
         log.info("{}", modificationRequest.toString());
         var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
         if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().getUserId())) {
-            throw new AuthorizationDeniedException("You are not the owner of this schedule, hence cannot perform this action");
+            throw new AuthorizationDeniedException("You are not the owner of this schedule, hence cannot modify this resource");
         }
 
         if (Objects.nonNull(modificationRequest.name())) {
@@ -97,7 +101,7 @@ public class ScheduleService {
             schedule.setEndTime(LocalTime.parse(modificationRequest.endTime()));
         }
         if (Objects.nonNull(modificationRequest.startTime())) {
-            schedule.setEndTime(LocalTime.parse(modificationRequest.startTime()));
+            schedule.setStartTime(LocalTime.parse(modificationRequest.startTime()));
         }
         if (Objects.nonNull(modificationRequest.zoneOffset())) {
             schedule.setZoneOffset(ZoneOffset.of(modificationRequest.zoneOffset()));
@@ -122,27 +126,18 @@ public class ScheduleService {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
     private ConsultationChannel[] toConsultationChannels(Set<String> consultationChannelStrings) {
         return consultationChannelStrings.stream()
                 .map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
                 .toArray(ConsultationChannel[]::new);
     }
+
     private Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
         return Arrays.stream(consultationChannels)
                 .map(consultationChannel -> consultationChannel.toString().toLowerCase())
                 .collect(Collectors.toSet());
     }
+
     private ScheduleDisplay toScheduleDisplay(Schedule schedule) {
         return new ScheduleDisplay(
                 schedule.getId(),
@@ -169,8 +164,16 @@ public class ScheduleService {
                 fromConsultationChannels(schedule.getConsultationChannels()),
                 schedule.isRecurring(),
                 schedule.getRecurrenceRule() != null
-                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null ,
+                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null,
                 schedule.isActive()
         );
+    }
+
+    public void deleteScheduleById(long id) {
+        var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
+        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().getUserId())) {
+            throw new AuthorizationDeniedException("You are not authorized to delete this resource");
+        }
+        scheduleRepository.deleteById(id);
     }
 }
