@@ -6,6 +6,7 @@ import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.dto.PatientProfileResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
@@ -79,19 +80,7 @@ public class PatientController {
                     content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<Response<PatientInfoResponse>> createPatient(@RequestBody @Valid PatientRegistrationParams requestParams) {
-        PatientDTO patient = new PatientDTO(
-                new UserName(requestParams.firstName(), requestParams.lastName()),
-                requestParams.email(), requestParams.phoneNumber(),
-                switch (requestParams.gender().toUpperCase()) {
-                    case "MALE" -> Gender.MALE;
-                    case "FEMALE" -> Gender.FEMALE;
-                    default -> throw new IllegalArgumentException("No Such Gender");
-                },
-                new Address(requestParams.city(), requestParams.state(), requestParams.country()),
-                requestParams.password()
-        );
-
-        var infoResponse = patientService.createPatient(patient);
+        var infoResponse = patientService.createPatient(requestParams);
 
         var response = getResponse(infoResponse, HttpStatus.OK);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -111,6 +100,12 @@ public class PatientController {
     public ResponseEntity<Response<PatientInfoResponse>> getPatientDetail(@PathVariable String userId) {
         var patientInfo = patientService.getPatientDetailById(userId);
         return ResponseEntity.ok(getResponse(patientInfo,  HttpStatus.OK));
+    }
+    @GetMapping("/profiles")
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
+    public ResponseEntity<Response<PatientProfileResponse>> getPatientProfile() {
+        var patientProfile = patientService.getThisPatientProfile();
+        return ResponseEntity.ok(getResponse(patientProfile, HttpStatus.OK));
     }
 
     @DeleteMapping("/{userId}")

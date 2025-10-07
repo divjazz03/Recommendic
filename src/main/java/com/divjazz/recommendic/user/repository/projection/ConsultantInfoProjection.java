@@ -7,7 +7,7 @@ public record ConsultantInfoProjection(
         String lastName,
         String firstName,
         String gender,
-        String phoneNumber,
+        String age,
         String address,
         String medicalSpecialization
 ) {

@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.exception.GlobalControllerExceptionAdvice;
 import com.divjazz.recommendic.global.general.PageResponse;
@@ -26,7 +26,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-public class PatientIT extends BaseIntegration {
+public class PatientIT extends BaseIntegrationTest {
 
     private static final Faker FAKER = new Faker();
     private static final String PATIENT_BASE_ENDPOINT = "/api/v1/patients";
@@ -79,7 +78,7 @@ public class PatientIT extends BaseIntegration {
 
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
                 .build();
@@ -116,7 +115,7 @@ public class PatientIT extends BaseIntegration {
                       "gender": "Male",
                       "lastName": "Maduka",
                       "password": "june12003dsd",
-                      "phoneNumber": "+2347046641978",
+                      "dateOfBirth": "2001-03-21",
                       "state": "Oyo"
                 }
                 """;
@@ -207,7 +206,7 @@ public class PatientIT extends BaseIntegration {
 
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
                 .build();
@@ -256,7 +255,7 @@ public class PatientIT extends BaseIntegration {
         patientInOnboardingStage.setMedicalCategories(new String[]{});
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(patientInOnboardingStage)
                 .build();
@@ -293,7 +292,7 @@ public class PatientIT extends BaseIntegration {
 
                     PatientProfile patientProfile = PatientProfile.builder()
                             .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                            .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                            .dateOfBirth(FAKER.timeAndDate().birthday())
                             .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                             .patient(unsavedPatient)
                             .build();

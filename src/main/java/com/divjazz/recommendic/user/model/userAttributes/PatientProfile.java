@@ -13,6 +13,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -63,5 +64,11 @@ public class PatientProfile{
     @JoinColumn(name = "id")
     @JsonBackReference
     private Patient patient;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    public String getAge() {
+        return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
+    }
 
 }

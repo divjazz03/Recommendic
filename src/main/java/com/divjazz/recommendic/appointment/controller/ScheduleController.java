@@ -1,8 +1,9 @@
 package com.divjazz.recommendic.appointment.controller;
 
-import com.divjazz.recommendic.appointment.dto.ScheduleCreationRequest;
-import com.divjazz.recommendic.appointment.dto.ScheduleDisplay;
-import com.divjazz.recommendic.appointment.dto.ScheduleModificationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.ConsultantSchedulesResponse;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleModificationRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
 import com.divjazz.recommendic.global.Response;
@@ -14,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -44,7 +46,13 @@ public class ScheduleController {
         var schedule = scheduleService.getScheduleById(id);
         return ResponseEntity.ok(getResponse(schedule, HttpStatus.OK));
     }
-
+    @GetMapping("/consultant/{id}")
+    public ResponseEntity<Response<ConsultantSchedulesResponse>> getScheduleByConsultantId (
+            @PathVariable String id
+    ) {
+        var schedules = scheduleService.getSchedulesByConsultantIdHandler(id);
+        return ResponseEntity.ok(getResponse(schedules, HttpStatus.OK));
+    }
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
     public ResponseEntity<Response<ScheduleResponseDTO>> modifySchedule(@PathVariable long id,

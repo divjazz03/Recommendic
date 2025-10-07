@@ -8,7 +8,7 @@ public record PatientInfoResponse(
         String userId,
         String lastName,
         String firstName,
-        String phoneNumber,
+        String age,
         String gender,
         Address address
 ) implements UserInfoResponse {

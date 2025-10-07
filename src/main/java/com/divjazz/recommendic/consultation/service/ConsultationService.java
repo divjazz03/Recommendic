@@ -11,7 +11,9 @@ import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationCustomRepository;
 import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -29,34 +31,36 @@ public class ConsultationService {
     private final AppointmentService appointmentService;
     private final ConsultationRepository consultationRepository;
     private final ConsultationCustomRepository consultationCustomRepository;
+    private final AuthUtils authUtils;
     public static final Integer MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START = 15;
 
 
     @Transactional
     public ConsultationResponse startConsultation(Long appointmentId) {
         Appointment appointment = appointmentService.getAppointmentById(appointmentId);
+        var currentUser = authUtils.getCurrentUser();
+        if (!currentUser.getUserId().equals(appointment.getPatient().getUserId()) ||
+                !currentUser.getUserId().equals(appointment.getConsultant().getUserId())) {
+            throw new AuthorizationException("You are not registered for this appointment");
+        }
         if (consultationRepository.existsByAppointmentId(appointmentId)) {
             throw new ConsultationAlreadyStartedException("Consultation already started for this appointment");
         }
+
         // The Consultation should not be started 15 minutes before the actual appointed time
         if (appointment.getStartDateAndTime()
                 .minusMinutes(MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START)
                 .isAfter(OffsetDateTime.of(LocalDateTime.now(), appointment.getSchedule().getZoneOffset()))) {
             throw new ConsultationStartedBeforeAppointmentException();
         }
-        Consultation consultation = Consultation.builder()
-                .appointment(appointment)
-                .consultationStatus(ConsultationStatus.ONGOING)
-                .channel(appointment.getConsultationChannel())
-                .startedAt(LocalDateTime.now())
-                .build();
+        Consultation consultation = new Consultation(appointment,appointment.getConsultationChannel());
         consultation = consultationRepository.save(consultation);
         return ConsultationMapper.consultationToConsultationResponse(consultation);
     }
 
     @Transactional
-    public ConsultationResponse completeConsultation(Long consultationId, String summary) {
-        var consultation = consultationRepository.findById(consultationId)
+    public ConsultationResponse completeConsultation(String consultationId, String summary) {
+        var consultation = consultationRepository.findByConsultationId(consultationId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultation with id: %s either doesn't exist or has been deleted"));
         consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
@@ -72,8 +76,8 @@ public class ConsultationService {
     public Stream<ConsultationProjection> retrieveConsultationDetailByConsultantId(String consultantId) {
         return consultationCustomRepository.findConsultationDetailsByConsultantUserId(consultantId);
     }
-    public Consultation getConsultationById(Long consultationId) {
-        return consultationRepository.findById(consultationId)
+    public Consultation getConsultationById(String consultationId) {
+        return consultationRepository.findByConsultationId(consultationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Consultation with id: %s not found".formatted(consultationId))
                 );

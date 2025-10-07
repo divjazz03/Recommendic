@@ -23,12 +23,12 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-request-size: 10MB
+      max-request-size: 50MB
       max-file-size: 30MB
   session:
     redis:
       flush-mode: on_save
-      namespace: recommendic:session
+      namespace: 'recommendic:session'
   data:
     redis:
       url: ${REDIS_DATABASE_URL}
@@ -61,6 +61,8 @@ spring:
       hibernate:
         globally_quoted_identifiers: true
         format_sql: true
+        jdbc:
+          batch_size: 100
   mail:
     host: ${EMAIL_HOST}
     port: ${EMAIL_PORT}
@@ -76,7 +78,9 @@ spring:
       host: ${VERIFY_EMAIL_HOST}
     username: ${EMAIL_ID}
   profiles:
-    active: ${ACTIVE_PROFILES:test}
+    default: test
+  main:
+    banner-mode: off
 
 management:
   endpoint:

@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.consultation.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -28,14 +28,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.util.MultiValueMap;
 
 import java.time.*;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -44,7 +41,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 @AutoConfigureMockMvc
 @Slf4j
-public class ConsultationIT extends BaseIntegration {
+public class ConsultationIT extends BaseIntegrationTest {
 
     public static final String CONSULTATION_BASE_ENDPOINT = "/api/v1/consultations";
     public static final Faker FAKER = new Faker();

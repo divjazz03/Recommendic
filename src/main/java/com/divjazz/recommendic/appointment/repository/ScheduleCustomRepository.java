@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.appointment.repository;
 
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.dto.ScheduleDisplay;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,14 +1,13 @@
 package com.divjazz.recommendic.article.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
-import com.divjazz.recommendic.DataSeeder;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.article.domain.ArticleTag;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.global.Response;
-import com.divjazz.recommendic.global.general.BeanConfig;
+import com.divjazz.recommendic.global.config.BeanConfig;
 import com.divjazz.recommendic.security.config.WebSecurityConfig;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
@@ -17,14 +16,8 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,23 +28,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 
-import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -64,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
 @Import({WebSecurityConfig.class, BeanConfig.class})
-public class ArticleIT extends BaseIntegration {
+public class ArticleIT extends BaseIntegrationTest {
 
     private static final Faker faker = new Faker();
     @Autowired

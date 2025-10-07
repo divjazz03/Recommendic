@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.user.controller.patient.PatientRegistrationParams;
 import com.divjazz.recommendic.user.dto.PatientDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -75,28 +76,25 @@ public class PatientServiceTest {
     static Stream<Arguments> getValidPatientDTOParameters() {
         return Stream.of(
                 Arguments.of(
-                        new PatientDTO(
-                                new UserName("test_user1_firstname", "test_user1_firstname"),
-                                "test_user1@test.com",
-                                "+23490393848",
-                                Gender.MALE,
-                                new Address("test_user1_city", "test_user1_state", "test_user1_country"),
-                                "test_user1_password"
-                        )
+                        new PatientRegistrationParams(
+                                faker.name().firstName(),
+                                faker.name().lastName(),
+                                faker.internet().emailAddress(),
+                                faker.text().text(23),
+                                faker.timeAndDate().birthday().toString(),
+                                faker.gender().binaryTypes())
                 )
         );
     }
 
     @ParameterizedTest
     @MethodSource("getValidPatientDTOParameters")
-    void givenValidParameterShouldCreatePatientUser(PatientDTO patientDTO) {
+    void givenValidParameterShouldCreatePatientUser(PatientRegistrationParams registrationParams) {
         given(encoder.encode(anyString())).willReturn("Encoded Password String");
         given(userService.isUserExists(anyString())).willReturn(true);
 
-        var result = patientService.createPatient(patientDTO);
-
-        assertThat(result.address()).isEqualTo(patientDTO.address());
-        assertThat(result.firstName()).isEqualTo(patientDTO.userName().getFirstName());
+        var result = patientService.createPatient(registrationParams);
+        assertThat(result.firstName()).isEqualTo(registrationParams.firstName());
 
     }
 

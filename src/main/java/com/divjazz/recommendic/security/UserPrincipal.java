@@ -38,7 +38,7 @@ public class UserPrincipal implements UserDetails {
         this.role = role;
         this.userCredential = userCredential;
         this.email = email;
-        this.enabled = false;
+        this.enabled = true;
         this.accountNonExpired = true;
         this.accountNonLocked = true;
     }

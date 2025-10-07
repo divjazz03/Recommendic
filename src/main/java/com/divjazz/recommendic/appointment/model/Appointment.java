@@ -6,9 +6,14 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.Builder;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
@@ -22,7 +27,9 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 public class Appointment extends Auditable {
-
+    @Column(name = "appointment_id", updatable = false, insertable = false)
+    @Generated(event = EventType.INSERT)
+    private String appointmentId;
     @ManyToOne(optional = false)
     @JoinColumn(name = "patient_id")
     private Patient patient;

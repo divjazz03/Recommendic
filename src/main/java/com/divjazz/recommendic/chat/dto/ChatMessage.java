@@ -4,46 +4,46 @@ import com.divjazz.recommendic.chat.MessageType;
 
 import java.time.LocalDateTime;
 
-public class ChatMessage {
 
-    private final String senderId;
-    private final String receiverId;
-    private final String content;
-    private final long consultationId;
-    private final LocalDateTime timeStamp;
-    private final MessageType messageType;
+public record ChatMessage (
+    String senderId,
+    String receiverId,
+    String senderUsername,
+    String content,
+    String consultationId,
+    LocalDateTime timeStamp,
+    MessageType messageType
+    )
+{
 
-
-    public ChatMessage(String senderId, String receiverId, String content, long consultationId, MessageType messageType) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.content = content;
-        this.consultationId = consultationId;
-        this.messageType = messageType;
-        timeStamp = LocalDateTime.now();
+    public static ChatMessage ofLeave(String message) {
+        return new ChatMessage(null,
+                null,
+                "SYSTEM",
+                null,
+                null,
+                LocalDateTime.now(),
+                MessageType.LEAVE);
     }
-
-    public String getSenderId() {
-        return senderId;
+    public static ChatMessage ofConnect(String message) {
+        return new ChatMessage(null,
+                null,
+                "SYSTEM",
+                null,
+                null,
+                LocalDateTime.now(),
+                MessageType.CONNECT);
     }
-
-    public String getContent() {
-        return content;
-    }
-
-    public MessageType getMessageType() {
-        return messageType;
-    }
-
-    public long getConsultationId() {
-        return consultationId;
-    }
-
-    public LocalDateTime getTimeStamp() {
-        return timeStamp;
-    }
-
-    public String getReceiverId() {
-        return receiverId;
+    public static ChatMessage ofChat(String senderId,String receiverId,
+                                     String senderUsername,
+                                     String content,
+                                     String consultationId, LocalDateTime timeStamp) {
+        return new ChatMessage(senderId,
+                receiverId,
+                senderUsername,
+                content,
+                consultationId,
+                timeStamp,
+                MessageType.CHAT);
     }
 }

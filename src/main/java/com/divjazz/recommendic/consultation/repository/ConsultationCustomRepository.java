@@ -244,7 +244,7 @@ public class ConsultationCustomRepository {
                 .build();
 
         return new ConsultationProjection(
-                resultSet.getLong("consultation_id"),
+                resultSet.getString("consultation_id"),
                 appointment,
                 patientProfile,
                 consultantProfile,

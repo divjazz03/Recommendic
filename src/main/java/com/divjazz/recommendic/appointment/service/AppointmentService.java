@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.appointment.service;
 
-import com.divjazz.recommendic.appointment.dto.AppointmentCreationRequest;
-import com.divjazz.recommendic.appointment.dto.AppointmentCreationResponse;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
 import com.divjazz.recommendic.appointment.enums.AppointmentEventType;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.event.AppointmentEvent;
@@ -15,11 +15,9 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +49,7 @@ public class AppointmentService {
     @Transactional
     public AppointmentCreationResponse createAppointment(AppointmentCreationRequest appointmentCreationRequest) {
 
-        Schedule schedule = scheduleRepository.findById(appointmentCreationRequest.scheduleId())
+        Schedule schedule = scheduleRepository.findByScheduleId(appointmentCreationRequest.scheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("Schedule was not found or doesn't exist"));
         Patient patient = (Patient) authUtils.getCurrentUser();
 

@@ -1,14 +1,12 @@
 package com.divjazz.recommendic.user.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.controller.UserController;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-public class UserIT extends BaseIntegration {
+public class UserIT extends BaseIntegrationTest {
     private static final Faker faker = new Faker();
     @Autowired
     private MockMvc mockMvc;

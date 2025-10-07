@@ -36,7 +36,8 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE TABLE IF NOT EXISTS admin
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             TEXT UNIQUE NOT NULL,
+    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_id             TEXT GENERATED ALWAYS AS ( 'ADM-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
     user_stage          TEXT        NOT NULL,
@@ -58,7 +59,8 @@ CREATE TABLE IF NOT EXISTS admin
 CREATE TABLE IF NOT EXISTS patient
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             TEXT UNIQUE NOT NULL,
+    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_id             TEXT GENERATED ALWAYS AS ( 'PT-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
     user_stage          TEXT        NOT NULL,
@@ -80,7 +82,8 @@ CREATE TABLE IF NOT EXISTS patient
 CREATE TABLE IF NOT EXISTS consultant
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id             TEXT UNIQUE NOT NULL,
+    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_id             TEXT GENERATED ALWAYS AS ( 'CST-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
     user_stage          TEXT        NOT NULL,
@@ -110,6 +113,7 @@ CREATE TABLE IF NOT EXISTS patient_profiles
     profile_picture jsonb,
     address         jsonb,
     phone_number    TEXT,
+    date_of_birth DATE,
     username        jsonb,
     updated_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
@@ -127,6 +131,7 @@ CREATE TABLE IF NOT EXISTS consultant_profiles
     address         jsonb,
     bio             TEXT         DEFAULT NULL,
     phone_number    TEXT,
+    date_of_birth DATE,
     username        jsonb,
     location        TEXT,
     experience      INTEGER,
@@ -156,6 +161,8 @@ CREATE TABLE IF NOT EXISTS users_confirmation
 CREATE TABLE IF NOT EXISTS assignment
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    assignment_uuid      UUID DEFAULT gen_random_uuid() UNIQUE,
+    assignment_id  TEXT GENERATED ALWAYS AS ( 'ASS-' || assignment_uuid ) STORED ,
     admin_id   BIGINT REFERENCES admin (id),
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
@@ -168,6 +175,8 @@ CREATE TABLE IF NOT EXISTS assignment
 CREATE TABLE IF NOT EXISTS certification
 (
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    certification_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    certification_id             TEXT GENERATED ALWAYS AS ( 'CRT-' || certification_uuid ) STORED ,
     consultant_id    BIGINT REFERENCES consultant (id) NOT NULL,
     assignment_id    BIGINT REFERENCES assignment (id) NOT NULL,
     file_name        TEXT                              NOT NULL,
@@ -199,6 +208,8 @@ CREATE TYPE article_status_enum AS ENUM ('DRAFT','ARCHIVED','PUBLISHED');
 CREATE TABLE IF NOT EXISTS article
 (
     id             BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    article_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    article_id             TEXT GENERATED ALWAYS AS ( 'ART-' || article_uuid ) STORED ,
     title          TEXT                              NOT NULL,
     subtitle       TEXT                              NOT NULL,
     content        TEXT                              NOT NULL,
@@ -267,6 +278,8 @@ CREATE TABLE IF NOT EXISTS message
 CREATE TABLE IF NOT EXISTS comment
 (
     id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    comment_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    comment_id             TEXT GENERATED ALWAYS AS ( 'CMT-' || comment_uuid ) STORED ,
     user_id           TEXT NOT NULL,
     article_id        BIGINT REFERENCES article (id),
     parent_comment_id BIGINT REFERENCES comment (id),

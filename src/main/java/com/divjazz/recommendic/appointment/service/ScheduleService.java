@@ -1,9 +1,10 @@
 package com.divjazz.recommendic.appointment.service;
 
+import com.divjazz.recommendic.appointment.controller.payload.ConsultantSchedulesResponse;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.dto.ScheduleCreationRequest;
-import com.divjazz.recommendic.appointment.dto.ScheduleDisplay;
-import com.divjazz.recommendic.appointment.dto.ScheduleModificationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleModificationRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleCustomRepository;
@@ -12,6 +13,10 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
+import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +41,8 @@ public class ScheduleService {
     public final ScheduleCustomRepository scheduleCustomRepository;
     private final ScheduleRepository scheduleRepository;
     private final AuthUtils authUtils;
+    private final ConsultantService consultantService;
+    private final ConsultantStatRepository consultantStatRepository;
 
     @Transactional
     public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
@@ -78,9 +85,30 @@ public class ScheduleService {
         return toScheduleResponseDTO(schedule);
     }
 
-    @Transactional(readOnly = true)
+    public ConsultantSchedulesResponse getSchedulesByConsultantIdHandler(String consultantId) {
+        ConsultantProfile consultantProfile = consultantService.getConsultantProfileByConsultantId(consultantId);
+        ConsultantStat consultantStat = consultantStatRepository
+                .findConsultantStatByConsultantId(consultantId).orElse(ConsultantStat.ofEmpty());
+        List<Schedule> schedules = getSchedulesByConsultantId(consultantId);
+
+        return new ConsultantSchedulesResponse(
+                schedules.stream()
+                        .map(ScheduleService::toScheduleResponseDTO)
+                        .collect(Collectors.toSet()),
+                new ConsultantSchedulesResponse.ScheduleConsultantProfile(
+                        consultantProfile.getUserName().getFullName(),
+                        consultantProfile.getTitle(),
+                        consultantStat.getRating(),
+                        consultantProfile.getProfilePicture().getPictureUrl(),
+                        new ConsultantSchedulesResponse.ScheduleConsultantProfile.ConsultationFee(30,15),
+                        consultantProfile.getLocationOfInstitution()
+                )
+        );
+
+    }
+
     public List<Schedule> getSchedulesByConsultantId(String consultantId) {
-        return scheduleRepository.findAllByConsultant_UserId(consultantId).toList();
+        return scheduleRepository.findAllByConsultant_UserId(consultantId);
     }
 
     @Transactional
@@ -132,13 +160,13 @@ public class ScheduleService {
                 .toArray(ConsultationChannel[]::new);
     }
 
-    private Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
+    private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
         return Arrays.stream(consultationChannels)
                 .map(consultationChannel -> consultationChannel.toString().toLowerCase())
                 .collect(Collectors.toSet());
     }
 
-    private ScheduleDisplay toScheduleDisplay(Schedule schedule) {
+    private static ScheduleDisplay toScheduleDisplay(Schedule schedule) {
         return new ScheduleDisplay(
                 schedule.getId(),
                 schedule.getName(),
@@ -154,9 +182,9 @@ public class ScheduleService {
         );
     }
 
-    private ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
+    public static ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
         return new ScheduleResponseDTO(
-                schedule.getId(),
+                schedule.getScheduleId(),
                 schedule.getName(),
                 schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
                 schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),

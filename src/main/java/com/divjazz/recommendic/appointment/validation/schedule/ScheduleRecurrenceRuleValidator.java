@@ -1,8 +1,7 @@
 package com.divjazz.recommendic.appointment.validation.schedule;
 
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
-import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.dto.RecurrenceRuleRequest;
+import com.divjazz.recommendic.appointment.controller.payload.RecurrenceRuleRequest;
 import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleRecurrenceRule;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

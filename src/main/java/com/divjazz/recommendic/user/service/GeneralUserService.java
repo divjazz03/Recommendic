@@ -5,6 +5,8 @@ import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.user.controller.UserController;
 import com.divjazz.recommendic.user.domain.RequestContext;
+import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
+import com.divjazz.recommendic.user.dto.PatientProfileResponse;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -23,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -59,14 +63,50 @@ public class GeneralUserService {
     }
 
 
-    public User retrieveCurrentUser() {
+    public Map<String, Object> retrieveCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() == null || authentication.getPrincipal().equals("anonymousUser")) {
             throw new AuthenticationException("No authentication found in context please login");
         }
         var sessionUser = (SessionUser) authentication.getPrincipal();
 
-        return retrieveUserByEmail(sessionUser.getEmail());
+        User user =  retrieveUserByEmail(sessionUser.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        switch (user) {
+            case Consultant consultant -> {
+
+                response.put("user", new UserController.CurrentUser(
+                        consultant.getUserId(),
+                        consultant.getUserPrincipal().getRole().getName(),
+                        consultant.getUserType(),
+                        consultant.getUserStage()
+                ));
+                response.put("profile",
+                        new ConsultantProfileResponse(
+                                consultant.getProfile().getUserName(),
+                                consultant.getProfile().getPhoneNumber(),
+                                consultant.getProfile().getAddress(),
+                                consultant.getProfile().getProfilePicture()
+                        ));
+            }
+            case Patient patient -> {
+                response.put("user", new UserController.CurrentUser(
+                        patient.getUserId(),
+                        patient.getUserPrincipal().getRole().getName(),
+                        patient.getUserType(),
+                        patient.getUserStage()
+                ));
+                response.put("profile",
+                        new PatientProfileResponse(
+                                patient.getPatientProfile().getUserName(),
+                                patient.getPatientProfile().getPhoneNumber(),
+                                patient.getPatientProfile().getAddress(),
+                                patient.getPatientProfile().getProfilePicture()
+                        ));
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + user);
+        }
+        return response;
     }
 
     public User retrieveUserByUserId(String id) {

@@ -4,9 +4,12 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.controller.patient.PatientRegistrationParams;
 import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.dto.PatientProfileResponse;
 import com.divjazz.recommendic.user.enums.EventType;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
@@ -15,20 +18,20 @@ import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,15 +48,16 @@ public class PatientService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PatientRepository patientRepository;
     private final RecommendationService recommendationService;
+    private final AuthUtils authUtils;
 
     @Transactional
-    public PatientInfoResponse createPatient(PatientDTO patientDTO) {
+    public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
 
-        if (!userService.isUserExists(patientDTO.email())) {
-            UserCredential userCredential = new UserCredential(encoder.encode(patientDTO.password()));
+        if (!userService.isUserExists(patientRegistrationParams.email())) {
+            UserCredential userCredential = new UserCredential(encoder.encode(patientRegistrationParams.password()));
             Patient user = new Patient(
-                    patientDTO.email(),
-                    patientDTO.gender(),
+                    patientRegistrationParams.email(),
+                    Gender.valueOf(patientRegistrationParams.gender().toUpperCase()),
                     userCredential);
             user.setUserStage(UserStage.ONBOARDING);
             var profilePicture = new ProfilePicture();
@@ -61,20 +65,17 @@ public class PatientService {
             profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
             profilePicture.setName("149071.png");
 
-
-            var userConfirmation = new UserConfirmation(user);
-
             PatientProfile patientProfile = PatientProfile.builder()
-                    .address(patientDTO.address())
                     .patient(user)
-                    .phoneNumber(patientDTO.phoneNumber())
-                    .userName(patientDTO.userName())
+                    .dateOfBirth(LocalDate.parse(patientRegistrationParams.dateOfBirth()))
+                    .userName(new UserName(patientRegistrationParams.firstName(), patientRegistrationParams.lastName()))
                     .profilePicture(profilePicture)
                     .patient(user)
                     .build();
             user.setPatientProfile(patientProfile);
 
             var savedPatient = patientRepository.save(user);
+            var userConfirmation = new UserConfirmation(savedPatient);
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
@@ -88,11 +89,11 @@ public class PatientService {
                     user.getUserId(),
                     patientProfile.getUserName().getLastName(),
                     patientProfile.getUserName().getFirstName(),
-                    patientProfile.getPhoneNumber(),
+                    patientProfile.getAge(),
                     user.getGender().toString(),
                     patientProfile.getAddress());
         } else {
-            throw new UserAlreadyExistsException(patientDTO.email());
+            throw new UserAlreadyExistsException(patientRegistrationParams.email());
         }
     }
 
@@ -100,6 +101,7 @@ public class PatientService {
     public PageResponse<PatientInfoResponse> getAllPatients(Pageable pageable) {
         return PageResponse.from(patientRepository.findAll(pageable).map(this::toPatientInfoResponse));
     }
+
     @Transactional(readOnly = true)
     public PatientInfoResponse getPatientDetailById(String userId) {
         return toPatientInfoResponse(findPatientByUserId(userId));
@@ -133,19 +135,32 @@ public class PatientService {
             patient.setUserStage(UserStage.ACTIVE_USER);
         }
     }
+
     @Transactional(readOnly = true)
     public Set<ConsultantRecommendation> getRecommendationForPatient(String userId) {
         Patient patient = findPatientByUserId(userId);
         return recommendationService.retrieveRecommendationByPatient(patient);
     }
+
     private PatientInfoResponse toPatientInfoResponse(Patient patient) {
-       return new PatientInfoResponse(
+        return new PatientInfoResponse(
                 patient.getUserId(),
                 patient.getPatientProfile().getUserName().getLastName(),
                 patient.getPatientProfile().getUserName().getFirstName(),
-                patient.getPatientProfile().getPhoneNumber(),
+                patient.getPatientProfile().getAge(),
                 patient.getGender().toString(),
                 patient.getPatientProfile().getAddress());
     }
 
+    public PatientProfileResponse getThisPatientProfile() {
+        var currentUser = ((Patient) authUtils.getCurrentUser()).getPatientProfile();
+
+        return new PatientProfileResponse(
+                currentUser.getUserName(),
+                currentUser.getAge(),
+                currentUser.getAddress(),
+                currentUser.getProfilePicture()
+        );
+
+    }
 }

@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.user.model;
 
+import com.divjazz.recommendic.consultation.dto.PatientData;
+import com.divjazz.recommendic.consultation.model.ConsultationPatientData;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
@@ -29,6 +31,10 @@ public class Patient extends User {
     @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private PatientProfile patientProfile;
+
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private ConsultationPatientData patientData;
 
     protected Patient() {
     }

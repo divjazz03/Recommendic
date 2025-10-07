@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -19,8 +20,6 @@ public class Message extends Auditable {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     @Setter
     private String content;
-
-
     @JoinColumn(name = "consultation_id")
     @ManyToOne
     private Consultation consultation;
@@ -33,12 +32,12 @@ public class Message extends Auditable {
     protected Message() {
     }
 
-    public Message(String senderId, String receiverId, Consultation consultation, String content) {
+    public Message(String senderId, String receiverId, Consultation consultation, String content, LocalDateTime timeStamp) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
         this.consultation = consultation;
-        this.timeStamp = LocalDateTime.now();
+        this.timeStamp = Objects.isNull(timeStamp)? LocalDateTime.now() : timeStamp;
         delivered = false;
     }
 }

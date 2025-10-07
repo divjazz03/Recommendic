@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.appointment.validation.schedule;
 
-import com.divjazz.recommendic.appointment.dto.ScheduleCreationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
 import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleRecurrence;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

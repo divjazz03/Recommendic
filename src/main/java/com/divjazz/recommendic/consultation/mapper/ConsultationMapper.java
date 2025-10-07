@@ -18,7 +18,8 @@ public class ConsultationMapper {
                 consultantName.getFullName(),
                 consultationProjection.id(),
                 consultationProjection.consultationStatus().toString(),
-                consultationProjection.appointment().getConsultationChannel().toString()
+                consultationProjection.appointment().getConsultationChannel().toString(),
+                null
         );
     }
     public static ConsultationResponse consultationToConsultationResponse(Consultation consultation) {
@@ -27,9 +28,10 @@ public class ConsultationMapper {
                 consultation.getStartedAt().toString(),
                 consultation.getAppointment().getPatient().getPatientProfile().getUserName().getFullName(),
                 consultation.getAppointment().getConsultant().getProfile().getUserName().getFullName(),
-                consultation.getId(),
+                consultation.getConsultationId(),
                 consultation.getConsultationStatus().toString(),
-                consultation.getAppointment().getConsultationChannel().toString()
+                consultation.getAppointment().getConsultationChannel().toString(),
+                null
         );
     }
 }

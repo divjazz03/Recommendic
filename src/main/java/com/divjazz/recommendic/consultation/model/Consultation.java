@@ -7,6 +7,7 @@ import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
@@ -16,9 +17,9 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "consultation")
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class Consultation extends Auditable {
 
     @OneToOne
@@ -38,8 +39,15 @@ public class Consultation extends Auditable {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConsultationChannel channel;
-
-
+    @Column(name = "consultation_id", updatable = false, insertable = false)
+    @org.hibernate.annotations.Generated(event = EventType.INSERT)
+    private String consultationId;
+    public Consultation(Appointment appointment, ConsultationChannel channel) {
+        this.appointment = appointment;
+        this.channel = channel;
+        this.consultationStatus = ConsultationStatus.ONGOING;
+        this.startedAt = LocalDateTime.now();
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,16 +1,13 @@
 package com.divjazz.recommendic.appointment.controller;
 
-import com.divjazz.recommendic.appointment.dto.AppointmentCancellationRequest;
-import com.divjazz.recommendic.appointment.dto.AppointmentCreationRequest;
-import com.divjazz.recommendic.appointment.dto.AppointmentCreationResponse;
-import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancellationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.global.Response;
-import com.divjazz.recommendic.security.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

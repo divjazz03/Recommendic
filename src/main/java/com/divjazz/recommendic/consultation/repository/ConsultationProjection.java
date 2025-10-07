@@ -9,7 +9,7 @@ import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import java.time.LocalDateTime;
 
 public record ConsultationProjection(
-        Long id,
+        String id,
         Appointment appointment,
         PatientProfile patientProfile,
         ConsultantProfile consultantProfile,

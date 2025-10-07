@@ -1,8 +1,10 @@
 package com.divjazz.recommendic.user.controller.consultant;
 
 import com.divjazz.recommendic.global.validation.annotation.Gender;
+import com.divjazz.recommendic.user.validation.ValidDateOfBirth;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
 public record ConsultantRegistrationParams(
@@ -20,21 +22,13 @@ public record ConsultantRegistrationParams(
         @NotEmpty(message = "Password cannot be empty or null")
         @Schema(name = "Password", example = "your secure password", requiredMode = Schema.RequiredMode.REQUIRED)
         String password,
-        @NotEmpty(message = "Phone number cannot be empty or null")
-        @Schema(name = "Phone Number", example = "+23470467283", requiredMode = Schema.RequiredMode.REQUIRED)
-        String phoneNumber,
+        @NotEmpty(message = "Date of birth cannot be empty or null")
+        @NotBlank(message = "Date of birth should not be blank")
+        @ValidDateOfBirth
+        @Schema(name = "Date Of Birth", example = "13-04-2004", requiredMode = Schema.RequiredMode.REQUIRED)
+        String dateOfBirth,
         @Gender
         @NotEmpty(message = "Gender cannot be empty or null")
         @Schema(name = "Gender", example = "MALE | FEMALE", requiredMode = Schema.RequiredMode.REQUIRED)
-        String gender,
-        @NotEmpty(message = "City cannot be empty or null")
-        @Schema(name = "City", example = "PortHarcourt", requiredMode = Schema.RequiredMode.REQUIRED)
-        String city,
-        @NotEmpty(message = "State cannot be empty or null")
-        @Schema(name = "State", example = "Rivers", requiredMode = Schema.RequiredMode.REQUIRED)
-        String state,
-        @NotEmpty(message = "Country cannot be empty or null")
-        @Schema(name = "Country", example = "Nigeria", requiredMode = Schema.RequiredMode.REQUIRED)
-        String country
-) {
+        String gender){
 }

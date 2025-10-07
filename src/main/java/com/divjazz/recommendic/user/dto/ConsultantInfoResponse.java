@@ -11,7 +11,7 @@ public record ConsultantInfoResponse(
         String lastName,
         String firstName,
         String gender,
-        String phoneNumber,
+        String age,
         Address address,
         String medicalSpecialization
 ) implements UserInfoResponse {
@@ -20,8 +20,8 @@ public record ConsultantInfoResponse(
                                   String lastName,
                                   String firstName,
                                   String gender,
-                                  String phoneNumber,
+                                  String age,
                                   Address address) {
-        this(consultantId,lastName,firstName,gender,phoneNumber,address,null);
+        this(consultantId,lastName,firstName,gender,age,address,null);
     }
 }

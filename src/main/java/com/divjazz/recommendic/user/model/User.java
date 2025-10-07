@@ -11,8 +11,12 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
+import org.hibernate.generator.EventTypeSets;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,7 +36,8 @@ import java.util.UUID;
 @Builder
 public class User extends Auditable {
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", updatable = false, insertable = false)
+    @Generated(event = EventType.INSERT)
     private String userId;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -56,7 +61,6 @@ public class User extends Auditable {
                 Role role,
                 UserCredential userCredential, UserType userType) {
         this.gender = gender;
-        this.userId = UUID.randomUUID().toString();
         this.userType = userType;
         userPrincipal = new UserPrincipal(email,userCredential,role);
     }

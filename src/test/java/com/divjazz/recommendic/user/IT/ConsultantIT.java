@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.user.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.exception.GlobalControllerExceptionAdvice;
 import com.divjazz.recommendic.global.general.PageResponse;
@@ -27,7 +27,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,7 +46,7 @@ import static org.assertj.core.api.Assertions.*;
 @Slf4j
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-public class ConsultantIT extends BaseIntegration {
+public class ConsultantIT extends BaseIntegrationTest {
     private static final Faker FAKER = new Faker();
     public static final String CONSULTANT_BASE_ENDPOINT = "/api/v1/consultants";
     @Autowired
@@ -82,7 +81,7 @@ public class ConsultantIT extends BaseIntegration {
                 .languages(new String[]{"English"})
                 .locationOfInstitution(FAKER.location().work())
                 .title(FAKER.job().title())
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .yearsOfExperience(3)
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
@@ -120,7 +119,7 @@ public class ConsultantIT extends BaseIntegration {
                       "gender": "Male",
                       "lastName": "Maduka",
                       "password": "june12003dsd",
-                      "phoneNumber": "+2347046641978",
+                      "dateOfBirth": "2003-03-17",
                       "state": "Oyo"
                 }
                 """;
@@ -212,7 +211,7 @@ public class ConsultantIT extends BaseIntegration {
 
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .consultant(unsavedConsultant)
                 .build();
@@ -257,7 +256,7 @@ public class ConsultantIT extends BaseIntegration {
         consultantInOnboardingStage.getUserPrincipal().setEnabled(true);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .consultant(consultantInOnboardingStage)
                 .build();
@@ -297,7 +296,7 @@ public class ConsultantIT extends BaseIntegration {
                             .languages(new String[]{"English"})
                             .locationOfInstitution(FAKER.location().work())
                             .title(FAKER.job().title())
-                            .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                            .dateOfBirth(FAKER.timeAndDate().birthday())
                             .yearsOfExperience(3)
                             .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                             .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))

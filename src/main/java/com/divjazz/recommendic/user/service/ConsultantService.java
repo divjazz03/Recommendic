@@ -2,11 +2,11 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
-import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
@@ -28,12 +28,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +51,7 @@ public class ConsultantService {
     private final ConsultantRepository consultantRepository;
     private final ConsultantProfileRepository consultantProfileRepository;
     private final ObjectMapper objectMapper;
+    private final AuthUtils authUtils;
 
 
     @Transactional
@@ -70,15 +71,11 @@ public class ConsultantService {
             profilePicture.setName("149071.png");
 
 
-            var userConfirmation = new UserConfirmation(user);
+
             ConsultantProfile consultantProfile = ConsultantProfile
                     .builder()
                     .consultant(user)
-                    .address(new Address(
-                            consultantRegistrationParams.city(),
-                            consultantRegistrationParams.state(),
-                            consultantRegistrationParams.country()))
-                    .phoneNumber(consultantRegistrationParams.phoneNumber())
+                    .dateOfBirth(LocalDate.parse(consultantRegistrationParams.dateOfBirth()))
                     .profilePicture(profilePicture)
                     .userName(new UserName(
                             consultantRegistrationParams.firstName(),
@@ -87,6 +84,7 @@ public class ConsultantService {
                     .build();
             user.setProfile(consultantProfile);
             var savedConsultant = consultantRepository.save(user);
+            var userConfirmation = new UserConfirmation(savedConsultant);
             userConfirmationRepository.save(userConfirmation);
             UserEvent userEvent = new UserEvent(user.getUserType(),
                     EventType.REGISTRATION,
@@ -99,7 +97,7 @@ public class ConsultantService {
                     savedConsultant.getProfile().getUserName().getLastName(),
                     savedConsultant.getProfile().getUserName().getFirstName(),
                     savedConsultant.getGender().toString(),
-                    savedConsultant.getProfile().getPhoneNumber(),
+                    savedConsultant.getProfile().getAge(),
                    savedConsultant.getProfile().getAddress(),
                     null
             );
@@ -140,7 +138,7 @@ public class ConsultantService {
                 consultant.getProfile().getUserName().getLastName(),
                 consultant.getProfile().getUserName().getFirstName(),
                 consultant.getGender().toString(),
-                consultant.getProfile().getPhoneNumber(),
+                consultant.getProfile().getAge(),
                 consultant.getProfile().getAddress(),
                 consultant.getMedicalCategory() == null ? null : consultant.getMedicalCategory().name()
         );
@@ -152,7 +150,7 @@ public class ConsultantService {
                 consultantInfoProjection.lastName(),
                 consultantInfoProjection.firstName(),
                 consultantInfoProjection.gender(),
-                consultantInfoProjection.phoneNumber(),
+                consultantInfoProjection.age(),
                 objectMapper.convertValue(consultantInfoProjection.address(), Address.class),
                 consultantInfoProjection.medicalSpecialization()
         );
@@ -161,6 +159,20 @@ public class ConsultantService {
     public ConsultantProfile getConsultantProfile(Consultant consultant) {
         return consultantProfileRepository.findById(consultant.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+    }
+    public ConsultantProfile getConsultantProfileByConsultantId(String id) {
+        return consultantProfileRepository.findByConsultantId(id)
+                .orElseThrow(() -> new EntityNotFoundException("Consultant this consultant has no profile"));
+    }
+    public ConsultantProfileResponse getConsultantProfileResponse() {
+        var currentUser = (Consultant) authUtils.getCurrentUser();
+
+        return new ConsultantProfileResponse(
+                currentUser.getProfile().getUserName(),
+                currentUser.getProfile().getPhoneNumber(),
+                currentUser.getProfile().getAddress(),
+                currentUser.getProfile().getProfilePicture()
+        );
     }
 
     public Set<Consultant> getConsultantsByMedicalSpecialization(MedicalCategoryEnum medicalCategoryEnum) {
@@ -192,9 +204,10 @@ public class ConsultantService {
         return true;
     }
 
-    public ConsultantInfoResponse getConsultantByUserId(String userId) {
+    public ConsultantInfoResponse getConsultantInfoByUserId(String userId) {
         return consultantRepository.findByUserId(userId)
                 .map(this::toConsultantInfoResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
     }
+
 }

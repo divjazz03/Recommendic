@@ -18,6 +18,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -89,4 +90,10 @@ public class ConsultantProfile{
     @JsonBackReference
     @JoinColumn(name = "id")
     private Consultant consultant;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    public String getAge() {
+        return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
+    }
 }

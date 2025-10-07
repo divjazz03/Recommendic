@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.global.validation.annotation.Gender;
+import com.divjazz.recommendic.user.validation.ValidDateOfBirth;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 
@@ -21,20 +22,12 @@ public record PatientRegistrationParams(
         @NotNull(message = "password is required")
         @NotBlank(message = "password cannot be blank")
         String password,
-        @NotNull(message = "phone number is required")
-        @NotBlank(message = "phone number cannot be blank")
-        String phoneNumber,
+        @NotNull(message = "Date of birth is required")
+        @NotBlank(message = "Date of birth cannot be blank")
+        @ValidDateOfBirth
+        String dateOfBirth,
         @Gender
         @NotNull(message = "gender is required")
-        String gender,
-        @NotNull(message = "city is required")
-        @NotBlank(message = "city cannot be blank")
-        String city,
-        @NotNull(message = "state is required")
-        @NotBlank(message = "state cannot be blank")
-        String state,
-        @NotNull(message = "country is required")
-        @NotBlank(message = "country cannot be blank")
-        String country) {
+        String gender) {
 }
 

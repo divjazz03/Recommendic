@@ -47,7 +47,7 @@ public class UserLoginRetryHandler {
 
     private int incrementFailedAttempt(String email) {
         String attemptKey = getAttemptKey(email);
-        int currentAttempts = (int) cacheService.get(attemptKey);
+        Integer currentAttempts = (Integer) cacheService.get(attemptKey);
         if (currentAttempts == 0) {
             currentAttempts = 1;
             cacheService.put(attemptKey, currentAttempts);

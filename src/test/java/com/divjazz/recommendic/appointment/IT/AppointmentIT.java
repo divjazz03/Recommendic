@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.appointment.IT;
 
-import com.divjazz.recommendic.BaseIntegration;
+import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @Slf4j
-public class AppointmentIT extends BaseIntegration {
+public class AppointmentIT extends BaseIntegrationTest {
     private static final String BASE_URL = "/api/v1/appointments";
     private static final Faker faker = new Faker();
     @Autowired

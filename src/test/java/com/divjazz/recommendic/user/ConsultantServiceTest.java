@@ -65,12 +65,13 @@ public class ConsultantServiceTest {
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
-                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .dateOfBirth(faker.timeAndDate().birthday())
                 .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
                 .locationOfInstitution(faker.location().work())
                 .title(faker.job().title())
                 .consultant(consultant)
                 .build();
+        consultant.setProfile(consultantProfile);
     }
 
     private static Stream<Arguments> getValidConsultantDTOParameters() {
@@ -81,11 +82,8 @@ public class ConsultantServiceTest {
                                 faker.name().lastName(),
                                 faker.internet().emailAddress(),
                                 "kdsoidhosifbodinos",
-                                faker.phoneNumber().phoneNumber(),
-                                Gender.FEMALE.toString(),
-                                faker.address().city(),
-                                faker.address().state(),
-                                faker.address().country()
+                                faker.timeAndDate().birthday().toString(),
+                                Gender.FEMALE.toString()
                         )
                 )
         );
@@ -102,21 +100,12 @@ public class ConsultantServiceTest {
         savedConsultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
         savedConsultant.getUserPrincipal().setEnabled(true);
         savedConsultant.setUserStage(UserStage.ACTIVE_USER);
-        ConsultantProfile consultantProfile = ConsultantProfile.builder()
-                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
-                .phoneNumber(faker.phoneNumber().phoneNumber())
-                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
-                .locationOfInstitution(faker.location().work())
-                .title(faker.job().title())
-                .consultant(consultant)
-                .build();
         given(passwordEncoder.encode(anyString())).willReturn("Encoded Password String");
         given(userService.isUserExists(anyString())).willReturn(true);
         given(consultantRepository.save(any(Consultant.class))).willReturn(savedConsultant);
 
         var result = consultantService.createConsultant(consultantRegistrationParams);
 
-        assertThat(result.address().getCity()).isEqualTo(consultantRegistrationParams.city());
         assertThat(result.firstName()).isEqualTo(consultantRegistrationParams.firstName());
         assertThat(result.lastName()).isEqualTo(consultantRegistrationParams.lastName());
         assertThat(result.gender()).isEqualToIgnoringCase(consultantRegistrationParams.gender());

@@ -34,7 +34,7 @@ public class ConsultationController {
 
     @PostMapping(value = "/{id}/complete")
     @Operation(summary = "Finalizes a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable Long id, @RequestBody ConsultationCompleteRequest request) {
+    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable String id, @RequestBody ConsultationCompleteRequest request) {
         ConsultationResponse response = consultationService.completeConsultation(id, request.summary());
         return ResponseEntity.ok(getResponse(response, HttpStatus.OK
         ));

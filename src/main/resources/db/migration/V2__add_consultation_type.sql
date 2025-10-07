@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS consultation_type,
+DROP TABLE IF EXISTS
     consultant_education, consultant_stat, consultation_review CASCADE;
 DROP INDEX IF EXISTS idx_consultant_stat, idx_consultant_review CASCADE;
 
@@ -61,17 +61,6 @@ EXECUTE FUNCTION update_average_response();
 ALTER TABLE consultant
     ADD COLUMN IF NOT EXISTS consultant_stat_id BIGINT REFERENCES consultant_stat (id);
 
-CREATE TABLE consultation_review
-(
-    id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    rating     INTEGER                  DEFAULT 0,
-    comment    TEXT,
-    date       TIMESTAMP WITHOUT TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by TEXT,
-    updated_by TEXT
-);
+
 
 CREATE INDEX idx_consultant_stat ON consultant_stat (success_rate);
-CREATE INDEX idx_consultant_review ON consultation_review (rating);

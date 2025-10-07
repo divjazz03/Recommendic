@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record PatientDTO(
         UserName userName,
         String email,
-        String phoneNumber,
+        String dateOfBirth,
         Gender gender,
         Address address,
         String password

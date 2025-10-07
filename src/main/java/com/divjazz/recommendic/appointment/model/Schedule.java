@@ -12,6 +12,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -25,9 +26,13 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Schedule extends Auditable {
+
     @ManyToOne
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
+    @org.hibernate.annotations.Generated(event = EventType.INSERT)
+    @Column(name = "schedule_id", updatable = false, insertable = false)
+    private String scheduleId;
     @Column(name = "name")
     private String name;
     @Column(name = "start_time")

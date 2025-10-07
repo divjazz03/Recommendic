@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +19,7 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
     Optional<Consultant> findByUserPrincipal_Email(String email);
 
     boolean existsByUserPrincipal_Email(String email);
+
     boolean existsByUserId(String userId);
 
     void deleteByUserId(String userId);

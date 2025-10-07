@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.model.userAttributes;
 
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import io.hypersistence.utils.hibernate.type.array.IntArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
@@ -41,10 +42,21 @@ public class ConsultantStat extends Auditable {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private String[] followUps ;
 
+    @Column(name = "rating", insertable = false)
+    private double rating;
+
     @OneToOne
     @MapsId
     @JoinColumn(name = "id")
     private Consultant consultant;
+
+    public static ConsultantStat ofEmpty () {
+        return new ConsultantStat(
+                new String[0],
+                new String[0],
+                0, new int[0], 0, new String[0],0.0, null
+        );
+    }
 
     public void addPatientsHelpedIds (String patientsHelpedId) {
         patientsHelped = ArrayUtils.add(patientsHelped, patientsHelpedId);

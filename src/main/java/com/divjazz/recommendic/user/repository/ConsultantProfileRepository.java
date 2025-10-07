@@ -8,7 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ConsultantProfileRepository extends JpaRepository<ConsultantProfile, Long> {
-
+    @Query("""
+        SELECT c.profile from Consultant c
+        WHERE c.userId = :id
+    """)
+    Optional<ConsultantProfile> findByConsultantId(String id);
 }

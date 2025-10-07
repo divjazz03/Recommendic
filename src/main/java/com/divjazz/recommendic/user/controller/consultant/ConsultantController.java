@@ -4,11 +4,8 @@ package com.divjazz.recommendic.user.controller.consultant;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.ConsultantDTO;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
-import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,9 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -98,7 +92,7 @@ public class ConsultantController {
     }
     @GetMapping("/{consultantId}")
     public ResponseEntity<Response<ConsultantInfoResponse>> getConsultant(@PathVariable String consultantId) {
-        var result = consultantService.getConsultantByUserId(consultantId);
+        var result = consultantService.getConsultantInfoByUserId(consultantId);
         return ResponseEntity.ok(getResponse(result, HttpStatus.OK));
     }
 
@@ -108,6 +102,12 @@ public class ConsultantController {
     public ResponseEntity<Response<Void>> deleteConsultant(@PathVariable String consultantId) {
         consultantService.deleteConsultantById(consultantId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/profiles")
+    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
+    public ResponseEntity<Response<ConsultantProfileResponse>> getConsultantProfile() {
+        var consultantProfile = consultantService.getConsultantProfileResponse();
+        return ResponseEntity.ok(getResponse(consultantProfile, HttpStatus.OK));
     }
 
     @PostMapping("/{userId}/onboard")
