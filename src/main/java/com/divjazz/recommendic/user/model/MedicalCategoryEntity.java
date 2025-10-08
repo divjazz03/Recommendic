@@ -1,5 +1,4 @@
-package com.divjazz.recommendic.user.model.userAttributes;
-
+package com.divjazz.recommendic.user.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,19 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
-@Getter
 @Entity
-@Table(name = "role")
-@NoArgsConstructor
+@Table(name = "medical_category")
 @AllArgsConstructor
-public class Role {
+@NoArgsConstructor
+@Getter
+public class MedicalCategoryEntity {
     @Id
-    private Long id;
+    private long id;
     @Column(name = "name")
     private String name;
-    @Column(name = "permissions")
-    private String permissions;
-
+    @Column(name = "description")
+    private String description;
 }

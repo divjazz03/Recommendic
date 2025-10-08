@@ -24,7 +24,7 @@ public class Admin extends User {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private Set<Assignment> assignment;
-    @OneToOne(mappedBy = "admin", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "admin", orphanRemoval = true, cascade = CascadeType.ALL)
     @JsonManagedReference
     private AdminProfile adminProfile;
 
@@ -35,8 +35,8 @@ public class Admin extends User {
 
     public Admin(
             String email,
-            Gender gender, UserCredential userCredential) {
-        super( email, gender, Role.ADMIN, userCredential, UserType.ADMIN);
+            Gender gender, UserCredential userCredential, Role role) {
+        super( email, gender, role, userCredential, UserType.ADMIN);
         assignment = new HashSet<>(20);
     }
     public void addAssignment(Assignment assignment) {

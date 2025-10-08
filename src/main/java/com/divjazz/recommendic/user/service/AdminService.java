@@ -31,12 +31,14 @@ import java.util.Set;
 @Transactional
 @RequiredArgsConstructor
 public class AdminService {
+    public static final String ADMIN_ROLE_NAME = "ROLE_ADMIN";
+
     private final GeneralUserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
-
     private final AssignmentService assignmentService;
+    private final RoleService roleService;
 
 
     @Transactional
@@ -45,11 +47,12 @@ public class AdminService {
         GenerateAdminPasswordResponse response = generateAdminPassword();
         String password = response.encryptedPassword();
         UserCredential userCredential = new UserCredential(response.encryptedPassword());
-
+        Role role = roleService.getRoleByName(ADMIN_ROLE_NAME);
         var user = new Admin(
                 adminRegistrationParams.email(),
                 Gender.valueOf(adminRegistrationParams.gender().toUpperCase()),
-                userCredential
+                userCredential,
+                role
         );
         user.getUserPrincipal().setEnabled(true);
         user.setUserStage(UserStage.ACTIVE_USER);
@@ -90,7 +93,7 @@ public class AdminService {
 
     private GenerateAdminPasswordResponse generateAdminPassword() {
         Faker faker = new Faker();
-        String password = faker.internet().password(8, 15, true);
+        String password = faker.text().text(8, 15, true);
         return new GenerateAdminPasswordResponse(passwordEncoder.encode(password), password);
 
     }

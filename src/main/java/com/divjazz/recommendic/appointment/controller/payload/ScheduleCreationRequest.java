@@ -11,7 +11,6 @@ import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@ScheduleRecurrence
 public record ScheduleCreationRequest(
         @NotNull(message = "name is required")
         String name,
@@ -28,7 +27,6 @@ public record ScheduleCreationRequest(
         @ScheduleChannel
         @Size(min = 1, message = "Should contain at least one channel")
         Set<String> channels,
-        boolean isRecurring,
         @ScheduleRecurrenceRule
         @Valid RecurrenceRuleRequest recurrenceRule,
         boolean isActive

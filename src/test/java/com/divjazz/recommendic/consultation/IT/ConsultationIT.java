@@ -11,7 +11,6 @@ import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -103,7 +102,6 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         Schedule unsavedSchedule = Schedule.builder()
                 .zoneOffset(ZoneOffset.ofHours(1))
-                .isRecurring(false)
                 .isActive(true)
                 .endTime(LocalTime.now().plusHours(1))
                 .startTime(LocalTime.now())
@@ -155,7 +153,6 @@ public class ConsultationIT extends BaseIntegrationTest {
         LocalTime startTime = LocalTime.now().plusMinutes(15).plusSeconds(30);
         Schedule unsavedSchedule = Schedule.builder()
                 .zoneOffset(ZoneOffset.ofHours(1))
-                .isRecurring(false)
                 .isActive(true)
                 .endTime(startTime.plusHours(2).plusMinutes(30))
                 .startTime(startTime)

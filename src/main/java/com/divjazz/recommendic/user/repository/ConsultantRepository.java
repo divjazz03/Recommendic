@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,7 @@ import java.util.Set;
 
 public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
 
-    Set<Consultant> findByMedicalCategoryIgnoreCase(String medicalCategory);
+    Set<Consultant> findBySpecialization(MedicalCategoryEntity specialization);
 
     Optional<Consultant> findByUserId(String userId);
 

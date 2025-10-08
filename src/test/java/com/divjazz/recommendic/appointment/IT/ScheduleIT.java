@@ -11,7 +11,6 @@ import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -276,7 +275,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                         }
                         """;
         var result = mockMvc.perform(
-                patch(BASE_URL+"/%s".formatted(schedule.getId()))
+                patch(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(modificationRequest)
@@ -324,7 +323,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                         }
                         """;
         var result = mockMvc.perform(
-                patch(BASE_URL+"/%s".formatted(schedule.getId()))
+                patch(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(modificationRequest)
@@ -340,7 +339,7 @@ public class ScheduleIT extends BaseIntegrationTest {
 
         var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).get(0);
         mockMvc.perform(
-                delete(BASE_URL+"/%s".formatted(schedule.getId()))
+                delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
     }
@@ -367,7 +366,7 @@ public class ScheduleIT extends BaseIntegrationTest {
         var consultant = consultantRepository.save(unSavedconsultant);
         var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).get(0);
         mockMvc.perform(
-                delete(BASE_URL+"/%s".formatted(schedule.getId()))
+                delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(this.consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
     }
@@ -412,7 +411,6 @@ public class ScheduleIT extends BaseIntegrationTest {
         var schedule = Schedule.builder()
                 .name("Some schedule")
                 .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
-                .isRecurring(true)
                 .consultationChannels(new ConsultationChannel[]{ConsultationChannel.VIDEO})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)

@@ -25,10 +25,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -130,6 +127,12 @@ public class AppointmentService {
         return appointmentRepository.findAppointmentsByConsultant_UserId(consultantId);
     }
 
+    public List<String> getAppointmentDatesAndTimeForSchedule(Schedule schedule) {
+        return appointmentRepository.findAppointmentsBySchedule(schedule).stream().map(
+                appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        ).toList();
+    }
+
     private LocalDate getADateFromWeeklySchedule(Schedule schedule) {
         Set<String> daysOfWeek = schedule.getRecurrenceRule().weekDays();
         LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
@@ -175,20 +178,10 @@ public class AppointmentService {
 
 
     private LocalDate getADateFromSchedule(Schedule schedule) {
-
-        if (schedule.isRecurring()) {
             return switch (schedule.getRecurrenceRule().frequency()) {
                 case ONE_OFF, DAILY -> getADateFromDailySchedule(schedule);
                 case WEEKLY -> getADateFromWeeklySchedule(schedule);
                 case MONTHLY -> getADateFromMonthlySchedule(schedule);
             };
-
-        } else {
-            LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
-            if (Objects.nonNull(localDate)) {
-                return localDate.plusDays(1);
-            }
-            return LocalDate.now().plusDays(1);
         }
-    }
 }

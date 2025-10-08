@@ -9,16 +9,13 @@ import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.UserConfirmation;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -43,6 +40,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class ConsultantService {
+    public static final String CONSULTANT_ROLE_NAME = "ROLE_CONSULTANT";
 
     private final UserConfirmationRepository userConfirmationRepository;
     private final PasswordEncoder passwordEncoder;
@@ -52,6 +50,8 @@ public class ConsultantService {
     private final ConsultantProfileRepository consultantProfileRepository;
     private final ObjectMapper objectMapper;
     private final AuthUtils authUtils;
+    private final RoleService roleService;
+    private final MedicalCategoryService medicalCategoryService;
 
 
     @Transactional
@@ -59,10 +59,11 @@ public class ConsultantService {
 
         if (!userService.isUserExists(consultantRegistrationParams.email())) {
             UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantRegistrationParams.password()));
+            Role role = roleService.getRoleByName(CONSULTANT_ROLE_NAME);
             Consultant user = new Consultant(
                     consultantRegistrationParams.email(),
                     Gender.valueOf(consultantRegistrationParams.gender().toUpperCase(Locale.ENGLISH)),
-                    userCredential);
+                    userCredential, role);
             user.setCertified(false);
             user.setUserStage(UserStage.ONBOARDING);
             var profilePicture = new ProfilePicture();
@@ -114,12 +115,12 @@ public class ConsultantService {
     }
 
     @Transactional(readOnly = true)
-    public Set<Consultant> getConsultantsByCategory(MedicalCategoryEnum category) {
+    public Set<Consultant> getConsultantsByCategory(MedicalCategoryEntity category) {
         return ImmutableSet.
                 copyOf(
                         consultantRepository
-                                .findByMedicalCategoryIgnoreCase(
-                                        MedicalCategory.fromMedicalCategoryEnum(category).name()
+                                .findBySpecialization(
+                                        category
                                 )
 
                 );
@@ -140,7 +141,7 @@ public class ConsultantService {
                 consultant.getGender().toString(),
                 consultant.getProfile().getAge(),
                 consultant.getProfile().getAddress(),
-                consultant.getMedicalCategory() == null ? null : consultant.getMedicalCategory().name()
+                consultant.getSpecialization() == null ? null : consultant.getSpecialization().getName()
         );
     }
 
@@ -175,8 +176,8 @@ public class ConsultantService {
         );
     }
 
-    public Set<Consultant> getConsultantsByMedicalSpecialization(MedicalCategoryEnum medicalCategoryEnum) {
-        return consultantRepository.findByMedicalCategoryIgnoreCase(medicalCategoryEnum.getValue());
+    public Set<Consultant> getConsultantsByMedicalSpecialization(MedicalCategoryEntity medicalCategory) {
+        return consultantRepository.findBySpecialization(medicalCategory);
     }
 
     @Transactional
@@ -194,10 +195,10 @@ public class ConsultantService {
 
     public boolean handleOnboarding(String userId, String medicalSpecialization) {
 
-        MedicalCategoryEnum medicalSpec = MedicalCategoryEnum.fromValue(medicalSpecialization);
+        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryByName(medicalSpecialization);
         Consultant consultant = consultantRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
-        consultant.setMedicalCategory(medicalSpec);
+        consultant.setSpecialization(medicalCategory);
         consultant.setUserStage(UserStage.ACTIVE_USER);
         consultantRepository.save(consultant);
 

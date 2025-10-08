@@ -7,6 +7,7 @@ import io.hypersistence.utils.hibernate.type.array.IntArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,6 +20,7 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ConsultantStat extends Auditable {
 
     @JdbcTypeCode(SqlTypes.ARRAY)

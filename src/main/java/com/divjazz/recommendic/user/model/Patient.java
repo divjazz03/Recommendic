@@ -41,9 +41,9 @@ public class Patient extends User {
 
     public Patient(
             String email,
-            Gender gender, UserCredential userCredential) {
+            Gender gender, UserCredential userCredential, Role role) {
 
-        super(email, gender, Role.PATIENT, userCredential, UserType.PATIENT);
+        super(email, gender, role, userCredential, UserType.PATIENT);
         medicalCategories = new String[0];
     }
 

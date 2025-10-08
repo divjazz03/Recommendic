@@ -9,13 +9,13 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.AdminProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.AdminService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,17 +60,23 @@ public class PatientIT extends BaseIntegrationTest {
     private PatientRepository patientRepository;
     @Autowired
     private AdminRepository adminRepository;
-
+    @Autowired
+    private RoleService roleService;
     private Patient patient;
     private Admin admin;
+    private Role adminRole;
+    private Role patientRole;
 
 
     @BeforeEach
     void setup() {
+        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
         Patient unsavedPatient = new Patient(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(FAKER.text().text(20))
+                new UserCredential(FAKER.text().text(20)),
+                patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
         unsavedPatient.setMedicalCategories(new String[]{});
@@ -87,7 +93,8 @@ public class PatientIT extends BaseIntegrationTest {
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("adminPassword")
+                new UserCredential("adminPassword"),
+                adminRole
         );
         unSavedAdmin.getUserPrincipal().setEnabled(true);
         unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
@@ -198,7 +205,8 @@ public class PatientIT extends BaseIntegrationTest {
         Patient unsavedPatient = new Patient(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
-                new UserCredential(FAKER.text().text(20))
+                new UserCredential(FAKER.text().text(20)),
+                patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
         unsavedPatient.setMedicalCategories(new String[]{});
@@ -249,7 +257,10 @@ public class PatientIT extends BaseIntegrationTest {
     @Test
     void shouldHandleOnboardingRequestAndReturnOk() throws Exception {
 
-        var patientInOnboardingStage = new Patient(FAKER.internet().emailAddress(), Gender.MALE, new UserCredential("password"));
+        var patientInOnboardingStage = new Patient(FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("password"),
+                patientRole);
         patientInOnboardingStage.setUserStage(UserStage.ONBOARDING);
         patientInOnboardingStage.getUserPrincipal().setEnabled(true);
         patientInOnboardingStage.setMedicalCategories(new String[]{});
@@ -284,7 +295,8 @@ public class PatientIT extends BaseIntegrationTest {
                     Patient unsavedPatient = new Patient(
                             FAKER.internet().emailAddress(),
                             Gender.FEMALE,
-                            new UserCredential(FAKER.text().text(20))
+                            new UserCredential(FAKER.text().text(20)),
+                            patientRole
                     );
                     unsavedPatient.getUserPrincipal().setEnabled(true);
                     unsavedPatient.setMedicalCategories(new String[]{});

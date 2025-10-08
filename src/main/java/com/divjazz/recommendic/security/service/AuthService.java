@@ -55,7 +55,7 @@ public class AuthService {
 
             log.info("Login success {}", authenticatedUser.getUserPrincipal().getUsername());
             httpServletRequest.getSession(true).setAttribute("email", authenticatedUser.getUserPrincipal().getUsername());
-            httpServletRequest.getSession(true).setAttribute("role", authenticatedUser.getUserPrincipal().getRole().name());
+            httpServletRequest.getSession(true).setAttribute("role", authenticatedUser.getUserPrincipal().getRole().getName());
             httpServletRequest.getSession(true).setAttribute("authorities",authenticated.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.joining(":")));

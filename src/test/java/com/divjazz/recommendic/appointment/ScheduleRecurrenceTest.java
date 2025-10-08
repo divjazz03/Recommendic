@@ -53,7 +53,6 @@ public class ScheduleRecurrenceTest {
                 "15:30:00",
                 "+01:00",
                 Set.of("voice"),
-                false,
                 null,
                 true
         );
@@ -62,7 +61,6 @@ public class ScheduleRecurrenceTest {
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
-                .isRecurring(creationRequest.isRecurring())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .consultationChannels(creationRequest.channels().stream().map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
                         .toArray(ConsultationChannel[]::new))
@@ -85,7 +83,6 @@ public class ScheduleRecurrenceTest {
                 "15:30:00",
                 "+01:00",
                 Set.of("voice"),
-                true,
                 new RecurrenceRuleRequest(RecurrenceFrequency.DAILY, Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
                 true
         );
@@ -100,10 +97,8 @@ public class ScheduleRecurrenceTest {
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
-                .isRecurring(creationRequest.isRecurring())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .recurrenceRule(recurrenceRule)
-                .isRecurring(true)
                 .consultationChannels(creationRequest.channels().stream().map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
                         .toArray(ConsultationChannel[]::new))
                 .build();

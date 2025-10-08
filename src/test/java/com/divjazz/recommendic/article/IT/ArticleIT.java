@@ -10,7 +10,6 @@ import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.config.BeanConfig;
 import com.divjazz.recommendic.security.config.WebSecurityConfig;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;

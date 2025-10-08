@@ -6,6 +6,7 @@ import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRe
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleModificationRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
+import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleCustomRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
@@ -27,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +41,7 @@ public class ScheduleService {
     private final AuthUtils authUtils;
     private final ConsultantService consultantService;
     private final ConsultantStatRepository consultantStatRepository;
+    private final AppointmentService appointmentService;
 
     @Transactional
     public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
@@ -55,7 +54,6 @@ public class ScheduleService {
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
-                .isRecurring(creationRequest.isRecurring())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .build();
         if (Objects.nonNull(creationRequest.recurrenceRule())) {
@@ -89,12 +87,10 @@ public class ScheduleService {
         ConsultantProfile consultantProfile = consultantService.getConsultantProfileByConsultantId(consultantId);
         ConsultantStat consultantStat = consultantStatRepository
                 .findConsultantStatByConsultantId(consultantId).orElse(ConsultantStat.ofEmpty());
-        List<Schedule> schedules = getSchedulesByConsultantId(consultantId);
+        Set<ScheduleWithAppointmentDetail> schedules = new HashSet<>(getSchedulesByConsultantId(consultantId));
 
         return new ConsultantSchedulesResponse(
-                schedules.stream()
-                        .map(ScheduleService::toScheduleResponseDTO)
-                        .collect(Collectors.toSet()),
+                schedules,
                 new ConsultantSchedulesResponse.ScheduleConsultantProfile(
                         consultantProfile.getUserName().getFullName(),
                         consultantProfile.getTitle(),
@@ -107,8 +103,16 @@ public class ScheduleService {
 
     }
 
-    public List<Schedule> getSchedulesByConsultantId(String consultantId) {
-        return scheduleRepository.findAllByConsultant_UserId(consultantId);
+    public List<ScheduleWithAppointmentDetail> getSchedulesByConsultantId(String consultantId) {
+        return scheduleRepository.findAllByConsultant_UserId(consultantId)
+                .stream()
+                .map(schedule -> {
+                    var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForSchedule(schedule);
+                    return new ScheduleWithAppointmentDetail(
+                            ScheduleService.toScheduleResponseDTO(schedule),
+                            appointmentDateAndTime
+                    );
+                }).toList();
     }
 
     @Transactional
@@ -135,19 +139,11 @@ public class ScheduleService {
             schedule.setZoneOffset(ZoneOffset.of(modificationRequest.zoneOffset()));
         }
         schedule.setActive(modificationRequest.isActive());
-        boolean scheduleWasRecurring = schedule.isRecurring();
-        if (!scheduleWasRecurring && modificationRequest.isRecurring()) {
-            schedule.setRecurring(true);
-        } else if (!modificationRequest.isRecurring() && scheduleWasRecurring) {
-            schedule.setRecurring(false);
-        }
-        if (schedule.isRecurring()) {
+        if (Objects.nonNull(modificationRequest.recurrenceRule())) {
             schedule.setRecurrenceRule(new RecurrenceRule(modificationRequest.recurrenceRule().frequency(),
                     modificationRequest.recurrenceRule().weekDays(),
                     modificationRequest.recurrenceRule().interval(),
                     modificationRequest.recurrenceRule().endDate()));
-        } else {
-            schedule.setRecurrenceRule(null);
         }
 
         return toScheduleResponseDTO(schedule);
@@ -174,7 +170,6 @@ public class ScheduleService {
                 schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
                 schedule.getZoneOffset().toString(),
                 fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.isRecurring(),
                 schedule.getRecurrenceRule(),
                 schedule.isActive(),
                 schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
@@ -190,9 +185,8 @@ public class ScheduleService {
                 schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
                 schedule.getZoneOffset().getId(),
                 fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.isRecurring(),
                 schedule.getRecurrenceRule() != null
-                        && schedule.isRecurring() ? schedule.getRecurrenceRule() : null,
+                        ? schedule.getRecurrenceRule() : null,
                 schedule.isActive()
         );
     }

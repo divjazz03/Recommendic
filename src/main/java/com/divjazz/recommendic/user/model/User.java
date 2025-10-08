@@ -75,11 +75,6 @@ public class User extends Auditable {
         return Objects.equals(this.userPrincipal.getUsername(), user.getUserPrincipal().getUsername())
                 && Objects.equals(userId, user.userId);
     }
-
-    @Override
-    public int hashCode() {
-        return 2025;
-    }
 }
 
 

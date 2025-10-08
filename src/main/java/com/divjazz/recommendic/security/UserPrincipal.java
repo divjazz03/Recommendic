@@ -25,8 +25,8 @@ public class UserPrincipal implements UserDetails {
     private boolean enabled;
     @Column(nullable = false)
     private String email;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn
     @Getter
     private Role role;
     @JdbcTypeCode(SqlTypes.JSON)

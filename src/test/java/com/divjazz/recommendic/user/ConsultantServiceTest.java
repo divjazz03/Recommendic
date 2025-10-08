@@ -3,11 +3,12 @@ package com.divjazz.recommendic.user;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.controller.consultant.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -58,9 +59,9 @@ public class ConsultantServiceTest {
         consultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)), new Role(1L,"ROLE_CONSULTANT", "")
         );
-        consultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
+        consultant.setSpecialization(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
         consultant.getUserPrincipal().setEnabled(true);
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -95,9 +96,10 @@ public class ConsultantServiceTest {
         var savedConsultant = new Consultant(
                 consultantRegistrationParams.email(),
                 Gender.valueOf(consultantRegistrationParams.gender().toUpperCase()),
-                new UserCredential(consultantRegistrationParams.password())
+                new UserCredential(consultantRegistrationParams.password()),
+                new Role(1L,"ROLE_CONSULTANT", "")
         );
-        savedConsultant.setMedicalCategory(MedicalCategoryEnum.PEDIATRICIAN);
+        savedConsultant.setSpecialization(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
         savedConsultant.getUserPrincipal().setEnabled(true);
         savedConsultant.setUserStage(UserStage.ACTIVE_USER);
         given(passwordEncoder.encode(anyString())).willReturn("Encoded Password String");
@@ -156,11 +158,11 @@ public class ConsultantServiceTest {
 
     @Test
     void shouldGetConsultantByMedicalSpecialization() {
-        given(consultantRepository.findByMedicalCategoryIgnoreCase(anyString())).willReturn(
+        given(consultantRepository.findBySpecialization(any(MedicalCategoryEntity.class))).willReturn(
                Set.of(consultant)
         );
 
-        var result = consultantService.getConsultantsByCategory(MedicalCategoryEnum.PEDIATRICIAN);
+        var result = consultantService.getConsultantsByCategory(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
         assertThat(result).hasSize(1);
         assertThat(result).isUnmodifiable();
     }

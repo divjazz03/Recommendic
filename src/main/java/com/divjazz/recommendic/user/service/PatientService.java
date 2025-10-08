@@ -10,7 +10,6 @@ import com.divjazz.recommendic.user.dto.PatientInfoResponse;
 import com.divjazz.recommendic.user.dto.PatientProfileResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
@@ -18,6 +17,7 @@ import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PatientService {
 
+    public static final String PATIENT_ROLE_NAME = "ROLE_PATIENT";
+
     private final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final UserConfirmationRepository userConfirmationRepository;
     private final GeneralUserService userService;
@@ -49,16 +52,18 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final RecommendationService recommendationService;
     private final AuthUtils authUtils;
+    private final RoleService roleService;
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
 
         if (!userService.isUserExists(patientRegistrationParams.email())) {
             UserCredential userCredential = new UserCredential(encoder.encode(patientRegistrationParams.password()));
+            Role role = roleService.getRoleByName(PATIENT_ROLE_NAME);
             Patient user = new Patient(
                     patientRegistrationParams.email(),
                     Gender.valueOf(patientRegistrationParams.gender().toUpperCase()),
-                    userCredential);
+                    userCredential, role);
             user.setUserStage(UserStage.ONBOARDING);
             var profilePicture = new ProfilePicture();
 
@@ -124,10 +129,7 @@ public class PatientService {
 
     @Transactional
     public void handleOnboarding(String userId, List<String> medicalCategories) {
-        Set<String> medicalCategorySet = medicalCategories.stream()
-                .map(MedicalCategoryEnum::fromValue)
-                .map(MedicalCategoryEnum::getValue)
-                .collect(Collectors.toSet());
+        Set<String> medicalCategorySet = new HashSet<>(medicalCategories);
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
         if (patient.getUserStage() == UserStage.ONBOARDING) {
@@ -137,8 +139,8 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
-    public Set<ConsultantRecommendation> getRecommendationForPatient(String userId) {
-        Patient patient = findPatientByUserId(userId);
+    public Set<ConsultantRecommendation> getRecommendationForPatient() {
+        Patient patient = (Patient) authUtils.getCurrentUser();
         return recommendationService.retrieveRecommendationByPatient(patient);
     }
 

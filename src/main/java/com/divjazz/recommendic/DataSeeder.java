@@ -1,12 +1,17 @@
 package com.divjazz.recommendic;
 
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +19,11 @@ import net.datafaker.Faker;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -40,17 +43,20 @@ public class DataSeeder implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final Faker faker = new Faker();
     private final ObjectMapper objectMapper;
+    private final RoleService roleService;
+    private final MedicalCategoryService medicalCategoryService;
 
     private final Random random = new Random();
 
-    public static Patient generateFakePatient(Faker faker, int i) {
+    public static Patient generateFakePatient(Faker faker, int i, Role role) {
         String password = faker.lorem().characters(12, true, true, true);
         UserCredential userCredential = new UserCredential(password);
 
         Patient patient = new Patient(
                 faker.internet().emailAddress().replace("@", i + "@"),
                 Gender.FEMALE,
-                userCredential
+                userCredential,
+                role
         );
         patient.setUserStage(UserStage.ACTIVE_USER);
         return patient;
@@ -73,7 +79,7 @@ public class DataSeeder implements ApplicationRunner {
                 .build();
     }
 
-    public static Consultant generateFakeConsultant(Faker faker, int i) {
+    public static Consultant generateFakeConsultant(Faker faker, int i, Role role) {
 
         String password1 = faker.lorem().characters(12, true, true, true);
         UserCredential userCredential1 = new UserCredential(password1);
@@ -81,7 +87,8 @@ public class DataSeeder implements ApplicationRunner {
         Consultant consultant = new Consultant(
                 faker.internet().emailAddress().replace("@", i + "@"),
                 Gender.MALE,
-                userCredential1
+                userCredential1,
+                role
         );
         consultant.setUserStage(UserStage.ACTIVE_USER);
         return consultant;
@@ -101,12 +108,44 @@ public class DataSeeder implements ApplicationRunner {
                 .profilePicture(profilePicture)
                 .consultant(consultant)
                 .phoneNumber(phoneNumber)
-                .locationOfInstitution(faker.location().work())
-                .title(faker.job().title())
+                .locationOfInstitution(faker.careProvider().hospitalName())
+                .title(faker.careProvider().medicalProfession())
+                .dateOfBirth(faker.timeAndDate().birthday(18, 56))
+                .languages(new String[]{"english", "french"})
+                .yearsOfExperience(faker.number().numberBetween(1,10))
+                .bio("A very competent doctor")
                 .build();
     }
 
-    public static PGobject asJsonb(String value) {
+    private static String[] generateRandomStrings(Faker faker, int length) {
+        var strings = new String[length];
+        for (int i = 0; i < length; i++) {
+            strings[i] = faker.internet().emailAddress();
+        }
+        return strings;
+    }
+    private static int[] generateRandomNumbers(Faker faker, int length) {
+        var ints = new int[length];
+        for (int i = 0; i < length; i++) {
+            ints[i] = faker.number().numberBetween(0,10080);
+        }
+        return ints;
+    }
+    private static ConsultantStat generateFakeConsultantStat (Faker faker, Consultant consultant) {
+        return ConsultantStat.builder()
+                .consultant(consultant)
+                .followUps(generateRandomStrings(faker, 20))
+                .patientsHelped(generateRandomStrings(faker,20))
+                .rating(4.5)
+                .responseTimes(generateRandomNumbers(faker, 20))
+                .successes(generateRandomStrings(faker, 18))
+                .build();
+    }
+    private static ConsultantEducation generateFakeConsultantEducation(Faker faker, Consultant consultant) {
+        return new ConsultantEducation(consultant,faker.university().degree(),faker.university().name(), 2002 );
+    }
+
+    private static PGobject asJsonb(String value) {
         PGobject jsonObject = new PGobject();
         jsonObject.setType("jsonb");
         try {
@@ -116,9 +155,23 @@ public class DataSeeder implements ApplicationRunner {
             throw new RuntimeException(e);
         }
     }
+    private static PGobject asDate(String value) {
+        PGobject dateObject = new PGobject();
+        dateObject.setType("date");
+        try {
+            dateObject.setValue(value);
+            return dateObject;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void run(ApplicationArguments args) {
+
+        Role patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        Role consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
 
 
         CompletableFuture<Void> patientTask = CompletableFuture.runAsync(() -> {
@@ -126,7 +179,7 @@ public class DataSeeder implements ApplicationRunner {
             List<Object[]> patientProfiles = new ArrayList<>(BATCH_SIZE);
             log.info("Inside async function");
             for (int i = 0; i < 1000000; i++) {
-                var patient = generateFakePatient(faker, i);
+                var patient = generateFakePatient(faker, i,patientRole);
                 var patientProfile = generateFakePatientProfile(faker, patient);
                 String usernameObj;
                 String addressObj;
@@ -157,7 +210,6 @@ public class DataSeeder implements ApplicationRunner {
                     throw new RuntimeException(e);
                 }
                 patients.add(new Object[]{
-                        patient.getUserId(),
                         patient.getUserPrincipal().getUsername(),
                         patient.getUserType().name(),
                         patient.getUserStage().name(),
@@ -165,15 +217,15 @@ public class DataSeeder implements ApplicationRunner {
                         patient.getUserPrincipal().isAccountNonExpired(),
                         patient.getUserPrincipal().isAccountNonLocked(),
                         patient.getGender().name(),
-                        patient.getUserPrincipal().getRole().getName(),
+                        patient.getUserPrincipal().getRole().getId(),
                         "SYSTEM",
                         "SYSTEM",
                         patient.getUserStage() == UserStage.ONBOARDING ? null :
-                                new String[]{MedicalCategoryEnum.OPHTHALMOLOGY.getValue()},
+                                new String[]{"ophthalmology"},
                         asJsonb(userCredential)
                 });
                 patientProfiles.add(new Object[]{
-                        patientProfile.getPatient().getUserId(),
+                        patient.getUserPrincipal().getUsername(),
                         asJsonb(profilePic),
                         asJsonb(addressObj),
                         patientProfile.getPhoneNumber(),
@@ -184,24 +236,24 @@ public class DataSeeder implements ApplicationRunner {
 
                 if (i % BATCH_SIZE == 0 && !patients.isEmpty()) {
                     StringBuilder sqlBuilder = new StringBuilder("""
-                                    INSERT INTO patient(user_id, email,user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, medical_categories, user_credential)
+                                    INSERT INTO patient(email,user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, medical_categories, user_credential)
                             VALUES""").append(" ");
                     List<Object> flatParams = new ArrayList<>();
                     for (int j = 0; j < patients.size(); j++) {
-                        sqlBuilder.append("(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                        sqlBuilder.append("(?,?,?,?,?,?,?,?,?,?,?,?)");
                         if (j < patientProfiles.size() - 1) sqlBuilder.append(", ");
 
                         Object[] row = patients.get(j);
                         Collections.addAll(flatParams, row);
                     }
-                    sqlBuilder.append(" RETURNING id, user_id");
+                    sqlBuilder.append(" RETURNING id, user_id,email");
 
                     Map<String, Long> returned = jdbcTemplate.query(
                             sqlBuilder.toString(),
                             rs -> {
                                 Map<String, Long> map = new HashMap<>();
                                 while (rs.next()) {
-                                    map.put(rs.getString("user_id"), rs.getLong("id"));
+                                    map.put(rs.getString("email"), rs.getLong("id"));
                                 }
                                 return map;
                             },
@@ -243,9 +295,13 @@ public class DataSeeder implements ApplicationRunner {
         CompletableFuture<Void> consultantTask = CompletableFuture.runAsync(() -> {
             List<Object[]> consultants = new ArrayList<>(BATCH_SIZE);
             List<Object[]> consultantProfiles = new ArrayList<>(BATCH_SIZE);
-            for (int i = 0; i < 1000000; i++) {
-                var consultant = generateFakeConsultant(faker, i);
+            List<Object[]> consultantStats = new ArrayList<>(BATCH_SIZE);
+            List<Object[]> consultantEducations = new ArrayList<>(BATCH_SIZE);
+            for (int i = 0; i < 1; i++) {
+                var consultant = generateFakeConsultant(faker, i, consultantRole);
                 var consultantProfile = generateFakeConsultantProfile(faker, consultant);
+                var consultantStat = generateFakeConsultantStat(faker,consultant);
+                var consultantEducation = generateFakeConsultantEducation(faker, consultant);
                 String usernameObj;
                 String addressObj;
                 String profilePic;
@@ -275,7 +331,6 @@ public class DataSeeder implements ApplicationRunner {
                     throw new RuntimeException(e);
                 }
                 consultants.add(new Object[]{
-                        consultant.getUserId(),
                         consultant.getUserPrincipal().getUsername(),
                         consultant.getUserType().name(),
                         consultant.getUserStage().name(),
@@ -283,47 +338,64 @@ public class DataSeeder implements ApplicationRunner {
                         consultant.getUserPrincipal().isAccountNonExpired(),
                         consultant.getUserPrincipal().isAccountNonLocked(),
                         consultant.getGender().name(),
-                        consultant.getUserPrincipal().getRole().name(),
+                        consultant.getUserPrincipal().getRole().getId(),
                         "SYSTEM",
                         "SYSTEM",
-                        MedicalCategoryEnum.CARDIOLOGY.getValue(),
+                        medicalCategory.getId(),
                         asJsonb(userCredential)
                 });
                 consultantProfiles.add(new Object[]{
-                        consultant.getUserId(),
+                        consultant.getUserPrincipal().getUsername(),
                         asJsonb(profilePic),
                         asJsonb(addressObj),
                         faker.lorem().paragraph(30),
                         consultantProfile.getPhoneNumber(),
                         asJsonb(usernameObj),
                         consultantProfile.getLocationOfInstitution(),
-                        random.nextInt(10),
+                        consultantProfile.getYearsOfExperience(),
                         consultantProfile.getTitle(),
-                        new String[]{"English"},
+                        consultantProfile.getLanguages(),
+                        "SYSTEM",
+                        "SYSTEM",
+                        asDate(consultantProfile.getDateOfBirth().toString())
+                });
+                consultantStats.add(new Object[]{
+                   consultant.getUserPrincipal().getUsername(),
+                   consultantStat.getFollowUps(),
+                   consultantStat.getPatientsHelped(),
+                   consultantStat.getSuccesses(), consultantStat.getResponseTimes(),
+                   "SYSTEM",
+                   "SYSTEM"
+                });
+                consultantEducations.add(new Object[]{
+                        consultant.getUserPrincipal().getUsername(),
+                        consultantEducation.getDegree(),
+                        consultantEducation.getInstitution(),
+                        consultantEducation.getYear(),
                         "SYSTEM",
                         "SYSTEM"
                 });
 
                 if (i % BATCH_SIZE == 0) {
                     StringBuilder sqlBuilder = new StringBuilder("""
-                                    INSERT INTO consultant(user_id,email,user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, specialization, user_credential)
+                                    INSERT INTO consultant(email,user_type, user_stage,enabled, account_non_expired,account_non_locked, gender, role, created_by, updated_by, specialization, user_credential)
                                     VALUES""").append(" ");
                     List<Object> flatParams = new ArrayList<>();
                     for (int j = 0; j < consultants.size(); j++) {
-                        sqlBuilder.append("(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                        sqlBuilder.append("(?,?,?,?,?,?,?,?,?,?,?,?)");
                         if (j < consultants.size() - 1) sqlBuilder.append(", ");
 
                         Object[] row = consultants.get(j);
                         Collections.addAll(flatParams, row);
                     }
-                    sqlBuilder.append(" RETURNING id, user_id");
+                    sqlBuilder.append(" RETURNING id, user_id, email");
 
                     Map<String, Long> returned = jdbcTemplate.query(
                             sqlBuilder.toString(),
                             rs -> {
                                 Map<String, Long> map = new HashMap<>();
                                 while (rs.next()) {
-                                    map.put(rs.getString("user_id"), rs.getLong("id"));
+                                    map.put(rs.getString("email"), rs.getLong("id"));
                                 }
                                 return map;
                             },
@@ -332,10 +404,10 @@ public class DataSeeder implements ApplicationRunner {
                     consultants.clear();
                     List<Object[]> remappedProfiles = new ArrayList<>(consultantProfiles.size());
                     for (Object[] profileRow : consultantProfiles) {
-                        String userId = (String) profileRow[0];
-                        Long generatedId = returned.get(userId);
+                        String email = (String) profileRow[0];
+                        Long generatedId = returned.get(email);
                         if (generatedId == null) {
-                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(userId));
+                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(email));
                         }
 
                         remappedProfiles.add(new Object[]{
@@ -350,18 +422,72 @@ public class DataSeeder implements ApplicationRunner {
                                 profileRow[8],
                                 profileRow[9],
                                 profileRow[10],
-                                profileRow[11]
+                                profileRow[11],
+                                profileRow[12]
                         });
 
                     }
                     jdbcTemplate.batchUpdate(
                             """
-                                    INSERT INTO consultant_profiles(id, profile_picture, address, bio, phone_number, username, location, experience, title, languages, created_by, updated_by)
-                                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                                    INSERT INTO consultant_profiles(id, profile_picture, address, bio, phone_number, username, location, experience, title, languages, created_by, updated_by,date_of_birth)
+                                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
                                     """,
                             remappedProfiles
                     );
                     consultantProfiles.clear();
+                    List<Object[]> remappedStats = new ArrayList<>(consultantStats.size());
+                    for (Object[] profileRow : consultantStats) {
+                        String email = (String) profileRow[0];
+                        Long generatedId = returned.get(email);
+                        if (generatedId == null) {
+                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(email));
+                        }
+
+                        remappedStats.add(new Object[]{
+                                generatedId,
+                                profileRow[1],
+                                profileRow[2],
+                                profileRow[3],
+                                profileRow[4],
+                                profileRow[5],
+                                profileRow[6]
+                        });
+
+                    }
+                    jdbcTemplate.batchUpdate(
+                            """
+                                    INSERT INTO consultant_stat(id, follow_ups, patients_helped, successes, response_times, created_by, updated_by )
+                                    VALUES (?,?,?,?,?,?,?)
+                                    """,
+                            remappedStats
+                    );
+                    consultantStats.clear();
+                    List<Object[]> remappedEducations = new ArrayList<>(consultantEducations.size());
+                    for (Object[] profileRow : consultantEducations) {
+                        String email = (String) profileRow[0];
+                        Long generatedId = returned.get(email);
+                        if (generatedId == null) {
+                            throw new IllegalStateException("No generated ID for targetId: %s".formatted(email));
+                        }
+
+                        remappedEducations.add(new Object[]{
+                                generatedId,
+                                profileRow[1],
+                                profileRow[2],
+                                profileRow[3],
+                                profileRow[4],
+                                profileRow[5]
+                        });
+
+                    }
+                    jdbcTemplate.batchUpdate(
+                            """
+                                    INSERT INTO consultant_education(consultant_id, degree,institution,year, created_by, updated_by )
+                                    VALUES (?,?,?,?,?,?)
+                                    """,
+                            remappedEducations
+                    );
+                    consultantEducations.clear();
                 }
             }
         });

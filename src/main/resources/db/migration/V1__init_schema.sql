@@ -32,6 +32,42 @@ DROP INDEX IF EXISTS
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
+DROP TABLE IF EXISTS role, medical_category;
+
+CREATE TABLE IF NOT EXISTS role
+(
+    id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    permissions TEXT[],
+    name        TEXT NOT NULL
+);
+
+INSERT INTO role (name)
+VALUES ('ROLE_ADMIN'),
+       ('ROLE_PATIENT'),
+       ('ROLE_CONSULTANT'),
+       ('ROLE_SUPER_ADMIN'),
+       ('ROLE_SYSTEM');
+
+CREATE TABLE IF NOT EXISTS medical_category
+(
+    id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name        TEXT NOT NULL,
+    description TEXT NOT NULL
+);
+INSERT INTO medical_category (name, description)
+VALUES ('pediatrician', 'Dealing with care and basic treatment of children'),
+       ('cardiology','Dealing with treatment of the heart'),
+       ('oncology','Dealing with treatment of Cancer'),
+       ('dermatology','Dealing with treatment of the skin'),
+       ('orthopedic surgery','Dealing with surgery relating to the bones'),
+       ('neurosurgery','Dealing with surgery relating to the brain'),
+       ('cardiovascular surgery','Dealing with surgery relating to the heart'),
+       ('gynecology','Dealing with women''s reproductive health'),
+       ('psychiatry','Dealing with mental health disorders'),
+       ('dentistry','Dealing with oral health'),
+       ('ophthalmology','Dealing with eye care'),
+       ('physical therapy','Dealing with recovery of patients rom injuries or surgeries');
+
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS admin
 (
@@ -45,7 +81,7 @@ CREATE TABLE IF NOT EXISTS admin
     account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
     gender              TEXT        NOT NULL,
-    role                TEXT        NOT NULL,
+    role                BIGINT REFERENCES role (id),
     last_login          TIMESTAMP            DEFAULT NULL,
     updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
@@ -68,7 +104,7 @@ CREATE TABLE IF NOT EXISTS patient
     account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
     gender              TEXT        NOT NULL,
-    role                TEXT        NOT NULL,
+    role                BIGINT REFERENCES role(id),
     last_login          TIMESTAMP            DEFAULT NULL,
     updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
@@ -91,19 +127,15 @@ CREATE TABLE IF NOT EXISTS consultant
     account_non_expired BOOLEAN     NOT NULL DEFAULT TRUE,
     account_non_locked  BOOLEAN     NOT NULL DEFAULT TRUE,
     gender              TEXT        NOT NULL,
-    role                TEXT        NOT NULL,
+    role                BIGINT REFERENCES role (id),
     last_login          TIMESTAMP            DEFAULT NULL,
     updated_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
     created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
     created_by          TEXT,
     updated_by          TEXT,
-    specialization      TEXT,
+    specialization      BIGINT REFERENCES medical_category (id),
     certified           BOOLEAN              DEFAULT FALSE,
-    certificate_id      BIGINT,
-    user_credential     jsonb,
-    search_vector       tsvector GENERATED ALWAYS AS (
-                            setweight(to_tsvector('english', coalesce(specialization, '')), 'C')
-                            ) STORED
+    user_credential     jsonb
 
 );
 
@@ -113,7 +145,7 @@ CREATE TABLE IF NOT EXISTS patient_profiles
     profile_picture jsonb,
     address         jsonb,
     phone_number    TEXT,
-    date_of_birth DATE,
+    date_of_birth   DATE,
     username        jsonb,
     updated_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,

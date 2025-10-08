@@ -6,17 +6,18 @@ import com.divjazz.recommendic.global.exception.GlobalControllerExceptionAdvice;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.AdminProfile;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.service.AdminService;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,18 +62,27 @@ public class ConsultantIT extends BaseIntegrationTest {
     private JacksonTester<Response<GlobalControllerExceptionAdvice.ValidationErrorResponse>> validationErrorresponseJacksonTester;
     @Autowired
     private JacksonTester<Response<PageResponse<ConsultantInfoResponse>>> consultantPageResponseJacksonTester;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private MedicalCategoryService medicalCategoryService;
 
     public Consultant consultant;
     public Admin admin;
+    public Role adminRole;
+    public Role consultantRole;
+    public MedicalCategoryEntity medicalCategory;
 
     @BeforeEach
     void setUp() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
         Consultant unSavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
-                new UserCredential("password"));
+                new UserCredential("password"), role);
         unSavedConsultant.getUserPrincipal().setEnabled(true);
-        unSavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedConsultant.setSpecialization(medicalCategory);
         unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedConsultant.setCertified(true);
 
@@ -88,10 +98,12 @@ public class ConsultantIT extends BaseIntegrationTest {
                 .build();
         unSavedConsultant.setProfile(consultantProfile);
         consultant = consultantRepository.save(unSavedConsultant);
+        adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("adminPassword")
+                new UserCredential("adminPassword"),
+                adminRole
                 );
         unSavedAdmin.getUserPrincipal().setEnabled(true);
         unSavedAdmin.setUserStage(UserStage.ACTIVE_USER);
@@ -203,10 +215,11 @@ public class ConsultantIT extends BaseIntegrationTest {
         Consultant unsavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
-                new UserCredential(FAKER.text().text(20))
+                new UserCredential(FAKER.text().text(20)),
+                consultantRole
         );
         unsavedConsultant.getUserPrincipal().setEnabled(true);
-        unsavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unsavedConsultant.setSpecialization(medicalCategory);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
 
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -251,7 +264,9 @@ public class ConsultantIT extends BaseIntegrationTest {
     @Test
     void shouldHandleOnboardingRequestAndReturnOk() throws Exception {
 
-        var consultantInOnboardingStage = new Consultant(FAKER.internet().emailAddress(), Gender.MALE, new UserCredential("password"));
+        var consultantInOnboardingStage = new Consultant(FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential("password"), consultantRole);
         consultantInOnboardingStage.setUserStage(UserStage.ONBOARDING);
         consultantInOnboardingStage.getUserPrincipal().setEnabled(true);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -285,9 +300,9 @@ public class ConsultantIT extends BaseIntegrationTest {
                     Consultant unSavedConsultant = new Consultant(
                             FAKER.internet().emailAddress(),
                             Gender.FEMALE,
-                            new UserCredential("password"));
+                            new UserCredential("password"), consultantRole);
                     unSavedConsultant.getUserPrincipal().setEnabled(true);
-                    unSavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+                    unSavedConsultant.setSpecialization(medicalCategory);
                     unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
                     unSavedConsultant.setCertified(true);
 

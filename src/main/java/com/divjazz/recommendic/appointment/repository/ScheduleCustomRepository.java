@@ -55,7 +55,6 @@ public class ScheduleCustomRepository {
                         rs.getTime("end_time").toString(),
                         rs.getString("utf_offset"),
                         Arrays.stream(((String[]) rs.getArray("consultation_channel").getArray())).collect(Collectors.toSet()),
-                        rs.getBoolean("is_recurring"),
                         recurrenceRuleString != null ? objectMapper.readValue(rs.getString("recurrence_rule"), RecurrenceRule.class) : null,
                         rs.getBoolean("is_active"),
                         rs.getTimestamp("created_at").toString(),

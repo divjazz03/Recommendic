@@ -1,12 +1,12 @@
 package com.divjazz.recommendic.appointment.controller.payload;
 
-import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
+import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ConsultantSchedulesResponse (
-    Set<ScheduleResponseDTO> schedules,
+    Set<ScheduleWithAppointmentDetail> schedules,
     ScheduleConsultantProfile profile
 ) {
 

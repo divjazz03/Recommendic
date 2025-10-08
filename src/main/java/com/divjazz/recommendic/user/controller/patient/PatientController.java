@@ -58,7 +58,6 @@ public class PatientController {
             }
             """;
     private final PatientService patientService;
-    private final RecommendationService recommendationService;
 
     @PostMapping
     @Operation(summary = "Register a Patient User",
@@ -129,11 +128,12 @@ public class PatientController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}/recommendations")
+    @GetMapping("/recommendations/consultants")
     @Operation(summary = "Get Consultant Recommendations for this particular user")
-    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId(@PathVariable String userId) {
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
+    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId() {
 
-        var result = patientService.getRecommendationForPatient(userId);
+        var result = patientService.getRecommendationForPatient();
         var response = getResponse(result,
                 HttpStatus.OK
         );

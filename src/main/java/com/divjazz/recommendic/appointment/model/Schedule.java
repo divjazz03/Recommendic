@@ -47,8 +47,6 @@ public class Schedule extends Auditable {
             value = "session_channel"))
     @Column(name = "consultation_channel")
     private ConsultationChannel[] consultationChannels;
-    @Column(name = "is_recurring")
-    private boolean isRecurring;
     @Column (name = "recurrence_rule")
     @Type(JsonBinaryType.class)
     private RecurrenceRule recurrenceRule;

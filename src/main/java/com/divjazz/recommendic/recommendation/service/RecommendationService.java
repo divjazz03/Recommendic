@@ -8,10 +8,10 @@ import com.divjazz.recommendic.recommendation.repository.ArticleRecommendationRe
 import com.divjazz.recommendic.recommendation.repository.ConsultantRecommendationRepository;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,30 +28,14 @@ public class RecommendationService {
     private final ArticleRecommendationRepository articleRecommendationRepository;
     private final ConsultantService consultantService;
     private final ArticleService articleService;
-
+    private final MedicalCategoryService medicalCategoryService;
 
 
     public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
         return consultantRecommendationRepository.findByPatient(patient).orElse(Set.of());
 
     }
-    @Async("recommendicTaskExecutor")
-    public void createArticleRecommendationsForPatient(Patient patient) {
-        var medicalCategories = patient.getMedicalCategories().stream()
-                .map(MedicalCategoryEnum::fromValue)
-                .map(medicalCategoryEnum ->
-                        new MedicalCategory(medicalCategoryEnum.getValue(), medicalCategoryEnum.getDescription()))
-                .collect(Collectors.toSet());
 
-        var articlesByConsultantSpecialty = retrieveConsultantsBasedOnMedicalCategories(medicalCategories)
-                .stream()
-                .flatMap(articleService::getArticleByConsultant)
-                .map(article -> new ArticleRecommendation(patient, article))
-                .collect(Collectors.toSet());
-
-        articleRecommendationRepository.saveAll(articlesByConsultantSpecialty);
-
-    }
     @Async("recommendicTaskExecutor")
     public void createArticleRecommendationForPatient(Patient patient, Article article) {
         articleRecommendationRepository.save(new ArticleRecommendation(patient, article));
@@ -59,9 +43,9 @@ public class RecommendationService {
     @Async("recommendicTaskExecutor")
     public void createConsultantRecommendationForPatient(Patient patient) {
         Set<Consultant> consultants = new HashSet<>();
-
         patient.getMedicalCategories()
-                .forEach(category -> consultants.addAll(consultantService.getConsultantsByCategory(MedicalCategoryEnum.fromValue(category))));
+                .stream().map(medicalCategoryService::getMedicalCategoryByName)
+                .forEach(category -> consultants.addAll(consultantService.getConsultantsByCategory(category)));
         consultants.forEach(consultant -> consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient)));
     }
     @Async("recommendicTaskExecutor")
@@ -71,24 +55,11 @@ public class RecommendationService {
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()
-                .map(medicalCategory -> MedicalCategoryEnum.fromValue(medicalCategory.name()))
+                .map(medicalCategory -> medicalCategoryService.getMedicalCategoryByName(medicalCategory.name()))
                 .flatMap(medicalCategory -> consultantService
                         .getConsultantsByCategory(medicalCategory)
                         .stream())
                 .collect(Collectors.toSet());
-    }
-
-    private Set<Consultant> retrieveConsultantsBasedOnPatientSearchHistory(Set<Search> searches) {
-        Set<MedicalCategory> medicalCategories = new HashSet<>(30);
-        for (Search search : searches) {
-            for (MedicalCategoryEnum medicalCategoryEnum : MedicalCategoryEnum.values()) {
-                if (search.getQuery().matches("[" + medicalCategoryEnum.toString().toLowerCase() + "]")) {
-                    medicalCategories.add(new MedicalCategory(medicalCategoryEnum.getValue(),
-                            medicalCategoryEnum.getDescription()));
-                }
-            }
-        }
-        return retrieveConsultantsBasedOnMedicalCategories(medicalCategories);
     }
 
 

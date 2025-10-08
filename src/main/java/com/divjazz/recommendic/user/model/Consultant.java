@@ -1,24 +1,16 @@
 package com.divjazz.recommendic.user.model;
 
 import com.divjazz.recommendic.article.model.Article;
-import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -42,8 +34,9 @@ public class Consultant extends User{
     private Set<Article> articles;
 
 
-    @Column(name = "specialization")
-    private String medicalCategory;
+    @JoinColumn(name = "specialization")
+    @OneToOne
+    private MedicalCategoryEntity specialization;
 
     @Column(name = "certified")
     private boolean certified;
@@ -58,9 +51,9 @@ public class Consultant extends User{
 
     public Consultant(
             String email,
-            Gender gender,UserCredential userCredential) {
-        super( email, gender, Role.CONSULTANT, userCredential, UserType.CONSULTANT);
-        this.medicalCategory = null;
+            Gender gender, UserCredential userCredential, Role role) {
+        super( email, gender, role, userCredential, UserType.CONSULTANT);
+        specialization = null;
         certificates = new HashSet<>(30);
         certified = false;
     }
@@ -77,16 +70,5 @@ public class Consultant extends User{
         return "Consultant{" + super.getUserId() + '}';
     }
 
-    public MedicalCategory getMedicalCategory() {
-        if (medicalCategory == null) {
-            return null;
-        }
-        var categoryEnum =  MedicalCategoryEnum.fromValue(medicalCategory);
-        return new MedicalCategory(categoryEnum.getValue(),categoryEnum.getDescription());
-    }
-
-    public void setMedicalCategory(MedicalCategoryEnum medicalCategoryEnum) {
-        this.medicalCategory = medicalCategoryEnum.getValue();
-    }
 
 }

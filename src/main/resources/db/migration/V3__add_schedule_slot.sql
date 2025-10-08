@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS schedule_slot
     end_time             TIME                                            NOT NULL,
     utf_offset           VARCHAR                                         NOT NULL,
     consultation_channel session_channel[]                               NOT NULL,
-    is_recurring         BOOLEAN                     DEFAULT FALSE,
     recurrence_rule      TEXT,
     is_active            BOOLEAN                     DEFAULT FALSE,
     name                 TEXT                                            NOT NULL,

@@ -11,7 +11,6 @@ public record ScheduleResponseDTO(
         String endTime,
         String offset,
         Set<String> channels,
-        boolean isRecurring,
         RecurrenceRule recurrenceRule,
         boolean isActive
 ) {

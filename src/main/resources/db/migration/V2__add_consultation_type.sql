@@ -11,7 +11,7 @@ ALTER TABLE consultant
 CREATE TABLE consultant_education
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    consultant_id BIGINT REFERENCES consultant (id) NOT NULL,
+    consultant_id BIGINT REFERENCES consultant (id) ON DELETE CASCADE NOT NULL,
     degree        TEXT                              NOT NULL,
     institution   TEXT                              NOT NULL,
     year          Integer                           NOT NULL,
@@ -49,6 +49,8 @@ BEGIN
     ELSE
         NEW.average_response := NULL;
     END IF;
+
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 

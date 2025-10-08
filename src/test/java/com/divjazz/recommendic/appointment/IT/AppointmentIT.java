@@ -10,7 +10,6 @@ import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.enums.MedicalCategoryEnum;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -95,7 +94,6 @@ public class AppointmentIT extends BaseIntegrationTest {
         var unsavedSchedule = Schedule.builder()
                 .name("Some schedule")
                 .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
-                .isRecurring(true)
                 .consultationChannels(new ConsultationChannel[]{ConsultationChannel.VIDEO})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
