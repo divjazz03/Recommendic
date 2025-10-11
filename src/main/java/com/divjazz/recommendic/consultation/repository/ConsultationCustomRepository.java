@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Component
@@ -33,156 +34,155 @@ public class ConsultationCustomRepository {
     private final ObjectMapper objectMapper;
 
 
-    public Stream<ConsultationProjection> findConsultationDetailsByConsultantUserId(String consultantUserId) {
-        String sql = """
-                SELECT
-                       p.user_credential as patient_credential,
-                       p.gender as patient_gender,
-                       p.user_stage as patient_stage,
-                       p.user_id as patient_user_id,
-                       p.email as patient_email,
-                       p.enabled as patient_enabled,
-                       p.medical_categories as patient_medical,
-                
-                       co.user_credential as consultant_credential,
-                       co.gender as consultant_gender,
-                       co.user_stage as consultant_stage,
-                       co.user_id as consultant_user_id,
-                       co.email as consultant_email,
-                       co.enabled as consultant_enabled,
-                       co.specialization as consultant_specialization,
-                       co.certified as consultant_certified,
-                
-                       ss.consultation_channel as session_channels,
-                       ss.end_time as session_end_time,
-                       ss.start_time as session_start_time,
-                       ss.is_active as session_active,
-                       ss.utf_offset as session_zone_offset,
-                
-                       a.selected_channel as selected_channel,
-                       a.status as appointment_status,
-                       a.date as appointment_date,
-                
-                       pf.address as patient_address,
-                       pf.phone_number as patient_phone_number,
-                       pf.username as patient_username,
-                       pf.id as patient_id,
-                
-                       cf.address as consultant_address,
-                       cf.phone_number as consultant_phone_number,
-                       cf.username as consultant_username,
-                       cf.id as consultant_id,
-                       cf.title as consultant_title,
-                       cf.location as consultant_location,
-                       cf.languages as consultant_languages,
-                
-                       c.summary as consultation_summary,
-                       c.id as consultation_id,
-                       c.status as consultation_status,
-                       c.channel as consultation_channel,
-                       c.ended_at as consultation_ended_at,
-                       c.started_at as consultation_started_at,
-                
-                       r.id as role_id,
-                       r.name as role_name,
-                       r.permissions as role_permissions,
-                
-                       mc.id as category_id,
-                       mc.name as category_name,
-                       mc.description as category_desc
-                FROM consultation c
-                LEFT JOIN appointment a ON c.appointment_id = a.id
-                LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
-                LEFT JOIN patient p ON a.patient_id = p.id
-                LEFT JOIN consultant co ON a.consultant_id = co.id
-                LEFT JOIN patient_profiles pf ON co.id = pf.id
-                LEFT JOIN consultant_profiles cf ON co.id = cf.id
-                LEFT JOIN role r ON r.id = co.role
-                LEFT JOIN medical_category mc ON mc.id = co.specialization
-                WHERE co.user_id = :id
-                """;
-        return jdbcClient
-                .sql(sql)
-                .param("id", consultantUserId)
-                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
-                .stream();
-    }
+//    public Stream<ConsultationProjection> findConsultationDetailsByConsultantUserId(String consultantUserId) {
+//        String sql = """
+//                SELECT
+//                       p.user_credential as patient_credential,
+//                       p.gender as patient_gender,
+//                       p.user_stage as patient_stage,
+//                       p.user_id as patient_user_id,
+//                       p.email as patient_email,
+//                       p.enabled as patient_enabled,
+//
+//                       co.user_credential as consultant_credential,
+//                       co.gender as consultant_gender,
+//                       co.user_stage as consultant_stage,
+//                       co.user_id as consultant_user_id,
+//                       co.email as consultant_email,
+//                       co.enabled as consultant_enabled,
+//                       co.specialization as consultant_specialization,
+//                       co.certified as consultant_certified,
+//
+//                       ss.consultation_channel as session_channels,
+//                       ss.end_time as session_end_time,
+//                       ss.start_time as session_start_time,
+//                       ss.is_active as session_active,
+//                       ss.utf_offset as session_zone_offset,
+//
+//                       a.selected_channel as selected_channel,
+//                       a.status as appointment_status,
+//                       a.date as appointment_date,
+//
+//                       pf.address as patient_address,
+//                       pf.phone_number as patient_phone_number,
+//                       pf.username as patient_username,
+//                       pf.id as patient_id,
+//
+//                       cf.address as consultant_address,
+//                       cf.phone_number as consultant_phone_number,
+//                       cf.username as consultant_username,
+//                       cf.id as consultant_id,
+//                       cf.title as consultant_title,
+//                       cf.location as consultant_location,
+//                       cf.languages as consultant_languages,
+//
+//                       c.summary as consultation_summary,
+//                       c.id as consultation_id,
+//                       c.status as consultation_status,
+//                       c.channel as consultation_channel,
+//                       c.ended_at as consultation_ended_at,
+//                       c.started_at as consultation_started_at,
+//
+//                       r.id as role_id,
+//                       r.name as role_name,
+//                       r.permissions as role_permissions,
+//
+//                       mc.id as category_id,
+//                       mc.name as category_name,
+//                       mc.description as category_desc
+//                FROM consultation c
+//                LEFT JOIN appointment a ON c.appointment_id = a.id
+//                LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
+//                LEFT JOIN patient p ON a.patient_id = p.id
+//                LEFT JOIN consultant co ON a.consultant_id = co.id
+//                LEFT JOIN patient_profiles pf ON co.id = pf.id
+//                LEFT JOIN consultant_profiles cf ON co.id = cf.id
+//                LEFT JOIN role r ON r.id = co.role
+//                LEFT JOIN medical_category mc ON mc.id = co.specialization
+//                WHERE co.user_id = :id
+//                """;
+//        return jdbcClient
+//                .sql(sql)
+//                .param("id", consultantUserId)
+//                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
+//                .stream();
+//    }
 
 
-    public Stream<ConsultationProjection> findConsultationDetailsByPatientUserId(String patientUserId) {
-        String sql = """
-                SELECT
-                       p.user_credential as patient_credential,
-                       p.gender as patient_gender,
-                       p.user_stage as patient_stage,
-                       p.user_id as patient_user_id,
-                       p.email as patient_email,
-                       p.enabled as patient_enabled,
-                       p.medical_categories as patient_medical,
-                       
-                       co.user_credential as consultant_credential,
-                       co.gender as consultant_gender,
-                       co.user_stage as consultant_stage,
-                       co.user_id as consultant_user_id,
-                       co.email as consultant_email,
-                       co.enabled as consultant_enabled,
-                       co.specialization as consultant_specialization,
-                       co.certified as consultant_certified,
-                       
-                       ss.consultation_channel as session_channels,
-                       ss.end_time as session_end_time,
-                       ss.start_time as session_start_time,
-                       ss.is_active as session_active,
-                       ss.utf_offset as session_zone_offset,
-                       
-                       a.selected_channel as selected_channel,
-                       a.status as appointment_status,
-                       a.date as appointment_date,
-                       
-                       pf.address as patient_address,
-                       pf.phone_number as patient_phone_number,
-                       pf.username as patient_username,
-                       pf.id as patient_id,
-                       
-                       cf.address as consultant_address,
-                       cf.phone_number as consultant_phone_number,
-                       cf.username as consultant_username,
-                       cf.id as consultant_id,
-                       cf.title as consultant_title,
-                       cf.location as consultant_location,
-                       cf.languages as consultant_languages,
-                       
-                       c.summary as consultation_summary,
-                       c.id as consultation_id,
-                       c.status as consultation_status,
-                       c.channel as consultation_channel,
-                       c.ended_at as consultation_ended_at,
-                       c.started_at as consultation_started_at,
-                       
-                       r.id as role_id,
-                       r.permissions as role_permissions,
-                       r.name as role_name,
-                       
-                       mc.id as category_id,
-                       mc.name as category_name,
-                       mc.description as category_desc
-                FROM consultation c
-                LEFT JOIN appointment a ON c.appointment_id = a.id
-                LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
-                LEFT JOIN patient p ON a.patient_id = p.id
-                LEFT JOIN consultant co ON a.consultant_id = co.id
-                LEFT JOIN patient_profiles pf ON co.id = pf.id
-                LEFT JOIN consultant_profiles cf ON co.id = cf.id
-                LEFT JOIN role r on r.id = p.role
-                LEFT JOIN medical_category mc ON mc.id = co.specialization
-                WHERE p.user_id = :id
-                """;
-        return jdbcClient.sql(sql)
-                .param("id", patientUserId)
-                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
-                .stream();
-
-    }
+//    public Stream<ConsultationProjection> findConsultationDetailsByPatientUserId(String patientUserId) {
+//        String sql = """
+//                SELECT
+//                       p.user_credential as patient_credential,
+//                       p.gender as patient_gender,
+//                       p.user_stage as patient_stage,
+//                       p.user_id as patient_user_id,
+//                       p.email as patient_email,
+//                       p.enabled as patient_enabled,
+//
+//                       co.user_credential as consultant_credential,
+//                       co.gender as consultant_gender,
+//                       co.user_stage as consultant_stage,
+//                       co.user_id as consultant_user_id,
+//                       co.email as consultant_email,
+//                       co.enabled as consultant_enabled,
+//                       co.specialization as consultant_specialization,
+//                       co.certified as consultant_certified,
+//
+//                       ss.consultation_channel as session_channels,
+//                       ss.end_time as session_end_time,
+//                       ss.start_time as session_start_time,
+//                       ss.is_active as session_active,
+//                       ss.utf_offset as session_zone_offset,
+//
+//                       a.selected_channel as selected_channel,
+//                       a.status as appointment_status,
+//                       a.date as appointment_date,
+//
+//                       pf.address as patient_address,
+//                       pf.phone_number as patient_phone_number,
+//                       pf.username as patient_username,
+//                       pf.id as patient_id,
+//
+//                       cf.address as consultant_address,
+//                       cf.phone_number as consultant_phone_number,
+//                       cf.username as consultant_username,
+//                       cf.id as consultant_id,
+//                       cf.title as consultant_title,
+//                       cf.location as consultant_location,
+//                       cf.languages as consultant_languages,
+//
+//                       c.summary as consultation_summary,
+//                       c.id as consultation_id,
+//                       c.status as consultation_status,
+//                       c.channel as consultation_channel,
+//                       c.ended_at as consultation_ended_at,
+//                       c.started_at as consultation_started_at,
+//
+//                       r.id as role_id,
+//                       r.permissions as role_permissions,
+//                       r.name as role_name,
+//
+//                       mc.id as category_id,
+//                       mc.name as category_name,
+//                       mc.description as category_desc
+//                FROM consultation c
+//                LEFT JOIN appointment a ON c.appointment_id = a.id
+//                LEFT JOIN schedule_slot ss ON a.schedule_slot_id = ss.id
+//                LEFT JOIN patient p ON a.patient_id = p.id
+//                LEFT JOIN consultant co ON a.consultant_id = co.id
+//                LEFT JOIN patient_profiles pf ON co.id = pf.id
+//                LEFT JOIN consultant_profiles cf ON co.id = cf.id
+//                LEFT JOIN role r on r.id = p.role
+//                LEFT JOIN medical_category mc ON mc.id = co.specialization
+//                WHERE p.user_id = :id
+//                """;
+//
+//        return jdbcClient.sql(sql)
+//                .param("id", patientUserId)
+//                .query((rs, rowNum) -> getConsultationProjectionFromResultSet(rs))
+//                .stream();
+//
+//    }
     private ConsultationProjection getConsultationProjectionFromResultSet(ResultSet resultSet) throws SQLException {
         Patient patient = (Patient) Patient.builder()
                 .userPrincipal(UserPrincipal.builder()
@@ -203,7 +203,7 @@ public class ConsultationCustomRepository {
                 .userId(resultSet.getString("patient_user_id"))
                 .userStage(UserStage.valueOf(resultSet.getString("patient_stage")))
                 .build();
-        patient.setMedicalCategories((String[]) resultSet.getArray("patient_medical").getArray());
+        patient.setMedicalCategories(Set.of());
 
         Consultant consultant = (Consultant) Consultant.builder()
                 .userPrincipal(UserPrincipal.builder()

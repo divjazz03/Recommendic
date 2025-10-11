@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.recommendation.dto;
 
 
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantInfoResponse;
 
 import java.util.UUID;
 

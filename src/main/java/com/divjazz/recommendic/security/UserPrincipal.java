@@ -26,7 +26,7 @@ public class UserPrincipal implements UserDetails {
     @Column(nullable = false)
     private String email;
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "role")
     @Getter
     private Role role;
     @JdbcTypeCode(SqlTypes.JSON)

@@ -1,13 +1,14 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
-import com.divjazz.recommendic.user.controller.patient.PatientRegistrationParams;
-import com.divjazz.recommendic.user.dto.PatientDTO;
+import com.divjazz.recommendic.user.controller.patient.payload.PatientRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientRepository;
@@ -59,10 +60,11 @@ public class PatientServiceTest {
         patient = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L, "TEST_ROLE", "")
         );
         patient.getUserPrincipal().setEnabled(true);
-        patient.setMedicalCategories(new String[]{});
+        patient.addMedicalCategory(new MedicalCategoryEntity(1L, "cardiology", "desc"));
         patient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()

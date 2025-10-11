@@ -13,11 +13,9 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,20 +45,24 @@ public class ConsultationTest {
     private Consultant consultant;
     private Patient patient;
 
+
     @BeforeEach
     void setup() {
         consultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         patient = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
+
         );
         consultant.getUserPrincipal().setEnabled(true);
-        consultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        consultant.setSpecialization(new MedicalCategoryEntity());
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -73,7 +75,7 @@ public class ConsultationTest {
         consultant.setProfile(consultantProfile);
 
         patient.getUserPrincipal().setEnabled(true);
-        patient.setMedicalCategories(new String[]{});
+        patient.addMedicalCategory(new MedicalCategoryEntity(1L, "cardiology", "sdecss"));
         patient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -99,7 +101,7 @@ public class ConsultationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
         given(appointmentService.getAppointmentById(anyLong())).willReturn(appointmentToReturn);
         given(consultationRepository.existsByAppointmentId(anyLong())).willReturn(true);
@@ -114,7 +116,7 @@ public class ConsultationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
         var consultationToReturn = Consultation.builder()
                 .channel(appointmentToReturn.getConsultationChannel())

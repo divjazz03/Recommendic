@@ -2,15 +2,7 @@ package com.divjazz.recommendic.user.controller.patient;
 
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
-import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.user.dto.PatientDTO;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
-import com.divjazz.recommendic.user.dto.PatientProfileResponse;
-import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,14 +17,11 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -128,10 +117,18 @@ public class PatientController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/profiles/details")
+    @Operation(summary = "Get full patient profile for this authenticated user")
+    public ResponseEntity<Response<PatientProfileDetails>> getMyProfileDetails() {
+        var patientProfileDetails = patientService.getMyProfileDetails();
+        return ResponseEntity
+                .ok(getResponse(patientProfileDetails, HttpStatus.OK));
+    }
+
     @GetMapping("/recommendations/consultants")
     @Operation(summary = "Get Consultant Recommendations for this particular user")
     @PreAuthorize("hasAuthority('ROLE_PATIENT')")
-    public ResponseEntity<Response<Set<ConsultantRecommendation>>> retrieveRecommendationsBasedOnCurrentPatientId() {
+    public ResponseEntity<Response<ConsultantRecommendationResponse>> retrieveRecommendationsBasedOnCurrentPatientId() {
 
         var result = patientService.getRecommendationForPatient();
         var response = getResponse(result,

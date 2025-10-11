@@ -12,11 +12,16 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,13 +60,25 @@ public class AppointmentIT extends BaseIntegrationTest {
     private Schedule schedule;
 
     private Patient patient;
+
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private MedicalCategoryService medicalCategoryService;
+    private Role consultantRole;
+    private Role patientRole;
+    private MedicalCategoryEntity medicalCategory;
     @BeforeEach
     void setup() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+
         var unsavedPatient = new Patient(faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("jvsfvbjdhbvifhbedfkcihujb"));
+                new UserCredential("jvsfvbjdhbvifhbedfkcihujb"), patientRole);
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
-        unsavedPatient.setMedicalCategories(new String[]{MedicalCategoryEnum.PEDIATRICIAN.getValue()});
+        unsavedPatient.addMedicalCategory(medicalCategory);
         var patientProfile = PatientProfile.builder()
                 .patient(unsavedPatient)
                 .phoneNumber(faker.phoneNumber().phoneNumber())
@@ -75,10 +92,10 @@ public class AppointmentIT extends BaseIntegrationTest {
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"));
+                new UserCredential("sjfskjvnksjfns"), consultantRole);
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
-        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setSpecialization(medicalCategory);
 
         var consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -94,7 +111,7 @@ public class AppointmentIT extends BaseIntegrationTest {
         var unsavedSchedule = Schedule.builder()
                 .name("Some schedule")
                 .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.VIDEO})
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.ONLINE})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
                 .startTime(LocalTime.of(12,30))
@@ -170,7 +187,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .schedule(schedule)
                 .status(AppointmentStatus.REQUESTED)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
 
         appointment = appointmentRepository.save(appointment);
@@ -197,7 +214,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .schedule(schedule)
                 .status(AppointmentStatus.REQUESTED)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
 
         appointment = appointmentRepository.save(appointment);

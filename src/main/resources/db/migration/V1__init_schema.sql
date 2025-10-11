@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS
     consultant_profiles,
     patient_profiles,
     search,
-    message CASCADE;
+    message, medical_category, role CASCADE;
 DROP TYPE IF EXISTS article_search_result, article_status_enum, message_search_result, user_security_data CASCADE;
 
 DROP INDEX IF EXISTS
@@ -32,13 +32,11 @@ DROP INDEX IF EXISTS
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
-DROP TABLE IF EXISTS role, medical_category;
-
 CREATE TABLE IF NOT EXISTS role
 (
     id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     permissions TEXT[],
-    name        TEXT NOT NULL
+    name        TEXT UNIQUE NOT NULL
 );
 
 INSERT INTO role (name)
@@ -51,9 +49,11 @@ VALUES ('ROLE_ADMIN'),
 CREATE TABLE IF NOT EXISTS medical_category
 (
     id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name        TEXT NOT NULL,
+    name        TEXT UNIQUE NOT NULL,
     description TEXT NOT NULL
 );
+
+CREATE INDEX idx_medical_category_name ON medical_category(name);
 INSERT INTO medical_category (name, description)
 VALUES ('pediatrician', 'Dealing with care and basic treatment of children'),
        ('cardiology','Dealing with treatment of the heart'),
@@ -110,11 +110,16 @@ CREATE TABLE IF NOT EXISTS patient
     created_at          TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
     created_by          TEXT,
     updated_by          TEXT,
-    medical_categories  TEXT[],
     recommendation_id   BIGINT,
     user_credential     jsonb
 
 );
+
+CREATE TABLE IF NOT EXISTS patient_medical_category (
+    patient_id BIGINT REFERENCES patient(id),
+    medical_category_id BIGINT REFERENCES medical_category(id)
+);
+
 CREATE TABLE IF NOT EXISTS consultant
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,

@@ -70,11 +70,11 @@ public class ConsultationService {
 
     @Transactional(readOnly = true)
     public Stream<ConsultationProjection> retrieveConsultationDetailByPatientId(String patientId) {
-        return consultationCustomRepository.findConsultationDetailsByPatientUserId(patientId);
+        return consultationRepository.findConsultationByPatientId(patientId).stream();
     }
     @Transactional(readOnly = true)
     public Stream<ConsultationProjection> retrieveConsultationDetailByConsultantId(String consultantId) {
-        return consultationCustomRepository.findConsultationDetailsByConsultantUserId(consultantId);
+        return consultationRepository.findConsultationByConsultantId(consultantId).stream();
     }
     public Consultation getConsultationById(String consultationId) {
         return consultationRepository.findByConsultationId(consultationId)

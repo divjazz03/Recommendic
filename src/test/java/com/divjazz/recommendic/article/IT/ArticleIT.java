@@ -12,11 +12,16 @@ import com.divjazz.recommendic.security.config.WebSecurityConfig;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +69,14 @@ public class ArticleIT extends BaseIntegrationTest {
 
     private Consultant consultant;
     private Patient patient;
+
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private MedicalCategoryService medicalCategoryService;
+    private Role consultantRole;
+    private Role patientRole;
+    private MedicalCategoryEntity medicalCategory;
 
     static Stream<Arguments> validArticle() {
         String validArticle1 = """
@@ -123,13 +136,18 @@ public class ArticleIT extends BaseIntegrationTest {
     }
     @BeforeEach
     void setup() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+
         Patient unSavedPatient = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                patientRole
         );
         unSavedPatient.getUserPrincipal().setEnabled(true);
-        unSavedPatient.setMedicalCategories(new String[]{});
+        unSavedPatient.addMedicalCategory(medicalCategory);
         unSavedPatient.setUserStage(UserStage.ACTIVE_USER);
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -143,10 +161,11 @@ public class ArticleIT extends BaseIntegrationTest {
         Consultant unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                consultantRole
         );
         unSavedconsultant.getUserPrincipal().setEnabled(true);
-        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setSpecialization(medicalCategory);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
         var unSavedconsultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))

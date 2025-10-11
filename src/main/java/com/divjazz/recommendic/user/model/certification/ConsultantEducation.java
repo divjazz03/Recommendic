@@ -6,15 +6,17 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "consultant_education")
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConsultantEducation extends Auditable {
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "consultant_id", updatable = false, nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "consultant_id",nullable = false)
     private Consultant consultant;
     @Column(name = "degree", nullable = false)
     private String degree;
@@ -22,4 +24,8 @@ public class ConsultantEducation extends Auditable {
     private String institution;
     @Column(name = "year", nullable = false)
     private int year;
+
+    public static ConsultantEducation ofEmpty() {
+        return new ConsultantEducation(null, null,null,0);
+    }
 }

@@ -1,12 +1,12 @@
 package com.divjazz.recommendic.user.service;
 
+import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.user.controller.consultant.ConsultantRegistrationParams;
-import com.divjazz.recommendic.user.domain.MedicalCategory;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
-import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
+import com.divjazz.recommendic.user.controller.consultant.payload.*;
+import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
+import com.divjazz.recommendic.user.controller.patient.payload.ConsultantRecommendationResponse;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -14,11 +14,14 @@ import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
+import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,9 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,6 +53,8 @@ public class ConsultantService {
     private final AuthUtils authUtils;
     private final RoleService roleService;
     private final MedicalCategoryService medicalCategoryService;
+    private final ConsultantStatRepository consultantStatRepository;
+    private final ConsultantEducationRepository consultantEducationRepository;
 
 
     @Transactional
@@ -112,6 +115,10 @@ public class ConsultantService {
         return PageResponse.from(
                 consultantRepository.findAll(pageable).map(this::toConsultantInfoResponse)
         );
+    }
+
+    public List<Consultant> getAllConsultants() {
+        return consultantRepository.findAll();
     }
 
     @Transactional(readOnly = true)
@@ -209,6 +216,142 @@ public class ConsultantService {
         return consultantRepository.findByUserId(userId)
                 .map(this::toConsultantInfoResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
+    }
+
+    public ConsultantRecommendationResponse.ConsultantMinimal getConsultantRecommendationProfile(Consultant consultant) {
+        ConsultantProfile consultantProfile = consultant.getProfile();
+        ConsultantStat consultantStat = consultantStatRepository
+                .findConsultantStatByConsultantId(consultant.getUserId()).orElse(ConsultantStat.ofEmpty());
+        List<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
+
+        return new ConsultantRecommendationResponse.ConsultantMinimal(
+                consultant.getUserId(),
+                consultantProfile.getUserName().getFullName(),
+                consultant.getSpecialization().getName(),
+                consultantStat.getRating(),0,
+                consultantProfile.getYearsOfExperience(),
+                consultantProfile.getLocationOfInstitution(),
+                "",
+                new ConsultationFee(200,300),
+                consultantProfile.getProfilePicture().getPictureUrl(),
+                consultantEducations.stream()
+                        .map(ConsultantEducation::getDegree)
+                        .collect(Collectors.toList()),
+                Arrays.stream(consultantProfile.getLanguages()).toList(),
+                ""
+        );
+    }
+
+    public ConsultantProfileDetails getConsultantProfileDetails() {
+        Consultant consultant = (Consultant) authUtils.getCurrentUser();
+        ConsultantEducation consultantEducation;
+        try{
+            consultantEducation = consultantEducationRepository.findAllByConsultant(consultant).getFirst();
+        } catch (NoSuchElementException e) {
+            consultantEducation = ConsultantEducation.ofEmpty();
+        }
+        var consultantProfile = ConsultantProfileFull.builder()
+                .address(consultant.getProfile().getAddress())
+                .bio(consultant.getProfile().getBio())
+                .dateOfBirth(consultant.getProfile().getDateOfBirth().toString())
+                .email(consultant.getUserPrincipal().getUsername())
+                .location(consultant.getProfile().getLocationOfInstitution())
+                .experience(String.valueOf(consultant.getProfile().getYearsOfExperience()))
+                .gender(consultant.getGender().name().toLowerCase())
+                .languages(consultant.getProfile().getLanguages())
+                .specialty(consultant.getSpecialization().getName())
+                .userName(consultant.getProfile().getUserName())
+                .phoneNumber(consultant.getProfile().getPhoneNumber())
+                .build();
+        return new ConsultantProfileDetails(
+                consultantProfile,
+                new ConsultantEducationResponse(
+                        String.valueOf(consultantEducation.getYear()),
+                        consultantEducation.getInstitution(),
+                        consultantEducation.getDegree()
+                )
+        );
+    }
+    @Transactional
+    public ConsultantProfileDetails updateConsultantProfileDetails(ConsultantProfileUpdateRequest consultantProfileUpdateRequest) {
+        Consultant consultant = (Consultant) authUtils.getCurrentUser();
+        ConsultantEducation consultantEducation;
+
+        try {
+            consultantEducation = consultantEducationRepository.findAllByConsultant(consultant).getFirst();
+        } catch (NoSuchElementException ex) {
+            consultantEducation = ConsultantEducation.ofEmpty();
+        }
+        ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
+        if (Objects.nonNull(profile)) {
+            if (Objects.nonNull(profile.specialty())) {
+                consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
+            }
+
+            if (Objects.nonNull(profile.address())) {
+                consultant.getProfile().setAddress(profile.address());
+            }
+
+            if (Objects.nonNull(profile.bio())) {
+                consultant.getProfile().setBio(profile.bio());
+            }
+
+            if (Objects.nonNull(profile.experience())) {
+                consultant.getProfile().setYearsOfExperience(Integer.parseInt(profile.experience()));
+            }
+
+            if (Objects.nonNull(profile.languages())) {
+                consultant.getProfile().setLanguages(profile.languages());
+            }
+
+            if (Objects.nonNull(profile.location())) {
+                consultant.getProfile().setLocationOfInstitution(profile.location());
+            }
+
+            if (Objects.nonNull(profile.phoneNumber())) {
+                consultant.getProfile().setPhoneNumber(profile.phoneNumber());
+            }
+
+            consultant = consultantRepository.save(consultant);
+        }
+        var consultantEducationRequest = consultantProfileUpdateRequest.education();
+        if (Objects.nonNull(consultantEducationRequest)) {
+            if (Objects.nonNull(consultantEducationRequest.degree())) {
+                consultantEducation.setDegree(consultantEducationRequest.degree());
+            }
+            if (Objects.nonNull(consultantEducationRequest.institution())) {
+                consultantEducation.setInstitution(consultantEducationRequest.institution());
+            }
+            if (Objects.nonNull(consultantEducationRequest.year())) {
+                consultantEducation.setYear(Integer.parseInt(consultantEducationRequest.year()));
+            }
+            consultantEducation = consultantEducationRepository.save(consultantEducation);
+        }
+
+        var consultantProfile = ConsultantProfileFull.builder()
+                .address(consultant.getProfile().getAddress())
+                .bio(consultant.getProfile().getBio())
+                .dateOfBirth(consultant.getProfile().getDateOfBirth().toString())
+                .email(consultant.getUserPrincipal().getUsername())
+                .location(consultant.getProfile().getLocationOfInstitution())
+                .experience(String.valueOf(consultant.getProfile().getYearsOfExperience()))
+                .gender(consultant.getGender().name().toLowerCase())
+                .languages(consultant.getProfile().getLanguages())
+                .specialty(consultant.getSpecialization().getName())
+                .userName(consultant.getProfile().getUserName())
+                .phoneNumber(consultant.getProfile().getPhoneNumber())
+                .build();
+
+
+        return new ConsultantProfileDetails(
+                consultantProfile,
+                new ConsultantEducationResponse(
+                        String.valueOf(consultantEducation.getYear()),
+                        consultantEducation.getInstitution(),
+                        consultantEducation.getDegree()
+                )
+        );
+
     }
 
 }

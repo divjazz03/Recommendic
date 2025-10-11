@@ -8,6 +8,8 @@ import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,12 +38,16 @@ public class UserIT extends BaseIntegrationTest {
     private JacksonTester<UserController.CurrentUser> currentUserJacksonTester;
 
     private User user;
+    @Autowired
+    private RoleService roleService;
+    private Role consultantRole;
 
     @BeforeEach
     void setup() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
         user = User.builder()
                 .userPrincipal(UserPrincipal.builder()
-                        .role(Role.CONSULTANT)
+                        .role(consultantRole)
                         .enabled(true)
                         .userCredential(new UserCredential(faker.text().text(23)))
                         .build())

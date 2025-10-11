@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.dto;
+package com.divjazz.recommendic.user.controller.consultant.payload;
 
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;

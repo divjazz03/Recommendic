@@ -42,10 +42,7 @@ public class RecommendationService {
     }
     @Async("recommendicTaskExecutor")
     public void createConsultantRecommendationForPatient(Patient patient) {
-        Set<Consultant> consultants = new HashSet<>();
-        patient.getMedicalCategories()
-                .stream().map(medicalCategoryService::getMedicalCategoryByName)
-                .forEach(category -> consultants.addAll(consultantService.getConsultantsByCategory(category)));
+        Set<Consultant> consultants = new HashSet<>(consultantService.getAllConsultants());
         consultants.forEach(consultant -> consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient)));
     }
     @Async("recommendicTaskExecutor")

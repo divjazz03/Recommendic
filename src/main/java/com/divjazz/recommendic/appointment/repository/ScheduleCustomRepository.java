@@ -31,7 +31,6 @@ public class ScheduleCustomRepository {
                 end_time,
                 utf_offset,
                 consultation_channel,
-                is_recurring,
                 recurrence_rule,
                 is_active,
                 name,
@@ -43,7 +42,7 @@ public class ScheduleCustomRepository {
                 FROM schedule_slot
                 WHERE consultant_id = :id
                 LIMIT :limit
-                 """;
+                """;
         RowMapper<ScheduleDisplay> rowMapper = (rs, rowNum) -> {
 
             try {

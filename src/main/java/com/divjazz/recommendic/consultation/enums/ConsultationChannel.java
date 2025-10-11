@@ -4,6 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum ConsultationChannel {
-    CHAT, IN_PERSON, VIDEO, VOICE
+    ONLINE, IN_PERSON
 
 }

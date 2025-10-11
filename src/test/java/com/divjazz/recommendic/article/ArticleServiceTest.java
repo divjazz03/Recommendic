@@ -11,6 +11,7 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import net.datafaker.Faker;
@@ -84,7 +85,8 @@ public class ArticleServiceTest {
         consultantUser = new Consultant(
                 "test_user2@test.com",
                 Gender.MALE,
-                new UserCredential("test_user2_password")
+                new UserCredential("test_user2_password"),
+                new Role(1L,"ROLE_TEST", "")
         );
         consultantProfile = ConsultantProfile.builder()
                 .consultant(consultantUser)

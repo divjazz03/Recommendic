@@ -4,14 +4,16 @@ import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.exception.GlobalControllerExceptionAdvice;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
+import com.divjazz.recommendic.user.controller.patient.payload.PatientInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Admin;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
+import com.divjazz.recommendic.user.repository.MedicalCategoryRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.PatientService;
@@ -29,10 +31,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -61,17 +62,22 @@ public class PatientIT extends BaseIntegrationTest {
     @Autowired
     private AdminRepository adminRepository;
     @Autowired
+    private MedicalCategoryRepository medicalCategoryRepository;
+    @Autowired
     private RoleService roleService;
     private Patient patient;
     private Admin admin;
     private Role adminRole;
     private Role patientRole;
+    private MedicalCategoryEntity medicalCategory;
 
 
     @BeforeEach
     void setup() {
         patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
         adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
+        medicalCategory = medicalCategoryRepository.findByName("cardiology").orElse(null);
+        log.info(medicalCategory.getName());
         Patient unsavedPatient = new Patient(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
@@ -79,7 +85,6 @@ public class PatientIT extends BaseIntegrationTest {
                 patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
-        unsavedPatient.setMedicalCategories(new String[]{});
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -88,8 +93,11 @@ public class PatientIT extends BaseIntegrationTest {
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
                 .build();
+
         unsavedPatient.setPatientProfile(patientProfile);
         patient = patientRepository.save(unsavedPatient);
+        if (Objects.nonNull(medicalCategory)) patient.addMedicalCategory(medicalCategory);
+        patient = patientRepository.save(patient);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
@@ -209,7 +217,7 @@ public class PatientIT extends BaseIntegrationTest {
                 patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
-        unsavedPatient.setMedicalCategories(new String[]{});
+        if (Objects.nonNull(medicalCategory)) unsavedPatient.addMedicalCategory(medicalCategory);
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -263,7 +271,7 @@ public class PatientIT extends BaseIntegrationTest {
                 patientRole);
         patientInOnboardingStage.setUserStage(UserStage.ONBOARDING);
         patientInOnboardingStage.getUserPrincipal().setEnabled(true);
-        patientInOnboardingStage.setMedicalCategories(new String[]{});
+        if (Objects.nonNull(medicalCategory)) patientInOnboardingStage.addMedicalCategory(medicalCategory);
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
                 .dateOfBirth(FAKER.timeAndDate().birthday())
@@ -287,6 +295,17 @@ public class PatientIT extends BaseIntegrationTest {
 
         ).andExpect(status().isOk());
     }
+    @Test
+    void shouldReturnPatientProfileDetails() throws Exception{
+        var result = mockMvc.perform(
+                get("/api/v1/patients/profiles/details")
+                        .with(user(patient.getUserPrincipal()))
+
+        ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+        log.info(result);
+    }
 
     private void populatePatients() {
         Set<Patient> patients = new HashSet<>(10);
@@ -299,7 +318,7 @@ public class PatientIT extends BaseIntegrationTest {
                             patientRole
                     );
                     unsavedPatient.getUserPrincipal().setEnabled(true);
-                    unsavedPatient.setMedicalCategories(new String[]{});
+                    if (Objects.nonNull(medicalCategory)) unsavedPatient.addMedicalCategory(medicalCategory);
                     unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
                     PatientProfile patientProfile = PatientProfile.builder()

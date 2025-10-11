@@ -4,16 +4,18 @@ import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.exception.GlobalControllerExceptionAdvice;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantInfoResponse;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.MedicalCategoryService;
@@ -31,6 +33,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -72,6 +75,8 @@ public class ConsultantIT extends BaseIntegrationTest {
     public Role adminRole;
     public Role consultantRole;
     public MedicalCategoryEntity medicalCategory;
+    @Autowired
+    private ConsultantEducationRepository consultantEducationRepository;
 
     @BeforeEach
     void setUp() {
@@ -80,24 +85,34 @@ public class ConsultantIT extends BaseIntegrationTest {
         Consultant unSavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
-                new UserCredential("password"), role);
+                new UserCredential("password"), consultantRole);
         unSavedConsultant.getUserPrincipal().setEnabled(true);
         unSavedConsultant.setSpecialization(medicalCategory);
         unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedConsultant.setCertified(true);
 
+
+
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
                 .consultant(unSavedConsultant)
                 .languages(new String[]{"English"})
-                .locationOfInstitution(FAKER.location().work())
+                .locationOfInstitution(FAKER.careProvider().hospitalName())
                 .title(FAKER.job().title())
                 .dateOfBirth(FAKER.timeAndDate().birthday())
                 .yearsOfExperience(3)
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .bio(FAKER.text().text(200))
                 .build();
         unSavedConsultant.setProfile(consultantProfile);
         consultant = consultantRepository.save(unSavedConsultant);
+        ConsultantEducation consultantEducation = new ConsultantEducation(
+                consultant,
+                FAKER.university().degree(),
+                FAKER.university().name(),
+                2004);
+
+        consultantEducationRepository.save(consultantEducation);
         adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
@@ -291,6 +306,40 @@ public class ConsultantIT extends BaseIntegrationTest {
                         .with(user(consultantInOnboardingStage.getUserPrincipal()))
 
         ).andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldGetConsultantProfileDetails() throws Exception {
+        String response = mockMvc.perform(
+                get("/api/v1/consultants/profiles/details")
+                        .with(user(consultant.getUserPrincipal()))
+        ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        log.info(response);
+    }
+
+    @Test
+    void shouldModifyConsultantProfileDetails() throws Exception {
+        String request = """
+                {
+                    "profile": {
+                        "phoneNumber": "09046641978"
+                    }
+                }
+                """;
+        String response = mockMvc.perform(
+                        patch("/api/v1/consultants/profiles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                                .with(user(consultant.getUserPrincipal()))
+                ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        log.info(response);
+
     }
 
     private void populateConsultants() {

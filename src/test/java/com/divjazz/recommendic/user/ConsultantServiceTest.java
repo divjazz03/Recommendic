@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
-import com.divjazz.recommendic.user.controller.consultant.ConsultantRegistrationParams;
+import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;

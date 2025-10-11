@@ -13,14 +13,16 @@ import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,15 +64,27 @@ public class ConsultationIT extends BaseIntegrationTest {
     private Appointment appointment;
     private Schedule schedule;
 
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private MedicalCategoryService medicalCategoryService;
+    private Role consultantRole;
+    private Role patientRole;
+    private MedicalCategoryEntity medicalCategory;
+
     @BeforeEach
     void setup() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+
         Patient unsavedPatient = new Patient(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(FAKER.text().text(20))
+                new UserCredential(FAKER.text().text(20)),patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
-        unsavedPatient.setMedicalCategories(new String[]{});
+        unsavedPatient.addMedicalCategory(medicalCategory);
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -85,10 +99,10 @@ public class ConsultationIT extends BaseIntegrationTest {
         Consultant unsavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(FAKER.text().text(20))
+                new UserCredential(FAKER.text().text(20)), consultantRole
         );
         unsavedConsultant.getUserPrincipal().setEnabled(true);
-        unsavedConsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unsavedConsultant.setSpecialization(medicalCategory);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
 
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -105,7 +119,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .isActive(true)
                 .endTime(LocalTime.now().plusHours(1))
                 .startTime(LocalTime.now())
-                .consultationChannels(Set.of(ConsultationChannel.VOICE).toArray(ConsultationChannel[]::new))
+                .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
                 .build();
@@ -118,7 +132,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
         appointment = appointmentRepository.save(unsavedAppointment);
     }
@@ -156,7 +170,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .isActive(true)
                 .endTime(startTime.plusHours(2).plusMinutes(30))
                 .startTime(startTime)
-                .consultationChannels(Set.of(ConsultationChannel.VOICE).toArray(ConsultationChannel[]::new))
+                .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
                 .build();
@@ -169,7 +183,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
         var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(

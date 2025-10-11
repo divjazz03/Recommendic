@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.controller.consultant;
+package com.divjazz.recommendic.user.controller.consultant.payload;
 
 import com.divjazz.recommendic.global.validation.annotation.Gender;
 import com.divjazz.recommendic.user.validation.ValidDateOfBirth;

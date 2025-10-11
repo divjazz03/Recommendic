@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,8 +29,8 @@ public class ScheduleController {
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
     public ResponseEntity<Response<ScheduleResponseDTO>> createSchedule(
-            @RequestBody @Valid ScheduleCreationRequest scheduleCreationRequest) {
-        var schedule = scheduleService.createSchedule(scheduleCreationRequest);
+            @RequestBody @Valid List<ScheduleCreationRequest> scheduleCreationRequests) {
+        var schedule = scheduleService.createSchedule(scheduleCreationRequests);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(getResponse(schedule, HttpStatus.CREATED));
     }

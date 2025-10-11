@@ -72,7 +72,7 @@ public class User extends Auditable {
 
         User user = (User) o;
 
-        return Objects.equals(this.userPrincipal.getUsername(), user.getUserPrincipal().getUsername())
+        return userId != null && Objects.equals(this.userPrincipal.getUsername(), user.getUserPrincipal().getUsername())
                 && Objects.equals(userId, user.userId);
     }
 }

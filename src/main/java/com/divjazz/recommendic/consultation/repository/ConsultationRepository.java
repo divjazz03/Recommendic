@@ -1,9 +1,6 @@
 package com.divjazz.recommendic.consultation.repository;
 
-import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.model.Consultation;
-import com.divjazz.recommendic.user.model.Consultant;
-import com.divjazz.recommendic.user.model.Patient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -54,4 +50,37 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     """)
     Stream<Consultation> findConsultationsByConsultantUserId(@Param("consultantId") String consultantId);
 
+    @Query(
+            value = """
+    SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
+        c.consultationId,
+        c.appointment,
+        c.appointment.patient.patientProfile,
+        c.appointment.consultant.profile,
+        c.summary,
+        c.consultationStatus,
+        c.channel,
+        c.endedAt,
+        c.startedAt
+    ) FROM Consultation c
+    WHERE c.appointment.consultant.userId = :consultantId
+"""
+    )
+    Set<ConsultationProjection> findConsultationByConsultantId(String consultantId);@Query(
+            value = """
+    SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
+        c.consultationId,
+        c.appointment,
+        c.appointment.patient.patientProfile,
+        c.appointment.consultant.profile,
+        c.summary,
+        c.consultationStatus,
+        c.channel,
+        c.endedAt,
+        c.startedAt
+    ) FROM Consultation c
+    WHERE c.appointment.consultant.userId = :patientId
+"""
+    )
+    Set<ConsultationProjection> findConsultationByPatientId(String patientId);
 }

@@ -7,6 +7,7 @@ import com.divjazz.recommendic.user.repository.MedicalCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,5 +29,9 @@ public class MedicalCategoryService {
         return medicalCategoryRepository
                 .findByName(name)
                 .orElseThrow(() -> new EntityNotFoundException("Medical category not found"));
+    }
+
+    public Set<MedicalCategoryEntity> getAllByNames(List<String> medicalCategoryNames) {
+        return medicalCategoryRepository.findAllByNameIn(medicalCategoryNames);
     }
 }

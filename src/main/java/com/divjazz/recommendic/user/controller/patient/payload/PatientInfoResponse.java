@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.user.dto;
+package com.divjazz.recommendic.user.controller.patient.payload;
 
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -11,5 +11,5 @@ public record PatientInfoResponse(
         String age,
         String gender,
         Address address
-) implements UserInfoResponse {
+) {
 }

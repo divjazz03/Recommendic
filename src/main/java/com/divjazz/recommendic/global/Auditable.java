@@ -40,22 +40,9 @@ public abstract class Auditable {
     @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
-    public void setId(long id) {
-        this.id = id;
-    }
     @Override
     public int hashCode() {
-        return 2025;
+        return getClass().hashCode();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Auditable auditable = (Auditable) o;
-
-        return id == auditable.id;
-    }
 }

@@ -59,7 +59,7 @@ public class SearchServiceTest {
         var user = User.builder()
                 .userPrincipal(UserPrincipal.builder()
                         .email("testemail@test.com")
-                        .role(Role.CONSULTANT)
+                        .role(new Role(1L, "TEST_ROLE", ""))
                         .enabled(false)
                         .build())
                 .userStage(UserStage.ONBOARDING)

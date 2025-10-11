@@ -9,8 +9,6 @@ import java.util.Set;
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
 
-    Set<Patient> findPatientByMedicalCategories(String[] category);
-
     Optional<Patient> findByUserId(String userId);
     Optional<Patient> findByUserPrincipal_Email(String email);
     boolean existsByUserPrincipal_Email(String email);

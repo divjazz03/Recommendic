@@ -13,6 +13,7 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Set;
 
 import static org.mockito.BDDMockito.*;
@@ -44,7 +46,7 @@ public class ScheduleRecurrenceTest {
 
     private final Consultant currentUser = new Consultant(faker.internet().emailAddress(),
             Gender.MALE,
-            new UserCredential("dsdjskjfskjfsk"));
+            new UserCredential("dsdjskjfskjfsk"), new Role(1L,"ROLE_TEST", ""));
     @Test
     void shouldCreateScheduleWithoutRecurrenceRule() {
         var creationRequest = new ScheduleCreationRequest(
@@ -69,7 +71,7 @@ public class ScheduleRecurrenceTest {
         given(authUtils.getCurrentUser()).willReturn(currentUser);
         given(scheduleRepository.save(any(Schedule.class))).willReturn(schedule);
 
-        var response = scheduleService.createSchedule(creationRequest);
+        var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());
         assertThat(response.startTime()).isEqualTo(creationRequest.startTime());
 
@@ -106,7 +108,7 @@ public class ScheduleRecurrenceTest {
         given(authUtils.getCurrentUser()).willReturn(currentUser);
         given(scheduleRepository.save(any(Schedule.class))).willReturn(schedule);
 
-        var response = scheduleService.createSchedule(creationRequest);
+        var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());
         assertThat(response.startTime()).isEqualTo(creationRequest.startTime());
 

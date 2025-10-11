@@ -55,7 +55,8 @@ public class UserServiceTest {
         var userToReturn = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
         given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
@@ -71,7 +72,8 @@ public class UserServiceTest {
         var userToReturn = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.of(userToReturn));
         given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
@@ -99,7 +101,8 @@ public class UserServiceTest {
         var userToReturn = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
         given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
@@ -116,7 +119,8 @@ public class UserServiceTest {
         var userToReturn = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
@@ -133,7 +137,7 @@ public class UserServiceTest {
         var user = User.builder()
                 .userPrincipal(UserPrincipal.builder()
                         .email("test_user@test.com")
-                        .role(Role.PATIENT)
+                        .role(new Role(1L,"ROLE_TEST", ""))
                         .enabled(true)
                         .userCredential(new UserCredential("password"))
                         .build())
@@ -154,7 +158,8 @@ public class UserServiceTest {
         var user = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
@@ -171,7 +176,8 @@ public class UserServiceTest {
         var user = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
@@ -189,7 +195,8 @@ public class UserServiceTest {
         var userToReturn = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
         );
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
@@ -205,7 +212,8 @@ public class UserServiceTest {
         var userToReturn = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                new Role(1L, "ROLE_TEST","")
         );
 
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());

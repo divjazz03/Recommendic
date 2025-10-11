@@ -18,6 +18,6 @@ public record ConsultantSchedulesResponse (
             ConsultationFee fee,
             String location
             ) {
-        public record ConsultationFee(int inPerson, int online){}
+
     }
 }

@@ -5,14 +5,14 @@ import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.user.controller.patient.PatientRegistrationParams;
-import com.divjazz.recommendic.user.dto.PatientInfoResponse;
-import com.divjazz.recommendic.user.dto.PatientProfileResponse;
+import com.divjazz.recommendic.user.controller.patient.payload.*;
+import com.divjazz.recommendic.user.controller.patient.payload.ConsultantRecommendationResponse.ConsultantMinimal;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,8 +50,10 @@ public class PatientService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PatientRepository patientRepository;
     private final RecommendationService recommendationService;
+    private final ConsultantService consultantService;
     private final AuthUtils authUtils;
     private final RoleService roleService;
+    private final MedicalCategoryService medicalCategoryService;
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
@@ -128,20 +129,46 @@ public class PatientService {
     }
 
     @Transactional
-    public void handleOnboarding(String userId, List<String> medicalCategories) {
-        Set<String> medicalCategorySet = new HashSet<>(medicalCategories);
+    public void handleOnboarding(String userId, List<String> medicalCategoryNames) {
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
+        Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByNames(medicalCategoryNames);
         if (patient.getUserStage() == UserStage.ONBOARDING) {
-            patient.setMedicalCategories(medicalCategorySet.toArray(String[]::new));
+            patient.setMedicalCategories(medicalCategoryEntities);
             patient.setUserStage(UserStage.ACTIVE_USER);
         }
     }
 
     @Transactional(readOnly = true)
-    public Set<ConsultantRecommendation> getRecommendationForPatient() {
+    public ConsultantRecommendationResponse getRecommendationForPatient() {
         Patient patient = (Patient) authUtils.getCurrentUser();
-        return recommendationService.retrieveRecommendationByPatient(patient);
+        Set<ConsultantMinimal> recommendations = recommendationService
+                .retrieveRecommendationByPatient(patient)
+                .stream()
+                .map(ConsultantRecommendation::getConsultant)
+                .map(consultantService::getConsultantRecommendationProfile)
+                .collect(Collectors.toSet());
+        return new ConsultantRecommendationResponse(recommendations);
+    }
+    @Transactional
+    public PatientProfileDetails getMyProfileDetails() {
+        Patient patient = (Patient) authUtils.getCurrentUser();
+        PatientProfile patientProfile = patient.getPatientProfile();
+        String[] interests = patient.getMedicalCategories()
+                .stream()
+                .map(MedicalCategoryEntity::getName)
+                .toArray(String[]::new);
+
+        var patientProfileFull = new PatientProfileFull(
+                patientProfile.getUserName(),
+                patient.getUserPrincipal().getUsername(),
+                patientProfile.getPhoneNumber(),
+                patientProfile.getDateOfBirth().toString(),
+                patient.getGender().name().toLowerCase(),
+                patientProfile.getAddress(),
+                interests
+        );
+        return new PatientProfileDetails(patientProfileFull);
     }
 
     private PatientInfoResponse toPatientInfoResponse(Patient patient) {

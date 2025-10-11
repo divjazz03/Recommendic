@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS consultation, schedule_slot, appointment, consultation_revi
 DROP INDEX IF EXISTS consultation_search_idx;
 DROP TYPE IF EXISTS session_channel,consultation_status, appointment_status;
 
-CREATE TYPE session_channel AS ENUM ('VOICE','CHAT', 'VIDEO','IN_PERSON');
+CREATE TYPE session_channel AS ENUM ('ONLINE','IN_PERSON');
 CREATE TYPE consultation_status AS ENUM ('ONGOING','COMPLETED', 'MISSED');
 CREATE TYPE appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELLED');
 
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS schedule_slot
 (
     id                   BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
     schedule_uuid UUID                        DEFAULT gen_random_uuid() UNIQUE,
-    appointment_id   TEXT GENERATED ALWAYS AS ( 'SCH-' || schedule_uuid ) STORED,
+    schedule_id   TEXT GENERATED ALWAYS AS ( 'SCH-' || schedule_uuid ) STORED,
     consultant_id        BIGINT REFERENCES consultant (id)               NOT NULL,
     start_time           TIME                                            NOT NULL,
     end_time             TIME                                            NOT NULL,

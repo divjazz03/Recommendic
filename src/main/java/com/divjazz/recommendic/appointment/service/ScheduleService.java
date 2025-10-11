@@ -1,10 +1,7 @@
 package com.divjazz.recommendic.appointment.service;
 
-import com.divjazz.recommendic.appointment.controller.payload.ConsultantSchedulesResponse;
+import com.divjazz.recommendic.appointment.controller.payload.*;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
-import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
-import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
-import com.divjazz.recommendic.appointment.controller.payload.ScheduleModificationRequest;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -44,32 +41,37 @@ public class ScheduleService {
     private final AppointmentService appointmentService;
 
     @Transactional
-    public ScheduleResponseDTO createSchedule(ScheduleCreationRequest creationRequest) {
-
+    public ScheduleResponseDTO createSchedule(List<ScheduleCreationRequest> creationRequests) {
         var consultant = (Consultant) authUtils.getCurrentUser();
-        var schedule = Schedule.builder()
-                .name(creationRequest.name())
-                .consultant(consultant)
-                .consultationChannels(toConsultationChannels(creationRequest.channels()))
-                .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
-                .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
-                .isActive(creationRequest.isActive())
-                .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
-                .build();
-        if (Objects.nonNull(creationRequest.recurrenceRule())) {
-            var recurrenceRule = new RecurrenceRule(
-                    creationRequest.recurrenceRule().frequency(),
-                    creationRequest.recurrenceRule().weekDays(),
-                    creationRequest.recurrenceRule().interval(),
-                    creationRequest.recurrenceRule().endDate()
-            );
-            schedule.setRecurrenceRule(recurrenceRule);
-        }
+        List<Schedule> schedules = creationRequests.stream()
+                .map(creationRequest -> {
+                    var schedule = Schedule.builder()
+                        .name(creationRequest.name())
+                        .consultant(consultant)
+                        .consultationChannels(toConsultationChannels(creationRequest.channels()))
+                        .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
+                        .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
+                        .isActive(creationRequest.isActive())
+                        .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
+                        .build();
 
+                    if (Objects.nonNull(creationRequest.recurrenceRule())) {
+                        var recurrenceRule = new RecurrenceRule(
+                                creationRequest.recurrenceRule().frequency(),
+                                creationRequest.recurrenceRule().weekDays(),
+                                creationRequest.recurrenceRule().interval(),
+                                creationRequest.recurrenceRule().endDate()
+                        );
+                        schedule.setRecurrenceRule(recurrenceRule);
+                    }
+                    return schedule;
 
-        schedule = scheduleRepository.save(schedule);
+                })
+                .toList();
 
-        return toScheduleResponseDTO(schedule);
+        schedules = scheduleRepository.saveAll(schedules);
+
+        return toScheduleResponseDTO(schedules.getFirst());
     }
 
     @Transactional(readOnly = true)
@@ -96,7 +98,7 @@ public class ScheduleService {
                         consultantProfile.getTitle(),
                         consultantStat.getRating(),
                         consultantProfile.getProfilePicture().getPictureUrl(),
-                        new ConsultantSchedulesResponse.ScheduleConsultantProfile.ConsultationFee(30,15),
+                        new ConsultationFee(30,15),
                         consultantProfile.getLocationOfInstitution()
                 )
         );

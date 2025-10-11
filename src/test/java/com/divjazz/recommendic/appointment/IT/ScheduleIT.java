@@ -13,14 +13,16 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.ConsultantService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.PatientService;
+import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +65,13 @@ public class ScheduleIT extends BaseIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
     private Consultant consultant;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private MedicalCategoryService medicalCategoryService;
+    private Role consultantRole;
+    private Role patientRole;
+    private MedicalCategoryEntity medicalCategory;
 
     private static Stream<Arguments> invalidCreateScheduleRequests() {
         return Stream.of(Arguments.of("""
@@ -173,13 +182,16 @@ public class ScheduleIT extends BaseIntegrationTest {
 
     @BeforeEach
     void setup() {
+        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"));
+                new UserCredential("sjfskjvnksjfns"), consultantRole );
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
-        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setSpecialization(medicalCategory);
 
         var consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -233,10 +245,11 @@ public class ScheduleIT extends BaseIntegrationTest {
         Patient patient = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                consultantRole
         );
         patient.getUserPrincipal().setEnabled(true);
-        patient.setMedicalCategories(new String[]{});
+        patient.addMedicalCategory(medicalCategory);
         patient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -290,10 +303,10 @@ public class ScheduleIT extends BaseIntegrationTest {
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"));
+                new UserCredential("sjfskjvnksjfns"), consultantRole);
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
-        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setSpecialization(medicalCategory);
 
         var consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -349,10 +362,10 @@ public class ScheduleIT extends BaseIntegrationTest {
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"));
+                new UserCredential("sjfskjvnksjfns"),consultantRole);
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
-        unSavedconsultant.setMedicalCategory(MedicalCategoryEnum.CARDIOLOGY);
+        unSavedconsultant.setSpecialization(medicalCategory);
 
         var consultantProfile = ConsultantProfile.builder()
                 .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
@@ -393,10 +406,11 @@ public class ScheduleIT extends BaseIntegrationTest {
         Patient patient = new Patient(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential(faker.text().text(20))
+                new UserCredential(faker.text().text(20)),
+                patientRole
         );
         patient.getUserPrincipal().setEnabled(true);
-        patient.setMedicalCategories(new String[]{});
+        patient.addMedicalCategory(medicalCategory);
         patient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -411,7 +425,7 @@ public class ScheduleIT extends BaseIntegrationTest {
         var schedule = Schedule.builder()
                 .name("Some schedule")
                 .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.VIDEO})
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
                 .startTime(LocalTime.of(12,30))
@@ -425,7 +439,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .schedule(schedule)
                 .status(AppointmentStatus.CONFIRMED)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.IN_PERSON)
                 .build();
         var appointment2 = Appointment.builder()
                 .consultant(consultant)
@@ -433,7 +447,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .schedule(schedule)
                 .status(AppointmentStatus.REQUESTED)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
-                .consultationChannel(ConsultationChannel.VOICE)
+                .consultationChannel(ConsultationChannel.IN_PERSON)
                 .build();
         List<Appointment> appointments = List.of(appointment1,appointment2);
         appointmentRepository.saveAll(appointments);

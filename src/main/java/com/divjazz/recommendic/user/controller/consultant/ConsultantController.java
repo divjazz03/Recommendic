@@ -3,9 +3,8 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.domain.RequestContext;
-import com.divjazz.recommendic.user.dto.ConsultantInfoResponse;
-import com.divjazz.recommendic.user.dto.ConsultantProfileResponse;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -108,6 +107,18 @@ public class ConsultantController {
     public ResponseEntity<Response<ConsultantProfileResponse>> getConsultantProfile() {
         var consultantProfile = consultantService.getConsultantProfileResponse();
         return ResponseEntity.ok(getResponse(consultantProfile, HttpStatus.OK));
+    }
+    @GetMapping("/profiles/details")
+    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
+    public ResponseEntity<Response<ConsultantProfileDetails>> getConsultantProfileDetails() {
+        var consultantProfileDetails = consultantService.getConsultantProfileDetails();
+        return ResponseEntity.ok(getResponse(consultantProfileDetails, HttpStatus.OK));
+    }
+    @PatchMapping("/profiles")
+    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
+    public ResponseEntity<Response<ConsultantProfileDetails>> updateConsultantProfileDetails(@RequestBody ConsultantProfileUpdateRequest updateRequest) {
+        var consultantProfileDetails = consultantService.updateConsultantProfileDetails(updateRequest);
+        return ResponseEntity.ok(getResponse(consultantProfileDetails, HttpStatus.OK));
     }
 
     @PostMapping("/{userId}/onboard")
