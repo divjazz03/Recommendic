@@ -6,35 +6,39 @@ import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
-import com.divjazz.recommendic.user.controller.patient.payload.ConsultantRecommendationResponse.ConsultantMinimal;
+import com.divjazz.recommendic.user.dto.ConsultantFull;
+import com.divjazz.recommendic.user.dto.ConsultantMinimal;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
-import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.UserConfirmation;
+import com.divjazz.recommendic.user.model.*;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.PatientCustomRepository;
+import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
+import com.divjazz.recommendic.user.repository.projection.MedicalCategoryProjection;
+import com.divjazz.recommendic.user.repository.projection.PatientProfileProjection;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +58,7 @@ public class PatientService {
     private final AuthUtils authUtils;
     private final RoleService roleService;
     private final MedicalCategoryService medicalCategoryService;
+    private final PatientCustomRepository patientCustomRepository;
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
@@ -129,7 +134,7 @@ public class PatientService {
     }
 
     @Transactional
-    public void handleOnboarding(String userId, List<String> medicalCategoryNames) {
+    public void handleOnboarding(String userId, Set<String> medicalCategoryNames) {
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
         Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByNames(medicalCategoryNames);
@@ -140,35 +145,116 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
-    public ConsultantRecommendationResponse getRecommendationForPatient() {
-        Patient patient = (Patient) authUtils.getCurrentUser();
-        Set<ConsultantMinimal> recommendations = recommendationService
-                .retrieveRecommendationByPatient(patient)
-                .stream()
+    public Page<ConsultantMinimal> getRecommendationForPatient(Pageable pageable) {
+        UserDTO userDTO =  authUtils.getCurrentUser();
+        return recommendationService.retrieveRecommendationByPatient(userDTO.userId(), pageable)
                 .map(ConsultantRecommendation::getConsultant)
-                .map(consultantService::getConsultantRecommendationProfile)
-                .collect(Collectors.toSet());
-        return new ConsultantRecommendationResponse(recommendations);
+                .map(consultantService::getConsultantRecommendationProfileMinimal);
     }
-    @Transactional
-    public PatientProfileDetails getMyProfileDetails() {
-        Patient patient = (Patient) authUtils.getCurrentUser();
-        PatientProfile patientProfile = patient.getPatientProfile();
-        String[] interests = patient.getMedicalCategories()
-                .stream()
-                .map(MedicalCategoryEntity::getName)
-                .toArray(String[]::new);
 
-        var patientProfileFull = new PatientProfileFull(
-                patientProfile.getUserName(),
+    @Transactional(readOnly = true)
+    public PatientProfileDetails getMyProfileDetails() {
+        UserDTO userDTO = authUtils.getCurrentUser();
+        var patientProfileProjectionOpt = patientCustomRepository.getFullPatientProfileByUserId(userDTO.userId());
+        if (patientProfileProjectionOpt.isPresent()) {
+            var profileProjection = patientProfileProjectionOpt.get();
+            var patientProfileFull = new PatientProfileFull(
+                    profileProjection.getUserName(),
+                    profileProjection.getEmail(),
+                    profileProjection.getPhoneNumber(),
+                    Objects.nonNull(profileProjection.getDateOfBirth()) ? profileProjection.getDateOfBirth().toString(): null,
+                    userDTO.gender().name().toLowerCase(),
+                    profileProjection.getAddress(),
+                    profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet())
+            );
+            return new PatientProfileDetails(patientProfileFull);
+        }
+
+        throw new EntityNotFoundException("User profile not found");
+    }
+
+    public PatientFullConsultantView getFullConsultantView(String consultantId) {
+        ConsultantFull fullConsultantDetails = consultantService.getFullConsultantDetails(consultantId);
+
+        return PatientFullConsultantView.builder()
+                .id(fullConsultantDetails.id())
+                .bio(fullConsultantDetails.bio())
+                .availableSlots(fullConsultantDetails.availableSlots())
+                .educations(fullConsultantDetails.educations())
+                .experience(fullConsultantDetails.experience())
+                .fee(fullConsultantDetails.fee().inPerson())
+                .image(fullConsultantDetails.image())
+                .languages(fullConsultantDetails.languages())
+                .location(fullConsultantDetails.location())
+                .rating(fullConsultantDetails.rating())
+                .reviews(fullConsultantDetails.reviews())
+                .specializations(fullConsultantDetails.specializations())
+                .stats(fullConsultantDetails.stats())
+                .title(fullConsultantDetails.title())
+                .totalReviews(fullConsultantDetails.totalReviews())
+                .name(fullConsultantDetails.name())
+                .build();
+    }
+
+    @Transactional
+    public PatientProfileDetails updatePatientProfileDetails(PatientProfileUpdateRequest updateRequest) {
+        var userDTO = authUtils.getCurrentUser();
+        var updateProfile = updateRequest.profile();
+
+        Patient patient = patientRepository.findByUserId(userDTO.userId())
+                .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
+
+        if (Objects.nonNull(updateProfile)) {
+            if (Objects.nonNull(updateProfile.address())) {
+                var addressToChange = patient.getPatientProfile().getAddress();
+                if (Objects.nonNull(updateProfile.address().getCity())) {
+                    addressToChange.setCity(updateProfile.address().getCity());
+                }
+                if (Objects.nonNull(updateProfile.address().getCountry())) {
+                    addressToChange.setCity(updateProfile.address().getCountry());
+                }
+                if (Objects.nonNull(updateProfile.address().getState())) {
+                    addressToChange.setCity(updateProfile.address().getState());
+                }
+                patient.getPatientProfile().setAddress(addressToChange);
+
+            }
+            if (Objects.nonNull(updateProfile.dateOfBirth())) {
+                patient.getPatientProfile().setDateOfBirth(LocalDate.parse(updateProfile.dateOfBirth()));
+            }
+            if (Objects.nonNull(updateProfile.phoneNumber())) {
+                patient.getPatientProfile().setPhoneNumber(updateProfile.phoneNumber());
+            }
+            if (Objects.nonNull(updateProfile.interests())) {
+                Set<MedicalCategoryEntity> medicalCategoryToAdd = medicalCategoryService.getAllByNames(updateProfile.interests());
+                patient.setMedicalCategories(medicalCategoryToAdd);
+            }
+            if (Objects.nonNull(updateProfile.userName())) {
+                var userNameToChange = patient.getPatientProfile().getUserName();
+                if (Objects.nonNull(updateProfile.userName().getFirstName())) {
+                    userNameToChange.setFirstName(updateProfile.userName().getFirstName());
+                }
+                if (Objects.nonNull(updateProfile.userName().getLastName())) {
+                    userNameToChange.setLastName(updateProfile.userName().getLastName());
+                }
+                patient.getPatientProfile().setUserName(userNameToChange);
+
+            }
+
+            patient = patientRepository.save(patient);
+        }
+        var patientProfile = new PatientProfileFull(
+                patient.getPatientProfile().getUserName(),
                 patient.getUserPrincipal().getUsername(),
-                patientProfile.getPhoneNumber(),
-                patientProfile.getDateOfBirth().toString(),
+                patient.getPatientProfile().getPhoneNumber(),
+                patient.getPatientProfile().getDateOfBirth().toString(),
                 patient.getGender().name().toLowerCase(),
-                patientProfile.getAddress(),
-                interests
+                patient.getPatientProfile().getAddress(),
+                patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet())
         );
-        return new PatientProfileDetails(patientProfileFull);
+        return new PatientProfileDetails(
+                patientProfile
+        );
     }
 
     private PatientInfoResponse toPatientInfoResponse(Patient patient) {
@@ -182,14 +268,17 @@ public class PatientService {
     }
 
     public PatientProfileResponse getThisPatientProfile() {
-        var currentUser = ((Patient) authUtils.getCurrentUser()).getPatientProfile();
-
-        return new PatientProfileResponse(
-                currentUser.getUserName(),
-                currentUser.getAge(),
-                currentUser.getAddress(),
-                currentUser.getProfilePicture()
-        );
-
+        var currentUser = authUtils.getCurrentUser();
+        var profileOpt = patientCustomRepository.getFullPatientProfileByUserId(currentUser.userId());
+        if (profileOpt.isPresent()) {
+            var profile = profileOpt.get();
+            return new PatientProfileResponse(
+                    profile.getUserName(),
+                    PatientProfile.getAge(profile.getDateOfBirth()),
+                    profile.getAddress(),
+                    profile.getProfilePicture()
+            );
+        }
+        throw new EntityNotFoundException("No profile for this user");
     }
 }

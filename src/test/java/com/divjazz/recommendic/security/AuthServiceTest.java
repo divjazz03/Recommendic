@@ -10,11 +10,11 @@ import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.exception.ConfirmationTokenExpiredException;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.UserConfirmation;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
+import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,25 +80,44 @@ public class AuthServiceTest {
     @ParameterizedTest
     @MethodSource("getValidLoginRequest")
     void givenIncorrectPasswordShouldThrowBadCredentialsException(LoginRequest loginRequest) {
-        var user = User.builder()
-                .userPrincipal(UserPrincipal.builder()
-                        .userCredential(new UserCredential("password"))
-                        .enabled(true)
-                        .role(new Role(1L,"ROLE_TEST", ""))
-                        .email("test@email.com")
-                        .accountNonLocked(true)
-                        .accountNonExpired(true)
-                        .build())
-                .userStage(UserStage.ONBOARDING)
-                .userType(UserType.CONSULTANT)
-                .gender(Gender.FEMALE)
-                .build();
+        var user = new UserProjection(){
+
+            @Override
+            public String getUserId() {
+                return "";
+            }
+
+            @Override
+            public Gender getGender() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getLastLogin() {
+                return null;
+            }
+
+            @Override
+            public UserType getUserType() {
+                return null;
+            }
+
+            @Override
+            public UserStage getUserStage() {
+                return null;
+            }
+
+            @Override
+            public UserPrincipalProjection getUserPrincipal() {
+                return null;
+            }
+        };
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
         given(generalUserService.retrieveUserByEmail(anyString())).willReturn(user);
         given(customAuthenticationProvider.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid Credentials"));
 
         assertThatExceptionOfType(BadCredentialsException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest, httpServletRequest));
-        then(generalUserService).should(times(1)).updateLoginAttempt(any(User.class), eq(LoginType.LOGIN_FAILED));
+        then(generalUserService).should(times(1)).updateLoginAttempt(any(UserProjection.class), eq(LoginType.LOGIN_FAILED));
     }
 
     @ParameterizedTest

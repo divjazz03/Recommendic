@@ -13,7 +13,7 @@ public record PageResponse<T>(
         long totalElements,
         boolean last,
         int size,
-        int number,
+        int pageNumber,
         Sort sort,
         int numberOfElements,
         boolean first,

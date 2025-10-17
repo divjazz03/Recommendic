@@ -4,6 +4,7 @@ import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.certification.Certification;
+import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,6 +45,9 @@ public class Consultant extends User{
     @OneToOne(mappedBy = "consultant", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private ConsultantProfile profile;
+
+    @OneToMany(mappedBy = "consultant")
+    private Set<ConsultantEducation> consultantEducation;
 
 
     protected Consultant() {

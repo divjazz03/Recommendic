@@ -31,7 +31,7 @@ public class MedicalCategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Medical category not found"));
     }
 
-    public Set<MedicalCategoryEntity> getAllByNames(List<String> medicalCategoryNames) {
+    public Set<MedicalCategoryEntity> getAllByNames(Set<String> medicalCategoryNames) {
         return medicalCategoryRepository.findAllByNameIn(medicalCategoryNames);
     }
 }

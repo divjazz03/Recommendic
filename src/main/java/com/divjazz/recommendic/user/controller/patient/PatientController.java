@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.controller.patient;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
+import com.divjazz.recommendic.user.dto.ConsultantMinimal;
 import com.divjazz.recommendic.user.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -95,6 +96,12 @@ public class PatientController {
         var patientProfile = patientService.getThisPatientProfile();
         return ResponseEntity.ok(getResponse(patientProfile, HttpStatus.OK));
     }
+    @PatchMapping("/profiles")
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
+    public ResponseEntity<Response<PatientProfileDetails>> updatePatientProfile(@RequestBody PatientProfileUpdateRequest updateRequest) {
+        var patientProfile = patientService.updatePatientProfileDetails(updateRequest);
+        return ResponseEntity.ok(getResponse(patientProfile, HttpStatus.OK));
+    }
 
     @DeleteMapping("/{userId}")
     @Operation(summary = "Delete Patient by id")
@@ -119,6 +126,7 @@ public class PatientController {
 
     @GetMapping("/profiles/details")
     @Operation(summary = "Get full patient profile for this authenticated user")
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
     public ResponseEntity<Response<PatientProfileDetails>> getMyProfileDetails() {
         var patientProfileDetails = patientService.getMyProfileDetails();
         return ResponseEntity
@@ -128,15 +136,22 @@ public class PatientController {
     @GetMapping("/recommendations/consultants")
     @Operation(summary = "Get Consultant Recommendations for this particular user")
     @PreAuthorize("hasAuthority('ROLE_PATIENT')")
-    public ResponseEntity<Response<ConsultantRecommendationResponse>> retrieveRecommendationsBasedOnCurrentPatientId() {
+    public ResponseEntity<Response<PageResponse<ConsultantMinimal>>> retrieveRecommendationsBasedOnCurrentPatientId(@PageableDefault(size = 20) Pageable pageable) {
 
-        var result = patientService.getRecommendationForPatient();
+        var result = PageResponse.from(patientService.getRecommendationForPatient(pageable));
         var response = getResponse(result,
                 HttpStatus.OK
         );
         return ResponseEntity.ok().body(response);
     }
 
-    public record PatientOnboardingRequest(List<String> medicalCategories) {}
+    @GetMapping("/profiles/consultants/details/{id}")
+    public ResponseEntity<Response<PatientFullConsultantView>> retrieveConsultantFullInfo(@PathVariable String id) {
+        var response = patientService.getFullConsultantView(id);
+
+        return ResponseEntity.ok(getResponse(response, HttpStatus.OK));
+    }
+
+    public record PatientOnboardingRequest(Set<String> medicalCategories) {}
 
 }

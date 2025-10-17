@@ -68,6 +68,9 @@ public class PatientProfile{
     private LocalDate dateOfBirth;
 
     public String getAge() {
+        return getAge(this.dateOfBirth);
+    }
+    public static String getAge(LocalDate dateOfBirth) {
         return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
     }
 

@@ -4,6 +4,8 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjection;
+import com.divjazz.recommendic.user.repository.projection.ConsultantProfileProjection;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,7 +27,6 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
 
     void deleteByUserId(String userId);
 
-
     @Query(value = """ 
             SELECT c FROM Consultant c
             where c.certified = false""")
@@ -42,8 +43,38 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
             from consultant c
             left join consultant_stat cs on c.id = cs.id
             left join consultant_profiles cp on c.id = cp.id
-            where certified = true and c.search_vector @@ to_tsquery('english',:query)
+            where certified = true
             """, nativeQuery = true)
     Set<ConsultantInfoProjection> findConsultantInfo(@Param("query") String query);
+
+
+
+
+    @Query("""
+        SELECT
+                c.id as id,
+                c.userId as userId,
+                c.gender as gender,
+                c.lastLogin as lastLogin,
+                c.userType as userType,
+                c.userStage as userStage,
+                c.userPrincipal as userPrincipal
+        FROM Consultant c
+        WHERE c.userId = :userId
+        """)
+    UserProjection findByUserIdReturningProjection(String userId);
+@Query("""
+        SELECT
+                c.id as id,
+                c.userId as userId,
+                c.gender as gender,
+                c.lastLogin as lastLogin,
+                c.userType as userType,
+                c.userStage as userStage,
+                c.userPrincipal as userPrincipal
+        FROM Consultant c
+        WHERE c.userPrincipal.email = :email
+        """)
+    UserProjection findByEmailReturningProjection(String email);
 
 }

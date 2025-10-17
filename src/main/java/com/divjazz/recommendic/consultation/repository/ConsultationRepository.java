@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.consultation.repository;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.user.dto.ReviewDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -83,4 +84,16 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
 """
     )
     Set<ConsultationProjection> findConsultationByPatientId(String patientId);
+
+    @Query(value = """
+        SELECT new com.divjazz.recommendic.user.dto.ReviewDTO(
+                c.review.name,
+                c.review.rating,
+                c.review.comment,
+                c.review.date
+                )
+                        FROM Consultation c
+                                WHERE c.appointment.consultant.userId = :consultantId
+        """)
+    Set<ReviewDTO> findReviewsForConsultant(String consultantId);
 }

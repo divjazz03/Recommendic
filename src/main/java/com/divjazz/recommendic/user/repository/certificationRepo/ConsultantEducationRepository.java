@@ -4,8 +4,10 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.util.Set;
+
 
 public interface ConsultantEducationRepository extends JpaRepository<ConsultantEducation, Long> {
-    List<ConsultantEducation> findAllByConsultant(Consultant consultant);
+    Set<ConsultantEducation> findAllByConsultant(Consultant consultant);
+    Set<ConsultantEducation> findAllByConsultant_UserId(String userId);
 }

@@ -297,7 +297,7 @@ public class DataSeeder implements ApplicationRunner {
             List<Object[]> consultantProfiles = new ArrayList<>(BATCH_SIZE);
             List<Object[]> consultantStats = new ArrayList<>(BATCH_SIZE);
             List<Object[]> consultantEducations = new ArrayList<>(BATCH_SIZE);
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 10000; i++) {
                 var consultant = generateFakeConsultant(faker, i, consultantRole);
                 var consultantProfile = generateFakeConsultantProfile(faker, consultant);
                 var consultantStat = generateFakeConsultantStat(faker,consultant);
@@ -319,7 +319,7 @@ public class DataSeeder implements ApplicationRunner {
                     ));
                     profilePic = objectMapper.writeValueAsString(Map.of(
                             "name", consultantProfile.getProfilePicture().getName(),
-                            "state", consultantProfile.getProfilePicture().getPictureUrl()
+                            "picture_url", consultantProfile.getProfilePicture().getPictureUrl()
                     ));
                     userCredential = objectMapper.writeValueAsString(Map.of(
                             "password", consultant.getUserPrincipal().getUserCredential().getPassword(),

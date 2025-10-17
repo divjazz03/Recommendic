@@ -307,6 +307,40 @@ public class PatientIT extends BaseIntegrationTest {
         log.info(result);
     }
 
+    @Test
+    void shouldUpdatePatientProfileDetails() throws Exception {
+        String request = """
+                {
+                    "profile": {
+                        "phoneNumber": "09046641978"
+                    }
+                }
+                """;
+        String response = mockMvc.perform(
+                        patch("/api/v1/patients/profiles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                                .with(user(patient.getUserPrincipal()))
+                ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        log.info(response);
+    }
+
+    @Test
+    void shouldReturnRecommendedConsultants() throws Exception {
+        String response = mockMvc.perform(
+                        get("/api/v1/patients/recommendations/consultants")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .with(user(patient.getUserPrincipal()))
+                ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        log.info(response);
+    }
+
     private void populatePatients() {
         Set<Patient> patients = new HashSet<>(10);
         IntStream.range(0,10)

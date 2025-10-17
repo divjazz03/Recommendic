@@ -13,11 +13,10 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.divjazz.recommendic.user.repository.AdminRepository;
-import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.*;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
+import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -37,20 +37,22 @@ public class GeneralUserService {
 
     private final ObjectMapper objectMapper;
     private final PatientRepository patientRepository;
+    private final PatientCustomRepository patientCustomRepository;
     private final ConsultantRepository consultantRepository;
+    private final ConsultantCustomRepository consultantCustomRepository;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
 
-    public User retrieveUserByEmail(String email) {
+    public UserProjection retrieveUserByEmail(String email) {
         return findUserByEmail(email);
     }
 
-    public UserSecurityProjection retrieveUserDetailInfoByEmail(String email) {
+    public UserSecurityProjectionDTO retrieveUserDetailInfoByEmail(String email) {
         var result = userRepository.findByEmail_Security_Projection(email)
                 .orElseThrow(() -> new EntityNotFoundException("User with email: %s not found".formatted(email)));
         var credential = objectMapper.convertValue(result.userCredential(), UserCredential.class);
 
-        return new UserSecurityProjection(result.id(), result.email(), result.userId(), credential);
+        return new UserSecurityProjectionDTO(result.id(), result.email(), result.userId(), credential);
 
     }
 
@@ -70,42 +72,46 @@ public class GeneralUserService {
         }
         var sessionUser = (SessionUser) authentication.getPrincipal();
 
-        User user =  retrieveUserByEmail(sessionUser.getEmail());
+        UserProjection user =  retrieveUserByEmail(sessionUser.getEmail());
         Map<String, Object> response = new HashMap<>();
-        switch (user) {
-            case Consultant consultant -> {
 
-                response.put("user", new UserController.CurrentUser(
-                        consultant.getUserId(),
-                        consultant.getUserPrincipal().getRole().getName(),
-                        consultant.getUserType(),
-                        consultant.getUserStage()
-                ));
-                response.put("profile",
+        response.put("user", new UserController.CurrentUser(
+                user.getUserId(),
+                user.getUserPrincipal().getRole().getName(),
+                user.getUserType(),
+                user.getUserStage()
+        ));
+        switch (user.getUserType()) {
+            case CONSULTANT -> {
+                var consultantProfileProjectionOpt = consultantCustomRepository
+                        .findConsultantProjectionByUserId(user.getUserId());
+                consultantProfileProjectionOpt.ifPresent(profile -> response .put("profile",
                         new ConsultantProfileResponse(
-                                consultant.getProfile().getUserName(),
-                                consultant.getProfile().getPhoneNumber(),
-                                consultant.getProfile().getAddress(),
-                                consultant.getProfile().getProfilePicture()
-                        ));
+                                profile.getUserName(),
+                                profile.getPhoneNumber(),
+                                profile.getAddress(),
+                                profile.getProfilePicture()
+                        )));
+
+
             }
-            case Patient patient -> {
-                response.put("user", new UserController.CurrentUser(
-                        patient.getUserId(),
-                        patient.getUserPrincipal().getRole().getName(),
-                        patient.getUserType(),
-                        patient.getUserStage()
-                ));
-                response.put("profile",
-                        new PatientProfileResponse(
-                                patient.getPatientProfile().getUserName(),
-                                patient.getPatientProfile().getPhoneNumber(),
-                                patient.getPatientProfile().getAddress(),
-                                patient.getPatientProfile().getProfilePicture()
-                        ));
+            case PATIENT -> {
+                var patientProfileProjectionOpt = patientCustomRepository
+                        .getFullPatientProfileByUserId(user.getUserId());
+                patientProfileProjectionOpt.ifPresent(
+                        profile -> response.put("profile",
+                                new PatientProfileResponse(
+                                        profile.getUserName(),
+                                        profile.getPhoneNumber(),
+                                        profile.getAddress(),
+                                        profile.getProfilePicture()
+                                ))
+                );
             }
-            default -> throw new IllegalStateException("Unexpected value: " + user);
+            case ADMIN -> {}
         }
+
+
         return response;
     }
 
@@ -124,18 +130,18 @@ public class GeneralUserService {
         }
     }
 
-    private User findUserByEmail(String email) {
-        Optional<Patient> patient = patientRepository.findByUserPrincipal_Email(email);
-        Optional<Consultant> consultant = consultantRepository.findByUserPrincipal_Email(email);
-        Optional<Admin> admin = adminRepository.findByUserPrincipal_Email(email);
-        if (patient.isPresent()){
-            return patient.get();
+    private UserProjection findUserByEmail(String email) {
+        UserProjection patient = patientRepository.findByEmailReturningProjection(email);
+        if (Objects.nonNull(patient)){
+            return patient;
         }
-        if (consultant.isPresent()) {
-            return consultant.get();
+        UserProjection consultant = consultantRepository.findByEmailReturningProjection(email);
+        if (Objects.nonNull(consultant)) {
+            return consultant;
         }
-        if (admin.isPresent()) {
-            return admin.get();
+        UserProjection admin = adminRepository.findByEmailReturningProjection(email);
+        if (Objects.nonNull(admin)) {
+            return admin;
         }
 
         throw new EntityNotFoundException("User with email: %s not found".formatted(email));
@@ -143,14 +149,14 @@ public class GeneralUserService {
 
     private User findUserByUserId(String userId) {
         Optional<Patient> patient = patientRepository.findByUserId(userId);
-        Optional<Consultant> consultant = consultantRepository.findByUserId(userId);
-        Optional<Admin> admin = adminRepository.findByUserId(userId);
         if (patient.isPresent()){
             return patient.get();
         }
+        Optional<Consultant> consultant = consultantRepository.findByUserId(userId);
         if (consultant.isPresent()) {
             return consultant.get();
         }
+        Optional<Admin> admin = adminRepository.findByUserId(userId);
         if (admin.isPresent()) {
             return admin.get();
         }
@@ -159,20 +165,14 @@ public class GeneralUserService {
     }
 
     @Transactional
-    public void updateLoginAttempt(User user, LoginType loginType) throws EntityNotFoundException {
-        RequestContext.setUserId(user.getId());
+    public void updateLoginAttempt(UserProjection user, LoginType loginType) throws EntityNotFoundException {
         switch (loginType) {
             case LOGIN_FAILED -> {
-                userLoginRetryHandler.handleFailedAttempts(user.getUserPrincipal().getUsername());
+                userLoginRetryHandler.handleFailedAttempts(user.getUserPrincipal().getEmail());
             }
             case LOGIN_SUCCESS -> {
-                userLoginRetryHandler.handleSuccessFulAttempt(user.getUserPrincipal().getUsername());
-                user.setLastLogin(LocalDateTime.now());
-                switch (user.getUserType()) {
-                    case CONSULTANT -> consultantRepository.save((Consultant) user);
-                    case PATIENT -> patientRepository.save((Patient) user);
-                    case ADMIN -> adminRepository.save((Admin) user);
-                }
+                userLoginRetryHandler.handleSuccessFulAttempt(user.getUserPrincipal().getEmail());
+                userRepository.setUserLastLogin(user);
             }
         }
     }

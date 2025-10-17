@@ -10,10 +10,12 @@ import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
 import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +44,8 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleResponseDTO createSchedule(List<ScheduleCreationRequest> creationRequests) {
-        var consultant = (Consultant) authUtils.getCurrentUser();
+        UserDTO userProjection =  authUtils.getCurrentUser();
+        Consultant consultant = consultantService.getReference(userProjection.id());
         List<Schedule> schedules = creationRequests.stream()
                 .map(creationRequest -> {
                     var schedule = Schedule.builder()
@@ -76,7 +79,7 @@ public class ScheduleService {
 
     @Transactional(readOnly = true)
     public Set<ScheduleDisplay> getMySchedules() {
-        return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().getId(), Pageable.ofSize(10));
+        return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().id(), Pageable.ofSize(10));
     }
 
     public ScheduleResponseDTO getScheduleById(long id) {
@@ -121,7 +124,7 @@ public class ScheduleService {
     public ScheduleResponseDTO modifySchedule(long id, ScheduleModificationRequest modificationRequest) {
         log.info("{}", modificationRequest.toString());
         var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
-        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().getUserId())) {
+        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().userId())) {
             throw new AuthorizationDeniedException("You are not the owner of this schedule, hence cannot modify this resource");
         }
 
@@ -195,7 +198,7 @@ public class ScheduleService {
 
     public void deleteScheduleById(long id) {
         var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
-        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().getUserId())) {
+        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().userId())) {
             throw new AuthorizationDeniedException("You are not authorized to delete this resource");
         }
         scheduleRepository.deleteById(id);

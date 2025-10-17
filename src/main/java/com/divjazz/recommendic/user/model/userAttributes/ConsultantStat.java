@@ -44,7 +44,7 @@ public class ConsultantStat extends Auditable {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private String[] followUps ;
 
-    @Column(name = "rating", insertable = false)
+    @Transient
     private double rating;
 
     @OneToOne

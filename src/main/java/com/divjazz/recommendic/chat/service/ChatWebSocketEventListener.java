@@ -2,9 +2,11 @@ package com.divjazz.recommendic.chat.service;
 
 import com.divjazz.recommendic.chat.dto.ChatMessage;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -26,16 +28,16 @@ public class ChatWebSocketEventListener {
     public void handleWebsocketConnectionListener(SessionConnectedEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String consultationId = sha.getFirstNativeHeader("consultationId");
-        User currentUser = authUtils.getCurrentUser();
+        UserDTO currentUser = authUtils.getCurrentUser();
         ChatMessage chatMessage;
-        switch (currentUser) {
-            case Patient patient -> {
-                var username = patient.getPatientProfile().getUserName().getFullName();
+        switch (currentUser.userType()) {
+            case PATIENT -> {
+                var username = "Patient name";
                 log.info("User {} connected to consultation {}",username , consultationId);
                 chatMessage = ChatMessage.ofConnect("user %s has connected".formatted(username));
             }
-            case Consultant consultant -> {
-                var username = consultant.getProfile().getUserName().getFullName();
+            case CONSULTANT -> {
+                var username = "Consultant name";
                 log.info("User {} connected to consultation {}",username , consultationId);
                 chatMessage = ChatMessage.ofConnect("user %s has connected".formatted(username));
             }
@@ -44,23 +46,23 @@ public class ChatWebSocketEventListener {
         // Optionally, store session info in a map to track who is online
         // e.g., Map<sessionId, ConsultationContext>
         messagingTemplate.convertAndSend("/topic/chat/" + consultationId, chatMessage);
-        chatMessageService.handleReconnection(currentUser.getUserId(), consultationId);
+        chatMessageService.handleReconnection(currentUser.userId(), consultationId);
     }
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String consultationId = sha.getFirstNativeHeader("consultationId");
         String sessionId = sha.getSessionId();
-        User currentUser = authUtils.getCurrentUser();
+        UserDTO currentUser = authUtils.getCurrentUser();
         ChatMessage chatMessage;
-        switch (currentUser) {
-            case Patient patient -> {
-                var username = patient.getPatientProfile().getUserName().getFullName();
+        switch (currentUser.userType()) {
+            case PATIENT -> {
+                var username = "Patient name";
                 log.info("User {} disconnected from consultation {}",username , consultationId);
                 chatMessage = ChatMessage.ofLeave("user %s has left".formatted(username));
             }
-            case Consultant consultant -> {
-                var username = consultant.getProfile().getUserName().getFullName();
+            case CONSULTANT -> {
+                var username = "Consultant name";
                 log.info("User {} disconnected from consultation {}",username , consultationId);
                 chatMessage = ChatMessage.ofConnect("user %s has left".formatted(username));
             }

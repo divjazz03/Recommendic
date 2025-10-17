@@ -23,7 +23,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try{
-            return userService.retrieveUserByEmail(username).getUserPrincipal();
+            return UserPrincipal.fromProjection(
+                    userService.retrieveUserByEmail(username).getUserPrincipal()
+            );
         } catch (EntityNotFoundException ex){
             throw new AuthenticationException("Invalid email please signup");
         }

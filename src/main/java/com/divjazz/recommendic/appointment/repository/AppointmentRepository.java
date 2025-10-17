@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -40,4 +41,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     LocalDate findLatestAppointmentDateForTheSchedule(Long scheduleId);
 
     List<Appointment> findAppointmentsBySchedule(Schedule schedule);
+
+    Set<Appointment> findAllByConsultant_UserIdAndAppointmentDateBetween(String consultantId, LocalDate startDate, LocalDate endDate);
+    Set<Appointment> findAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate localDate);
 }

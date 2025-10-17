@@ -1,12 +1,14 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
+import com.divjazz.recommendic.appointment.service.AppointmentService;
+import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
-import com.divjazz.recommendic.user.controller.patient.payload.ConsultantRecommendationResponse;
+import com.divjazz.recommendic.user.dto.*;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -18,6 +20,7 @@ import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.ConsultantCustomRepository;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,6 +59,9 @@ public class ConsultantService {
     private final MedicalCategoryService medicalCategoryService;
     private final ConsultantStatRepository consultantStatRepository;
     private final ConsultantEducationRepository consultantEducationRepository;
+    private final AppointmentService appointmentService;
+    private final ConsultationService consultationService;
+    private final ConsultantCustomRepository consultantCustomRepository;
 
 
     @Transactional
@@ -173,14 +180,19 @@ public class ConsultantService {
                 .orElseThrow(() -> new EntityNotFoundException("Consultant this consultant has no profile"));
     }
     public ConsultantProfileResponse getConsultantProfileResponse() {
-        var currentUser = (Consultant) authUtils.getCurrentUser();
+        var currentUser = authUtils.getCurrentUser();
+        var consultantProfileOpt = consultantProfileRepository.findByConsultantId(currentUser.userId());
+        if (consultantProfileOpt.isPresent()) {
+            var consultantProfile = consultantProfileOpt.get();
+            return new ConsultantProfileResponse(
+                    consultantProfile.getUserName(),
+                    consultantProfile.getPhoneNumber(),
+                    consultantProfile.getAddress(),
+                    consultantProfile.getProfilePicture()
+            );
+        }
+        return null;
 
-        return new ConsultantProfileResponse(
-                currentUser.getProfile().getUserName(),
-                currentUser.getProfile().getPhoneNumber(),
-                currentUser.getProfile().getAddress(),
-                currentUser.getProfile().getProfilePicture()
-        );
     }
 
     public Set<Consultant> getConsultantsByMedicalSpecialization(MedicalCategoryEntity medicalCategory) {
@@ -218,17 +230,15 @@ public class ConsultantService {
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
     }
 
-    public ConsultantRecommendationResponse.ConsultantMinimal getConsultantRecommendationProfile(Consultant consultant) {
+    public ConsultantMinimal getConsultantRecommendationProfileMinimal(Consultant consultant) {
         ConsultantProfile consultantProfile = consultant.getProfile();
-        ConsultantStat consultantStat = consultantStatRepository
-                .findConsultantStatByConsultantId(consultant.getUserId()).orElse(ConsultantStat.ofEmpty());
-        List<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
+        Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
 
-        return new ConsultantRecommendationResponse.ConsultantMinimal(
+        return new ConsultantMinimal(
                 consultant.getUserId(),
                 consultantProfile.getUserName().getFullName(),
                 consultant.getSpecialization().getName(),
-                consultantStat.getRating(),0,
+                4.5,0,
                 consultantProfile.getYearsOfExperience(),
                 consultantProfile.getLocationOfInstitution(),
                 "",
@@ -237,59 +247,121 @@ public class ConsultantService {
                 consultantEducations.stream()
                         .map(ConsultantEducation::getDegree)
                         .collect(Collectors.toList()),
-                Arrays.stream(consultantProfile.getLanguages()).toList(),
+                Arrays.stream(consultantProfile.getLanguages() == null? new String[0]: consultantProfile.getLanguages()).toList(),
                 ""
         );
     }
+    public ConsultantFull getFullConsultantDetails(String consultantId) {
+        Consultant consultant = consultantRepository.findByUserId(consultantId)
+                .orElseThrow(() -> new EntityNotFoundException("No consultant of this id found"));
+        var consultantProfile = consultant.getProfile();
+        ConsultantStat consultantStat = consultantStatRepository.findConsultantStatByConsultantId(consultantId)
+                .orElse(ConsultantStat.ofEmpty());
+        Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
 
-    public ConsultantProfileDetails getConsultantProfileDetails() {
-        Consultant consultant = (Consultant) authUtils.getCurrentUser();
-        ConsultantEducation consultantEducation;
-        try{
-            consultantEducation = consultantEducationRepository.findAllByConsultant(consultant).getFirst();
-        } catch (NoSuchElementException e) {
-            consultantEducation = ConsultantEducation.ofEmpty();
-        }
-        var consultantProfile = ConsultantProfileFull.builder()
-                .address(consultant.getProfile().getAddress())
-                .bio(consultant.getProfile().getBio())
-                .dateOfBirth(consultant.getProfile().getDateOfBirth().toString())
-                .email(consultant.getUserPrincipal().getUsername())
-                .location(consultant.getProfile().getLocationOfInstitution())
-                .experience(String.valueOf(consultant.getProfile().getYearsOfExperience()))
-                .gender(consultant.getGender().name().toLowerCase())
-                .languages(consultant.getProfile().getLanguages())
-                .specialty(consultant.getSpecialization().getName())
-                .userName(consultant.getProfile().getUserName())
-                .phoneNumber(consultant.getProfile().getPhoneNumber())
-                .build();
-        return new ConsultantProfileDetails(
-                consultantProfile,
-                new ConsultantEducationResponse(
-                        String.valueOf(consultantEducation.getYear()),
-                        consultantEducation.getInstitution(),
-                        consultantEducation.getDegree()
+        var availableSlots =  appointmentService.getTodayAvailableSlots(consultantId)
+                .stream()
+                .map(OffsetDateTime::toString)
+                .collect(Collectors.toSet());
+        return ConsultantFull.builder()
+                .bio(consultantProfile.getBio())
+                .experience(consultantProfile.getYearsOfExperience())
+                .fee(new ConsultationFee(20,50))
+                .id(consultant.getUserId())
+                .image(consultantProfile.getProfilePicture().getPictureUrl())
+                .location(consultantProfile.getLocationOfInstitution())
+                .name(consultantProfile.getUserName().getFullName())
+                .rating(4.5)
+                .title(consultantProfile.getTitle())
+                .totalReviews(200)
+                .educations(consultantEducations.stream()
+                        .map(consultantEducation -> new ConsultantEducationDTO(
+                                consultantEducation.getInstitution(),
+                                consultantEducation.getDegree(),
+                                String.valueOf(consultantEducation.getYear())
+                        ))
+                        .collect(Collectors.toSet()))
+                .languages(Set.of(consultantProfile.getLanguages()))
+                .specializations(Collections.singleton(consultant.getSpecialization().getName()))
+                .stats(new ConsultantStatDTO(
+                        consultantStat.getPatientsHelped().length,
+                        consultantStat.getSuccessRate(),
+                        consultantStat.getAverageResponseTime(),
+                        consultantStat.getSuccessRate()
+                ))
+                .availableSlots(
+                       availableSlots
                 )
-        );
+                .reviews(consultationService.retrieveReviewsByConsultantId(consultantId))
+                .build();
+
     }
-    @Transactional
+    @Transactional(readOnly = true)
+    public ConsultantProfileDetails getConsultantProfileDetails() {
+        var userProjection = authUtils.getCurrentUser();
+        var consultantProfileWithEducationProjectionOpt = consultantCustomRepository.findConsultantProjectionByUserId(userProjection.userId());
+        if (consultantProfileWithEducationProjectionOpt.isPresent()) {
+            var consultantProfile = consultantProfileWithEducationProjectionOpt.get();
+            var consultantProfileDetails = ConsultantProfileFull.builder()
+                    .address(consultantProfile.getAddress())
+                    .bio(consultantProfile.getBio())
+                    .dateOfBirth(consultantProfile.getDateOfBirth().toString())
+                    .email(userProjection.userPrincipal().getUsername())
+                    .location(consultantProfile.getLocation())
+                    .experience(String.valueOf(consultantProfile.getExperience()))
+                    .gender(userProjection.gender().name().toLowerCase())
+                    .languages(consultantProfile.getLanguages())
+                    .specialty(consultantProfile.getSpecialty().name())
+                    .userName(consultantProfile.getUserName())
+                    .phoneNumber(consultantProfile.getPhoneNumber())
+                    .build();
+
+            ConsultantEducationResponse educationResponse = consultantProfile.getEducations().stream()
+                .map(consultantEducation -> new ConsultantEducationResponse(
+                    String.valueOf(consultantEducation.getYear()),
+                    consultantEducation.getInstitution(),
+                    consultantEducation.getDegree())).findAny().orElse(null);
+
+            return new ConsultantProfileDetails(
+                    consultantProfileDetails,
+                    educationResponse
+            );
+
+        }
+        throw new EntityNotFoundException("Could't find this customer's profile");
+    }
+
     public ConsultantProfileDetails updateConsultantProfileDetails(ConsultantProfileUpdateRequest consultantProfileUpdateRequest) {
-        Consultant consultant = (Consultant) authUtils.getCurrentUser();
+        String consultantId =  authUtils.getCurrentUser().userId();
         ConsultantEducation consultantEducation;
+        Consultant consultant = consultantRepository.findByUserId(consultantId)
+                .orElseThrow(() -> new EntityNotFoundException("No consultant of id %s exists".formatted(consultantId)));
 
         try {
-            consultantEducation = consultantEducationRepository.findAllByConsultant(consultant).getFirst();
+            consultantEducation = consultantEducationRepository
+                    .findAllByConsultant_UserId(consultantId)
+                    .stream().findAny().orElse(ConsultantEducation.ofEmpty());
         } catch (NoSuchElementException ex) {
             consultantEducation = ConsultantEducation.ofEmpty();
         }
         ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
         if (Objects.nonNull(profile)) {
             if (Objects.nonNull(profile.specialty())) {
-                consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
+                    consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
             }
 
             if (Objects.nonNull(profile.address())) {
-                consultant.getProfile().setAddress(profile.address());
+                var addressToChange = consultant.getProfile().getAddress();
+                if (Objects.nonNull(profile.address().getState())){
+                    addressToChange.setState(profile.address().getState());
+                }
+                if (Objects.nonNull(profile.address().getCountry())){
+                    addressToChange.setState(profile.address().getCountry());
+                }
+                if (Objects.nonNull(profile.address().getCity())){
+                    addressToChange.setState(profile.address().getCity());
+                }
+                consultant.getProfile().setAddress(addressToChange);
             }
 
             if (Objects.nonNull(profile.bio())) {
@@ -310,6 +382,17 @@ public class ConsultantService {
 
             if (Objects.nonNull(profile.phoneNumber())) {
                 consultant.getProfile().setPhoneNumber(profile.phoneNumber());
+            }
+
+            if (Objects.nonNull(profile.userName())) {
+                var usernameToChange = consultant.getProfile().getUserName();
+                if (Objects.nonNull(profile.userName().getFirstName())) {
+                    usernameToChange.setFirstName(profile.userName().getFirstName());
+                }
+                if (Objects.nonNull(profile.userName().getLastName())) {
+                    usernameToChange.setLastName(profile.userName().getLastName());
+                }
+                consultant.getProfile().setUserName(usernameToChange);
             }
 
             consultant = consultantRepository.save(consultant);
@@ -352,6 +435,10 @@ public class ConsultantService {
                 )
         );
 
+    }
+
+    public Consultant getReference(long id) {
+        return consultantRepository.getReferenceById(id);
     }
 
 }

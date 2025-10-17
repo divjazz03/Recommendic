@@ -93,6 +93,7 @@ public class ConsultantProfile{
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+
     public String getAge() {
         return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
     }

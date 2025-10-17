@@ -41,7 +41,8 @@ public class ArticleService {
 
     public ArticleDTO uploadArticle(ArticleUpload articleUpload) {
 
-        var consultant = (Consultant) authUtils.getCurrentUser();
+        var userDTO = authUtils.getCurrentUser();
+        Consultant consultant = consultantService.getReference(userDTO.id());
 
         var article = new Article(articleUpload.title(),
                 articleUpload.subtitle(),
@@ -97,7 +98,7 @@ public class ArticleService {
     public ArticleDTO getArticleById(long id) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Article with id: %s either doesn't exist or has been deleted".formatted(id)));
-        if (authUtils.getCurrentUser().getUserType() == UserType.PATIENT) {
+        if (authUtils.getCurrentUser().userType() == UserType.PATIENT) {
             ArticleEvent articleEvent = new ArticleEvent(authUtils.getCurrentUser(), EventType.ARTICLE_PATIENT_REQUESTED, article);
             eventPublisher.publishEvent(articleEvent);
         }
@@ -122,8 +123,8 @@ public class ArticleService {
         );
     }
 
-    private ArticleSearchResponse convertFromArticleToArticleSearchResponse(Article article, Consultant consultant) {
-        var consultantProfile = consultantService.getConsultantProfile(consultant);
+    private ArticleSearchResponse convertFromArticleToArticleSearchResponse(Article article, String consultantId) {
+        var consultantProfile = consultantService.getConsultantProfileByConsultantId(consultantId);
         return new ArticleSearchResponse(
                 article.getId(),
                 article.getTitle(),
@@ -140,10 +141,10 @@ public class ArticleService {
         );
     }
     @Transactional
-    public PageResponse<ArticleSearchResponse> getByConsultant(Consultant consultant, Pageable pageable) {
-        var pageOfArticle = articleRepository.queryArticleByConsultant(consultant, pageable);
+    public PageResponse<ArticleSearchResponse> getByConsultant(String consultantId, Pageable pageable) {
+        var pageOfArticle = articleRepository.queryArticleByConsultant_UserId(consultantId, pageable);
         var pageOfArticleSearchResponse = pageOfArticle
-                .map(article -> convertFromArticleToArticleSearchResponse(article, consultant));
+                .map(article -> convertFromArticleToArticleSearchResponse(article, consultantId));
         return PageResponse.from(pageOfArticleSearchResponse);
     }
     @Transactional
@@ -152,7 +153,7 @@ public class ArticleService {
     }
 
     @Cacheable(value = "articleRecommendationResponse", keyGenerator = "customCacheKeyGenerator")
-    public PageResponse<ArticleSearchResponse> recommendArticles(Pageable pageable, Patient patient) {
+    public PageResponse<ArticleSearchResponse> recommendArticles(Pageable pageable, String patient_id) {
         Set<ArticleSearchDTO> results = articleRepositoryCustom.recommendArticleForPatient(pageable.getPageNumber(), pageable.getPageSize());
         Set<ArticleSearchResponse> articleSearchResponseSet = results.stream()
                 .map(this::convertFromSearchDTOtoSearchResponse)

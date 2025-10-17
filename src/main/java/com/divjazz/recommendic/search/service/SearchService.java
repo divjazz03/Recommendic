@@ -15,7 +15,9 @@ import com.divjazz.recommendic.search.repository.SearchRepository;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantInfoResponse;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.User;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -62,19 +64,19 @@ public class SearchService {
         return searchRepository.findByOwnerOfSearchId(currentUser.getUserId());
     }
 
-    private Set<SearchResult> handleSearchForAuthorizedUsers(String query, User currentUser, String category) {
+    private Set<SearchResult> handleSearchForAuthorizedUsers(String query, UserDTO currentUser, String category) {
         Set<SearchResult> results = new HashSet<>(20);
         // For authorized users
         var searchCategoryEnum = Category.valueOf(category.toUpperCase().trim());
-        var userType = currentUser.getUserType();
+        var userType = currentUser.userType();
 
         switch (userType) {
             case PATIENT -> {
                 switch (searchCategoryEnum) {
                     // All categories in search option from the frontend
                     case ALL -> {
-                        var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.getUserId());
-                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
+                        var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.userId());
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.userId());
                         var articles = articleService.searchArticle(
                                 query,
                                 Pageable.ofSize(10)
@@ -96,14 +98,14 @@ public class SearchService {
                     }
 
                     case CONSULTATION -> {
-                        var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.getUserId());
+                        var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
                                 .map(ConsultationMapper::consultationToConsultationResponse)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
 
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
 
                     case ARTICLE -> {
                        var articles = articleService.searchArticle(
@@ -115,7 +117,7 @@ public class SearchService {
                     }
 
                     case APPOINTMENT -> {
-                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByPatientId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
                                 .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
@@ -133,8 +135,8 @@ public class SearchService {
                 switch (searchCategoryEnum) {
                     // All categories in search option from the frontend
                     case ALL -> {
-                        var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.getUserId());
-                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
+                        var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.userId());
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
                                 .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
@@ -149,7 +151,7 @@ public class SearchService {
                     }
 
                     case CONSULTATION -> {
-                        var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.getUserId());
+                        var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
                                 .map(ConsultationMapper::consultationToConsultationResponse)
                                 .collect(Collectors.toSet());
@@ -157,9 +159,9 @@ public class SearchService {
                         results.add(
                                 new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
                     case APPOINTMENT -> {
-                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.getUserId());
+                        var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
                                 .map(AppointmentMapper::appointmentToDTO)
                                 .limit(10).collect(Collectors.toSet());
@@ -188,7 +190,7 @@ public class SearchService {
 
 
                         var consultants = consultantService.getAllUnCertifiedConsultants();
-                        var assignments = adminService.getAllAssignmentsAssigned(currentUser.getUserId());
+                        var assignments = adminService.getAllAssignmentsAssigned(currentUser.userId());
                         if (!consultants.isEmpty() && !assignments.isEmpty()) {
                             results.addAll(Set.of(
                                     new SearchResult(Category.ASSIGNMENT, assignments),
@@ -202,12 +204,12 @@ public class SearchService {
 
                     }
                     case ASSIGNMENT -> {
-                        var assignments = adminService.getAllAssignmentsAssigned(currentUser.getUserId());
+                        var assignments = adminService.getAllAssignmentsAssigned(currentUser.userId());
                         if (!assignments.isEmpty()) {
                             results.add(new SearchResult(Category.ASSIGNMENT, assignments));
                         }
                     }
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.getUserId()));
+                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
 
                     default -> results.add(new SearchResult(Category.ALL, Collections.emptySet()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
@@ -216,7 +218,8 @@ public class SearchService {
 
             }
         }
-        searchRepository.save(new Search(query, searchCategoryEnum, currentUser));
+        User user = userService.retrieveUserByUserId(currentUser.userId());
+        searchRepository.save(new Search(query, searchCategoryEnum, user));
         return results;
     }
 

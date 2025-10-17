@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -123,20 +124,20 @@ public class PatientServiceTest {
 
     @ParameterizedTest
     @MethodSource("getValidMedicalCategories")
-    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(List<String> medicalCategories) {
+    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(Set<String> medicalCategories) {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(patient));
 
         patientService.handleOnboarding(patient.getUserId(), medicalCategories);
     }
     @ParameterizedTest
     @MethodSource("getInValidMedicalCategories")
-    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(List<String> invalidMedicalCategories) {
+    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(Set<String> invalidMedicalCategories) {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), invalidMedicalCategories));
     }
     @ParameterizedTest
     @MethodSource("getValidMedicalCategories")
-    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(List<String> medicalCategories) {
+    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(Set<String> medicalCategories) {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
         assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), medicalCategories));
     }

@@ -14,6 +14,7 @@ import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.ReviewDTO;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -39,8 +41,8 @@ public class ConsultationService {
     public ConsultationResponse startConsultation(Long appointmentId) {
         Appointment appointment = appointmentService.getAppointmentById(appointmentId);
         var currentUser = authUtils.getCurrentUser();
-        if (!currentUser.getUserId().equals(appointment.getPatient().getUserId()) ||
-                !currentUser.getUserId().equals(appointment.getConsultant().getUserId())) {
+        if (!currentUser.userId().equals(appointment.getPatient().getUserId()) ||
+                !currentUser.userId().equals(appointment.getConsultant().getUserId())) {
             throw new AuthorizationException("You are not registered for this appointment");
         }
         if (consultationRepository.existsByAppointmentId(appointmentId)) {
@@ -81,5 +83,8 @@ public class ConsultationService {
                 .orElseThrow(
                         () -> new EntityNotFoundException("Consultation with id: %s not found".formatted(consultationId))
                 );
+    }
+    public Set<ReviewDTO> retrieveReviewsByConsultantId(String consultantId) {
+        return consultationRepository.findReviewsForConsultant(consultantId);
     }
 }

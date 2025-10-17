@@ -8,20 +8,26 @@ import com.divjazz.recommendic.security.exception.LoginFailedException;
 import com.divjazz.recommendic.user.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.transaction.TransactionException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import javax.security.auth.login.CredentialExpiredException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.global.RequestUtils.*;
 import static com.divjazz.recommendic.global.RequestUtils.getErrorResponse;
@@ -42,6 +48,14 @@ public class GlobalControllerExceptionAdvice {
                 .body(getErrorResponse(HttpStatus.FORBIDDEN,
                         e,
                         "You are not authorized to perform this action"));
+    }
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationDeniedException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(getErrorResponse(HttpStatus.FORBIDDEN,
+                        e,
+                        "You are not authorized to access this resource"));
     }
 
     @ExceptionHandler(TransactionException.class)
@@ -73,12 +87,12 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)
     public ResponseEntity<Response<Object>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(getErrorResponse(HttpStatus.CONFLICT, ex,null));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(getErrorResponse(HttpStatus.CONFLICT, ex));
     }
 
     @ExceptionHandler(ConfirmationTokenExpiredException.class)
     public ResponseEntity<Response<Object>> handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex,null));
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -91,10 +105,23 @@ public class GlobalControllerExceptionAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(getErrorResponse(HttpStatus.BAD_REQUEST,ex, new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)));
     }
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Response<Set<String>>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        List<ParameterValidationResult> results = ex.getParameterValidationResults();
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST,
+                ex,
+                results.stream()
+                        .flatMap(
+                                result -> result.getResolvableErrors().stream()
+                                        .map(MessageSourceResolvable::getDefaultMessage)
+                        )
+                        .collect(Collectors.toSet())
+                ));
+    }
 
     @ExceptionHandler(NoSuchMedicalCategory.class)
     public ResponseEntity<Response<Object>> handleInvalidMedicalCategory(NoSuchMedicalCategory ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.BAD_REQUEST, ex, null), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.BAD_REQUEST, ex), HttpStatus.BAD_REQUEST);
     }
 
 
@@ -102,12 +129,12 @@ public class GlobalControllerExceptionAdvice {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Response<String>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
 
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.CONFLICT, ex, null), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.CONFLICT, ex), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(LoginFailedException.class)
     public ResponseEntity<Response<String>> handleLoginFailed(LoginFailedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
@@ -118,32 +145,35 @@ public class GlobalControllerExceptionAdvice {
     }
     @ExceptionHandler(CredentialExpiredException.class)
     public ResponseEntity<Response<String>> handleCredentialExpired(CredentialExpiredException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex, null), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<Response<String>> handleAccountLocked(LockedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex, null), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Response<String>> handleAuthentication(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null));
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
     }
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ResponseEntity<Response<String>> handleGeneralAuthenticationError(org.springframework.security.core.AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex, null));
+                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
     }
-
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Response<String>> handleEntityNotFound(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex, null));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Response<String>> handleGeneralArgumentException(IllegalArgumentException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e, null));
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e));
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Response<String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
     }
 
 

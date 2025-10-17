@@ -18,6 +18,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 @Table(name = "appointment")
 @Entity
@@ -58,5 +59,18 @@ public class Appointment extends Auditable {
     }
     public OffsetDateTime getEndDateAndTime() {
         return OffsetDateTime.of(appointmentDate, schedule.getEndTime(), schedule.getZoneOffset());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Appointment that = (Appointment) o;
+        return Objects.equals(schedule.getScheduleId(), that.schedule.getScheduleId()) && Objects.equals(appointmentDate, that.appointmentDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return 2024;
     }
 }

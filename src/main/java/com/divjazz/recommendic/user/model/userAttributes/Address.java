@@ -5,7 +5,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
+import lombok.Setter;
 
+import java.util.Objects;
+
+@Setter
 @Getter
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class Address {
@@ -22,19 +26,18 @@ public class Address {
         this.country = country;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Address address)) return false;
+
+        return Objects.equals(city, address.city) && Objects.equals(state, address.state) && Objects.equals(country, address.country);
     }
 
-    public void setState(String state) {
-        this.state = state;
+    @Override
+    public int hashCode() {
+        return Objects.hash(city,state,country);
     }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-
 
     @Override
     public String toString() {

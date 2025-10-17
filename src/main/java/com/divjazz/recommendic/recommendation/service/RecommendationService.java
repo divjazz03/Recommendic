@@ -8,11 +8,14 @@ import com.divjazz.recommendic.recommendation.repository.ArticleRecommendationRe
 import com.divjazz.recommendic.recommendation.repository.ConsultantRecommendationRepository;
 import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.MedicalCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +34,8 @@ public class RecommendationService {
     private final MedicalCategoryService medicalCategoryService;
 
 
-    public Set<ConsultantRecommendation> retrieveRecommendationByPatient(Patient patient) {
-        return consultantRecommendationRepository.findByPatient(patient).orElse(Set.of());
+    public Page<ConsultantRecommendation> retrieveRecommendationByPatient(String patientId, Pageable pageable) {
+        return consultantRecommendationRepository.findByPatient_UserId(patientId, pageable);
 
     }
 
@@ -42,7 +45,11 @@ public class RecommendationService {
     }
     @Async("recommendicTaskExecutor")
     public void createConsultantRecommendationForPatient(Patient patient) {
-        Set<Consultant> consultants = new HashSet<>(consultantService.getAllConsultants());
+        Set<Consultant> consultants = consultantService
+                .getAllConsultants()
+                .stream()
+                .filter(consultant -> consultant.getUserStage() == UserStage.ACTIVE_USER)
+                .collect(Collectors.toSet());
         consultants.forEach(consultant -> consultantRecommendationRepository.save(new ConsultantRecommendation(consultant, patient)));
     }
     @Async("recommendicTaskExecutor")

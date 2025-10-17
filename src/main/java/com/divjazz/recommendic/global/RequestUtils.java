@@ -55,4 +55,16 @@ public class RequestUtils {
                 data
         );
     }
+    public static <T> Response<T> getErrorResponse(
+            HttpStatusCode status,
+            Exception exception) {
+        return new Response<>(
+                now().format(ISO_LOCAL_DATE_TIME),
+                status.value(),
+                HttpStatus.valueOf(status.value()),
+                errorReason.apply(exception, status),
+                exception.getClass().getCanonicalName(),
+                null
+        );
+    }
 }

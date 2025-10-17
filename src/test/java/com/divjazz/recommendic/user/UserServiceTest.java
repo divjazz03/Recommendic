@@ -4,6 +4,7 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.LoginType;
+import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -14,6 +15,8 @@ import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.divjazz.recommendic.user.service.UserLoginRetryHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,6 +53,38 @@ public class UserServiceTest {
 
     @InjectMocks
     private GeneralUserService generalUserService;
+
+    UserProjection user = new UserProjection() {
+        @Override
+        public String getUserId() {
+            return "";
+        }
+
+        @Override
+        public Gender getGender() {
+            return null;
+        }
+
+        @Override
+        public LocalDateTime getLastLogin() {
+            return null;
+        }
+
+        @Override
+        public UserType getUserType() {
+            return null;
+        }
+
+        @Override
+        public UserStage getUserStage() {
+            return null;
+        }
+
+        @Override
+        public UserPrincipalProjection getUserPrincipal() {
+            return null;
+        }
+    };
 
     @Test
     void givenValidEmailShouldReturnConsultant() {
@@ -134,16 +170,7 @@ public class UserServiceTest {
 
     @Test
     void shouldCallHandleFailedAttemptWhenLoginFailed() {
-        var user = User.builder()
-                .userPrincipal(UserPrincipal.builder()
-                        .email("test_user@test.com")
-                        .role(new Role(1L,"ROLE_TEST", ""))
-                        .enabled(true)
-                        .userCredential(new UserCredential("password"))
-                        .build())
-                .userId(UUID.randomUUID().toString())
-                .userType(UserType.CONSULTANT)
-                .build();
+
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_FAILED);
 
         then(userLoginRetryHandler).should(times(1)).handleFailedAttempts(eq(user.getUserPrincipal().getUsername()));
@@ -155,12 +182,7 @@ public class UserServiceTest {
 
     @Test
     void shouldCallHandleSuccessAttemptForPatientWhenLoginSuccess() {
-        var user = new Patient(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
+
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
         then(userLoginRetryHandler).should(never()).handleFailedAttempts(anyString());
@@ -173,12 +195,7 @@ public class UserServiceTest {
     }
     @Test
     void shouldCallHandleSuccessAttemptForConsultantWhenLoginSuccess() {
-        var user = new Consultant(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
+
         generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
 
         then(userLoginRetryHandler).should(never()).handleFailedAttempts(anyString());

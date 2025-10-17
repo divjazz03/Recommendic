@@ -2,6 +2,7 @@ package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -16,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
 public class UserPrincipal implements UserDetails {
     @Setter
     private boolean accountNonExpired;
@@ -27,11 +29,11 @@ public class UserPrincipal implements UserDetails {
     private String email;
     @ManyToOne
     @JoinColumn(name = "role")
-    @Getter
+
     private Role role;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
-    @Getter
+
     private UserCredential userCredential;
 
     public UserPrincipal(String email, UserCredential userCredential, Role role) {
@@ -79,5 +81,13 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public static UserPrincipal fromProjection(UserPrincipalProjection userPrincipalProjection) {
+        return new UserPrincipal(
+                userPrincipalProjection.getEmail(),
+                userPrincipalProjection.getUserCredential(),
+                Role.fromProjection(userPrincipalProjection.getRole())
+        );
     }
 }

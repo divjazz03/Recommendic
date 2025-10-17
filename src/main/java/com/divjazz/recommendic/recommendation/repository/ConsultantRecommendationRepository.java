@@ -2,6 +2,8 @@ package com.divjazz.recommendic.recommendation.repository;
 
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.user.model.Patient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -9,5 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ConsultantRecommendationRepository extends JpaRepository<ConsultantRecommendation, UUID> {
-    Optional<Set<ConsultantRecommendation>> findByPatient(Patient patient);
+    Page<ConsultantRecommendation> findByPatient_UserId(String userId, Pageable pageable);
+
 }

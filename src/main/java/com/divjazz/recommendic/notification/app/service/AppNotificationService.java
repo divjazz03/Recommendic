@@ -50,7 +50,7 @@ public class AppNotificationService {
 
     public PageResponse<NotificationDTO> getNotificationsForAuthenticatedUser(Pageable pageable) {
         return PageResponse.from(notificationRepository
-                .findAllByForUserId(authUtils.getCurrentUser().getUserId(), pageable)
+                .findAllByForUserId(authUtils.getCurrentUser().userId(), pageable)
                 .map(appNotification -> new NotificationDTO(appNotification.getHeader(),
                         appNotification.getSummary(),
                         appNotification.getForUserId(),

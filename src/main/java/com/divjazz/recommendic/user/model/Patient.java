@@ -27,11 +27,11 @@ public class Patient extends User {
     )
     private Set<MedicalCategoryEntity> medicalCategories;
 
-    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST}, orphanRemoval = true)
     @JsonManagedReference
     private PatientProfile patientProfile;
 
-    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "patient", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @JsonManagedReference
     private ConsultationPatientData patientData;
 

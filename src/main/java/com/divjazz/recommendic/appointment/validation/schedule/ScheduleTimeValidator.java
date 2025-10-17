@@ -20,6 +20,8 @@ public class ScheduleTimeValidator implements ConstraintValidator<ScheduleTime, 
             LocalTime.parse(s);
             return true;
         } catch (DateTimeParseException e) {
+            constraintValidatorContext.disableDefaultConstraintViolation();
+            constraintValidatorContext.buildConstraintViolationWithTemplate(e.getMessage()).addConstraintViolation();
             return false;
         }
     }

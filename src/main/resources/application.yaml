@@ -53,7 +53,7 @@ spring:
     hikari:
       auto-commit: true
   jpa:
-    show-sql: true
+    show-sql: false
     open-in-view: false
     hibernate:
       ddl-auto: none

@@ -4,6 +4,7 @@ import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -42,6 +43,10 @@ public class Consultation extends Auditable {
     @Column(name = "consultation_id", updatable = false, insertable = false)
     @org.hibernate.annotations.Generated(event = EventType.INSERT)
     private String consultationId;
+    @OneToOne(mappedBy = "consultation")
+    @JsonIgnore
+    private ConsultationReview review;
+
     public Consultation(Appointment appointment, ConsultationChannel channel) {
         this.appointment = appointment;
         this.channel = channel;

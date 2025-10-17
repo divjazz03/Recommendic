@@ -51,9 +51,9 @@ public class ArticleController {
     @Operation(summary = "Get paged articles")
     public ResponseEntity<Response<PageResponse<ArticleSearchResponse>>> retrieveArticle(@PageableDefault Pageable pageable) {
         var user = authUtils.getCurrentUser();
-        var results = switch (user.getUserType()) {
-            case PATIENT -> articleService.recommendArticles(pageable,(Patient) user);
-            case CONSULTANT -> articleService.getByConsultant((Consultant) user, pageable);
+        var results = switch (user.userType()) {
+            case PATIENT -> articleService.recommendArticles(pageable,user.userId());
+            case CONSULTANT -> articleService.getByConsultant(user.userId(), pageable);
             case null, default -> null;
         };
 

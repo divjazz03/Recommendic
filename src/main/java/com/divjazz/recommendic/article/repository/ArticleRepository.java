@@ -21,7 +21,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             """, nativeQuery = true)
     Set<ArticleSearchDTO> queryArticle(@Param("query") String query, @Param("size") int size, @Param("page") int page);
 
-    Page<Article> queryArticleByConsultant(Consultant consultant, Pageable pageable);
+    Page<Article> queryArticleByConsultant_UserId(String id, Pageable pageable);
     Stream<Article> findArticleByConsultant(Consultant consultant);
     @Query(value = """
     select from retrievetoparticles(:size, :page)

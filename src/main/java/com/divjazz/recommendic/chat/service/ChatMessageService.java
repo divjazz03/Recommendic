@@ -9,6 +9,10 @@ import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
+import com.divjazz.recommendic.user.repository.PatientProfileRepository;
+import com.divjazz.recommendic.user.repository.PatientRepository;
+import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,26 +30,29 @@ public class ChatMessageService {
     private final ConsultationService consultationService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final AuthUtils authUtils;
+    private final PatientProfileRepository patientProfileRepository;
+    private final ConsultantProfileRepository consultantProfileRepository;
 
     @Transactional
     public void sendMessage(ChatPayload chatPayload, String consultationId) {
         var consultation = consultationService.getConsultationById(consultationId);
         var currentUser = authUtils.getCurrentUser();
-        if (currentUser.getUserId() == null) {
+        if (currentUser.userId() == null) {
             throw new AuthenticationException("No user id found for current user");
         }
-        var recipientId = switch (currentUser) {
-            case Patient ignored -> consultation.getAppointment().getConsultant().getUserId();
-            case Consultant ignored -> consultation.getAppointment().getPatient().getUserId();
+        var recipientId = switch (currentUser.userType()) {
+            case PATIENT  -> consultation.getAppointment().getConsultant().getUserId();
+            case CONSULTANT -> consultation.getAppointment().getPatient().getUserId();
             default -> throw new IllegalStateException("Unexpected value: " + currentUser);
         };
-        var userName = switch (currentUser) {
-            case Patient patient ->  patient.getPatientProfile().getUserName().getFirstName();
-            case Consultant consultant ->   consultant.getProfile().getUserName().getFirstName();
+        var userName = switch (currentUser.userType()) {
+            case PATIENT -> consultation.getAppointment().getPatient().getPatientProfile().getUserName().getFirstName();
+
+            case CONSULTANT -> consultation.getAppointment().getConsultant().getProfile().getUserName().getFirstName();
             default -> throw new IllegalStateException("Unexpected value: " + currentUser);
         };
         var chatMessage = ChatMessage.ofChat(
-                currentUser.getUserId(),
+                currentUser.userId(),
                 recipientId,
                 userName,
                 chatPayload.content(),
@@ -53,7 +60,7 @@ public class ChatMessageService {
                 LocalDateTime.parse(chatPayload.timestamp())
         );
         var message = new Message(
-                currentUser.getUserId(),
+                currentUser.userId(),
                 recipientId,
                 consultation,
                 chatPayload.content(),
@@ -80,12 +87,24 @@ public class ChatMessageService {
 
     private ChatMessage toChatMessage(Message message) {
         var currentUser = authUtils.getCurrentUser();
-        if (currentUser.getUserId() == null) {
+        if (currentUser.userType() == null) {
             throw new AuthenticationException("No user id found for current user");
         }
-        var userName = switch (currentUser) {
-            case Patient patient ->  patient.getPatientProfile().getUserName().getFirstName();
-            case Consultant consultant ->   consultant.getProfile().getUserName().getFirstName();
+        var userName = switch (currentUser.userType()) {
+            case PATIENT -> {
+                var profileOpt = patientProfileRepository.findById(currentUser.id());
+                if (profileOpt.isPresent()) {
+                    yield profileOpt.get().getUserName().getFirstName();
+                }
+                yield "Couldn't find name";
+            }
+            case CONSULTANT -> {
+                var profileOpt = consultantProfileRepository.findByConsultantId(currentUser.userId());
+                if (profileOpt.isPresent()){
+                    yield profileOpt.get().getUserName().getFirstName();
+                }
+                yield "Couldn't find name";
+            }
             default -> throw new IllegalStateException("Unexpected value: " + currentUser);
         };
         return ChatMessage.ofChat(message.getSenderId(),
