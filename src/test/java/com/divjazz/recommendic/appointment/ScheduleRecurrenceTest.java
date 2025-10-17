@@ -10,8 +10,12 @@ import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserStage;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
@@ -22,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -44,9 +49,15 @@ public class ScheduleRecurrenceTest {
     @InjectMocks
     private ScheduleService scheduleService;
 
-    private final Consultant currentUser = new Consultant(faker.internet().emailAddress(),
+    private final UserDTO currentUser = new UserDTO(1,
+            "",
             Gender.MALE,
-            new UserCredential("dsdjskjfskjfsk"), new Role(1L,"ROLE_TEST", ""));
+            LocalDateTime.now(),
+            UserType.CONSULTANT,
+            UserStage.ONBOARDING,
+            new UserPrincipal("",
+                    new UserCredential("password"),
+                    new Role("Admin","")));
     @Test
     void shouldCreateScheduleWithoutRecurrenceRule() {
         var creationRequest = new ScheduleCreationRequest(

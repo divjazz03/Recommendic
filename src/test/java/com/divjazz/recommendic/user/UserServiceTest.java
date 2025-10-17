@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.UserPrincipal;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -56,6 +57,11 @@ public class UserServiceTest {
 
     UserProjection user = new UserProjection() {
         @Override
+        public Long getId() {
+            return 0L;
+        }
+
+        @Override
         public String getUserId() {
             return "";
         }
@@ -83,6 +89,11 @@ public class UserServiceTest {
         @Override
         public UserPrincipalProjection getUserPrincipal() {
             return null;
+        }
+
+        @Override
+        public UserDTO toUserDTO() {
+            return UserProjection.super.toUserDTO();
         }
     };
 

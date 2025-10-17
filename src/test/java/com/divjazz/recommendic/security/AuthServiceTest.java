@@ -3,6 +3,7 @@ package com.divjazz.recommendic.security;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.service.AuthService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.LoginType;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -83,6 +84,11 @@ public class AuthServiceTest {
         var user = new UserProjection(){
 
             @Override
+            public Long getId() {
+                return 0L;
+            }
+
+            @Override
             public String getUserId() {
                 return "";
             }
@@ -110,6 +116,11 @@ public class AuthServiceTest {
             @Override
             public UserPrincipalProjection getUserPrincipal() {
                 return null;
+            }
+
+            @Override
+            public UserDTO toUserDTO() {
+                return UserProjection.super.toUserDTO();
             }
         };
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);

@@ -6,8 +6,12 @@ import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.article.service.ArticleService;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
+import com.divjazz.recommendic.user.enums.UserStage;
+import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
@@ -24,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Set;
 
@@ -83,10 +88,10 @@ public class ArticleServiceTest {
     @BeforeEach
     void setup() {
         consultantUser = new Consultant(
-                "test_user2@test.com",
+                "Email",
                 Gender.MALE,
-                new UserCredential("test_user2_password"),
-                new Role(1L,"ROLE_TEST", "")
+                new UserCredential("password"),
+                new Role("CONSULTANT","")
         );
         consultantProfile = ConsultantProfile.builder()
                 .consultant(consultantUser)
@@ -102,7 +107,16 @@ public class ArticleServiceTest {
                 "Subtitle for the article",
                 new String[]{"child health"},"lots of stuff"
         );
-        given(authUtils.getCurrentUser()).willReturn(consultantUser);
+        var userDTO = new UserDTO(1,
+                "",
+                Gender.MALE,
+                LocalDateTime.now(),
+                UserType.CONSULTANT,
+                UserStage.ONBOARDING,
+                new UserPrincipal("",
+                        new UserCredential("password"),
+                        new Role("Admin","")));
+        given(authUtils.getCurrentUser()).willReturn(userDTO);
 
         var article = articleService.uploadArticle(articleUpload);
         assertThat(article.tags()).contains(articleUpload.tags());

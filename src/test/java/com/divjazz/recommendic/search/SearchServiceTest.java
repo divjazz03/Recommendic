@@ -8,11 +8,14 @@ import com.divjazz.recommendic.search.service.SearchService;
 import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.AdminService;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -21,6 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
@@ -56,17 +61,15 @@ public class SearchServiceTest {
 
     @Test
     void givenUserExistsButInvalidCategoryShouldThrowIllegalArgumentException() {
-        var user = User.builder()
-                .userPrincipal(UserPrincipal.builder()
-                        .email("testemail@test.com")
-                        .role(new Role(1L, "TEST_ROLE", ""))
-                        .enabled(false)
-                        .build())
-                .userStage(UserStage.ONBOARDING)
-                .userType(UserType.CONSULTANT)
-                .gender(Gender.FEMALE)
-
-                .build();
+        var user = new UserDTO(1,
+                "",
+                Gender.MALE,
+                LocalDateTime.now(),
+                UserType.CONSULTANT,
+                UserStage.ONBOARDING,
+                new UserPrincipal("",
+                        new UserCredential("password"),
+                        new Role("Admin","")));
         var invalidCategoryString = "apppoinntmemt";
         var query = "some query";
         given(authUtils.getCurrentUser()).willReturn(user);
