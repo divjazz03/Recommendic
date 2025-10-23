@@ -38,14 +38,14 @@ public class ConsultationService {
 
 
     @Transactional
-    public ConsultationResponse startConsultation(Long appointmentId) {
-        Appointment appointment = appointmentService.getAppointmentById(appointmentId);
+    public ConsultationResponse startConsultation(String appointmentId) {
+        Appointment appointment = appointmentService.getAppointmentByAppointmentId(appointmentId);
         var currentUser = authUtils.getCurrentUser();
-        if (!currentUser.userId().equals(appointment.getPatient().getUserId()) ||
-                !currentUser.userId().equals(appointment.getConsultant().getUserId())) {
+        if (!(currentUser.userId().equals(appointment.getPatient().getUserId()) ||
+                currentUser.userId().equals(appointment.getConsultant().getUserId()))) {
             throw new AuthorizationException("You are not registered for this appointment");
         }
-        if (consultationRepository.existsByAppointmentId(appointmentId)) {
+        if (consultationRepository.existsByAppointment_AppointmentId(appointmentId)) {
             throw new ConsultationAlreadyStartedException("Consultation already started for this appointment");
         }
 

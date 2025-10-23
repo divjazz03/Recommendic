@@ -57,7 +57,10 @@ public class ConsultantProfileProjectionTransformer {
                 }
                 email = rs.getString("email");
                 phoneNumber = rs.getString("phoneNumber");
-                dateOfBirth = LocalDate.parse(rs.getString("dateOfBirth"));
+                var sqlDateOfBirth = rs.getDate("dateOfBirth");
+                if (Objects.nonNull(sqlDateOfBirth)) {
+                    dateOfBirth = sqlDateOfBirth.toLocalDate();
+                }
                 gender = Gender.valueOf(rs.getString("gender"));
                 experience = rs.getInt("experience");
                 location = rs.getString("location");
@@ -75,32 +78,15 @@ public class ConsultantProfileProjectionTransformer {
                 if (Objects.nonNull(profilePictureString)) {
                     profilePicture = objectMapper.readValue(profilePictureString, ProfilePicture.class);
                 }
-            }
-            var educationYear = rs.getInt("educationYear");
-            var educationInstitution = rs.getString("educationInstitution");
-            var educationDegree = rs.getString("educationDegree");
-            var educationId = rs.getString("educationId");
-            var languagesSqlArray = rs.getArray("languages");
-            languages = Objects.nonNull(languagesSqlArray) ? (String[]) languagesSqlArray.getArray(): new String[0];
-            bio = rs.getString("bio");
-            if (Objects.nonNull(educationId)) {
-                consultantEducationProjections.add(new ConsultantEducationProjection() {
-                    @Override
-                    public String getDegree() {
-                        return educationDegree;
-                    }
+                var languagesSqlArray = rs.getArray("languages");
+                languages = Objects.nonNull(languagesSqlArray) ? (String[]) languagesSqlArray.getArray(): new String[0];
+                bio = rs.getString("bio");
 
-                    @Override
-                    public String getInstitution() {
-                        return educationInstitution;
-                    }
-
-                    @Override
-                    public int getYear() {
-                        return educationYear;
-                    }
-                });
+                populateEducation(rs, consultantEducationProjections);
+            } else {
+                populateEducation(rs, consultantEducationProjections);
             }
+
         }
 
         UserName finalUserName = userName;
@@ -183,5 +169,31 @@ public class ConsultantProfileProjectionTransformer {
                         return finalProfilePicture;
                     }
                 });
+    }
+
+    private static void populateEducation(ResultSet rs, Set<ConsultantEducationProjection> consultantEducationProjections) throws SQLException {
+        var educationYear = rs.getInt("educationYear");
+        var educationInstitution = rs.getString("educationInstitution");
+        var educationDegree = rs.getString("educationDegree");
+        var educationId = rs.getString("educationId");
+
+        if (Objects.nonNull(educationId)) {
+            consultantEducationProjections.add(new ConsultantEducationProjection() {
+                @Override
+                public String getDegree() {
+                    return educationDegree;
+                }
+
+                @Override
+                public String getInstitution() {
+                    return educationInstitution;
+                }
+
+                @Override
+                public int getYear() {
+                    return educationYear;
+                }
+            });
+        }
     }
 }

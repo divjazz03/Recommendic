@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Embeddable;
@@ -12,12 +13,13 @@ import java.util.Objects;
 @Setter
 @Getter
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Address {
     private String city;
     private String state;
     private String country;
 
-    protected Address() {
+    public Address() {
     }
 
     public Address(String city, String state, String country) {

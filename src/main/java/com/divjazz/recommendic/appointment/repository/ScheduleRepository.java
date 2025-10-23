@@ -2,6 +2,8 @@ package com.divjazz.recommendic.appointment.repository;
 
 import com.divjazz.recommendic.appointment.model.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,4 +15,15 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Transactional(readOnly = true)
     Set<Schedule> findAllByConsultant_UserId(String consultantId);
     Optional<Schedule> findByScheduleId(String scheduleId);
+
+    @Query("""
+    SELECT s.consultant.userId
+        FROM Schedule s
+        JOIN s.consultant
+        WHERE s.scheduleId = :scheduleId
+    """)
+    Optional<String> getScheduleForDeletionReturningConsultantId(String scheduleId);
+
+    @Modifying
+    void deleteScheduleByScheduleId(String scheduleId);
 }

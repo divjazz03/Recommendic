@@ -19,15 +19,10 @@ public class RequestUtils {
     private static final BiFunction<Exception, HttpStatusCode, String> errorReason = (exception, httpStatus) -> {
         if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
             return "You do not have enough permission";
-        if (exception instanceof AuthenticationException ||
-                exception instanceof EntityNotFoundException ||
-                exception instanceof NoSuchMedicalCategory ||
-                exception instanceof UserAlreadyExistsException)
-            return exception.getMessage();
         if (httpStatus.is5xxServerError())
             return "An Internal server error occurred";
         else
-            return "An error occurred. Please try again ";
+            return exception.getMessage();
     };
 
     public static<T> Response<T> getResponse(

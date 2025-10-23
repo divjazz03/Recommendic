@@ -89,10 +89,10 @@ public class ConsultationTest {
 
     @Test
     void givenAppointmentIdNotExistShouldThrowEntityNotFoundException() {
-        given(appointmentService.getAppointmentById(anyLong())).willThrow(EntityNotFoundException.class);
+        given(appointmentService.getAppointmentByAppointmentId(anyString())).willThrow(EntityNotFoundException.class);
 
         assertThatExceptionOfType(EntityNotFoundException.class)
-                .isThrownBy(() -> consultationService.startConsultation(2L));
+                .isThrownBy(() -> consultationService.startConsultation("FSFSFSF"));
     }
 
     @Test
@@ -103,11 +103,11 @@ public class ConsultationTest {
                 .status(AppointmentStatus.CONFIRMED)
                 .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
-        given(appointmentService.getAppointmentById(anyLong())).willReturn(appointmentToReturn);
-        given(consultationRepository.existsByAppointmentId(anyLong())).willReturn(true);
+        given(appointmentService.getAppointmentByAppointmentId(anyString())).willReturn(appointmentToReturn);
+        given(consultationRepository.existsByAppointment_AppointmentId(anyString())).willReturn(true);
 
         assertThatExceptionOfType(ConsultationAlreadyStartedException.class)
-                .isThrownBy(() -> consultationService.startConsultation(2L));
+                .isThrownBy(() -> consultationService.startConsultation("ffjkfjbkfk"));
     }
 
     @Test
@@ -126,10 +126,10 @@ public class ConsultationTest {
                 .endedAt(LocalDateTime.now())
                 .summary("")
                 .build();
-        given(appointmentService.getAppointmentById(anyLong())).willReturn(appointmentToReturn);
-        given(consultationRepository.existsByAppointmentId(anyLong())).willReturn(false);
+        given(appointmentService.getAppointmentByAppointmentId(anyString())).willReturn(appointmentToReturn);
+        given(consultationRepository.existsByAppointment_AppointmentId(anyString())).willReturn(false);
         given(consultationRepository.save(any(Consultation.class))).willReturn(consultationToReturn);
-        var result = consultationService.startConsultation(2L);
+        var result = consultationService.startConsultation("fkdnldkfnldkf");
 
         assertThat(result.status()).isEqualTo(ConsultationStatus.ONGOING.toString());
         assertThat(result.channel()).isEqualTo(appointmentToReturn.getConsultationChannel().toString());

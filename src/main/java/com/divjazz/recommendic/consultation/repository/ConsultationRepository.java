@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     Optional<Consultation> findByAppointmentId(Long id);
     Optional<Consultation> findByConsultationId(String id);
-    boolean existsByAppointmentId(Long id);
+    boolean existsByAppointment_AppointmentId(String id);
 
 
     @Query(value = """ 

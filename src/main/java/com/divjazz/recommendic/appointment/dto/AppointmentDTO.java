@@ -6,8 +6,8 @@ public record AppointmentDTO(
         String consultantId,
         String consultantFullName,
         String status,
-        String startTime,
-        String endTime,
+        String startDateTime,
+        String endDateTime,
         String channel
 ) {
 }

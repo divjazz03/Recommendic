@@ -34,14 +34,14 @@ public class AppointmentController {
                 .body(getResponse(response, HttpStatus.CREATED));
     }
     @PostMapping("{id}/confirm")
-    @PreAuthorize("@authUtils.currentUser.userPrincipal.role.equals('ROLE_CONSULTANT')")
-    public ResponseEntity<Void> confirmAppointment(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
+    public ResponseEntity<Void> confirmAppointment(@PathVariable String id) {
         appointmentService.confirmAppointment(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<Response<String>> cancelAppointment(@PathVariable long id,
+    public ResponseEntity<Response<String>> cancelAppointment(@PathVariable String id,
                                                               @Valid @RequestBody AppointmentCancellationRequest appointmentCancellationRequest) {
         appointmentService.cancelAppointment(id, appointmentCancellationRequest.reason());
         return ResponseEntity.ok(getResponse("Appointment Cancelled", HttpStatus.OK));

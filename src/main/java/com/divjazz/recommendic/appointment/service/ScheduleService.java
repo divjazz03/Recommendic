@@ -121,9 +121,9 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleResponseDTO modifySchedule(long id, ScheduleModificationRequest modificationRequest) {
+    public ScheduleResponseDTO modifySchedule(String id, ScheduleModificationRequest modificationRequest) {
         log.info("{}", modificationRequest.toString());
-        var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
+        var schedule = scheduleRepository.findByScheduleId(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
         if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().userId())) {
             throw new AuthorizationDeniedException("You are not the owner of this schedule, hence cannot modify this resource");
         }
@@ -195,12 +195,13 @@ public class ScheduleService {
                 schedule.isActive()
         );
     }
-
-    public void deleteScheduleById(long id) {
-        var schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s does not exist or has been deleted".formatted(id)));
-        if (!schedule.getConsultant().getUserId().equals(authUtils.getCurrentUser().userId())) {
+    @Transactional
+    public void deleteScheduleById(String id) {
+        var consultantId = scheduleRepository.getScheduleForDeletionReturningConsultantId(id)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule does not exist or has been deleted"));
+        if (!consultantId.equals(authUtils.getCurrentUser().userId())) {
             throw new AuthorizationDeniedException("You are not authorized to delete this resource");
         }
-        scheduleRepository.deleteById(id);
+        scheduleRepository.deleteScheduleByScheduleId(id);
     }
 }

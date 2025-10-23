@@ -22,7 +22,7 @@ public class ConsultantCustomRepository {
                 SELECT
                         c.user_id as userId,
                        cf.userName as userName,
-                       c.user_credential ->> 'email' as email,
+                       c.email as email,
                        cf.phone_number as phoneNumber,
                        cf.date_of_birth as dateOfBirth,
                        c.gender as gender,

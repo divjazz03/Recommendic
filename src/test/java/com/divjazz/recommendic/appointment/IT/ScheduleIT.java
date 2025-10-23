@@ -75,7 +75,7 @@ public class ScheduleIT extends BaseIntegrationTest {
 
     private static Stream<Arguments> invalidCreateScheduleRequests() {
         return Stream.of(Arguments.of("""
-                {
+                [{
                     "name":"My schedule",
                     "startTime": "11:30",
                     "zoneOffset": "+01:00",
@@ -83,9 +83,9 @@ public class ScheduleIT extends BaseIntegrationTest {
                     "recurrenceRule": null,
                     "isRecurring": false,
                     "isActive": true
-                }
+                }]
                 """), Arguments.of("""
-                {
+                [{
                     "name":"My schedule",
                     "startTime": "1130",
                     "endTime": "14:400",
@@ -94,9 +94,9 @@ public class ScheduleIT extends BaseIntegrationTest {
                     "recurrenceRule": {},
                     "isRecurring": true,
                     "isActive": true
-                }
+                }]
                 """), Arguments.of("""
-                {
+                [{
                     "name":"My schedule",
                     "startTime": "11:30",
                     "endTime": "14:00",
@@ -110,9 +110,9 @@ public class ScheduleIT extends BaseIntegrationTest {
                     },
                     "isRecurring": true,
                     "isActive": true
-                }
+                }]
                 """), Arguments.of("""
-                {
+                [{
                     "name":"My schedule",
                     "startTime": "11:30",
                     "endTime": "14:00",
@@ -126,56 +126,74 @@ public class ScheduleIT extends BaseIntegrationTest {
                     },
                     "isRecurring": true,
                     "isActive": true
-                }
+                }]
                 """));
     }
 
     private static Stream<Arguments> createScheduleRequests() {
         return Stream.of(
                 Arguments.of("""
-                        {
+                        [{
                             "name":"My schedule",
                             "startTime": "11:30",
                             "endTime": "14:00",
                             "zoneOffset": "+01:00",
-                            "channels": ["voice","in_person"],
-                            "recurrenceRule": null,
-                            "isActive": true
-                        }
-                        """),
-                Arguments.of("""
-                        {
-                            "name":"My schedule",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["voice","in_person"],
+                            "channels": ["online","in_person"],
                             "recurrenceRule": {
                                 "frequency": "one-off",
                                 "weekDays": ["monday", "wednesday"],
                                 "interval": 2,
                                 "endDate": "2023-01-23"
                             },
-                            "isRecurring": true,
                             "isActive": true
-                        }
-                        """),
-                Arguments.of("""
+                        },
                         {
                             "name":"My schedule",
                             "startTime": "11:30",
                             "endTime": "14:00",
                             "zoneOffset": "+01:00",
-                            "channels": ["voice","in_person"],
+                            "channels": ["online"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }
+                        ]
+                        """),
+                Arguments.of("""
+                        [{
+                            "name":"My schedule",
+                            "startTime": "11:30",
+                            "endTime": "14:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                        """),
+                Arguments.of("""
+                        [{
+                            "name":"My schedule",
+                            "startTime": "11:30",
+                            "endTime": "14:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
                             "recurrenceRule": {
                                 "frequency": "weekly",
                                 "weekDays": ["monday", "wednesday", "friday"],
                                 "interval": 1,
                                 "endDate": "2023-01-23"
                             },
-                            "isRecurring": true,
                             "isActive": true
-                        }
+                        }]
                         """)
         );
     }
@@ -246,7 +264,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                 faker.internet().emailAddress(),
                 Gender.MALE,
                 new UserCredential(faker.text().text(20)),
-                consultantRole
+                patientRole
         );
         patient.getUserPrincipal().setEnabled(true);
         patient.addMedicalCategory(medicalCategory);
@@ -277,7 +295,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                             "startTime": "11:30",
                             "endTime": "14:00",
                             "zoneOffset": "+01:00",
-                            "channels": ["voice","in_person"],
+                            "channels": ["online","in_person"],
                             "recurrenceRule": {
                                 "frequency": "one-off",
                                 "interval": 2,
@@ -325,13 +343,12 @@ public class ScheduleIT extends BaseIntegrationTest {
                             "startTime": "11:30",
                             "endTime": "14:00",
                             "zoneOffset": "+01:00",
-                            "channels": ["voice","in_person"],
+                            "channels": ["online","in_person"],
                             "recurrenceRule": {
                                 "frequency": "one-off",
                                 "interval": 2,
                                 "endDate": "2023-01-23"
                             },
-                            "isRecurring": true,
                             "isActive": true
                         }
                         """;

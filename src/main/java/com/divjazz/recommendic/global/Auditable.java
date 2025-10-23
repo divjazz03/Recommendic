@@ -40,9 +40,18 @@ public abstract class Auditable {
     @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Auditable that = (Auditable) o;
+        return id != 0 && id == that.id;
+    }
+
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Long.hashCode(id);
     }
 
 }

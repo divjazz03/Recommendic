@@ -57,7 +57,7 @@ public class ScheduleController {
     }
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
-    public ResponseEntity<Response<ScheduleResponseDTO>> modifySchedule(@PathVariable long id,
+    public ResponseEntity<Response<ScheduleResponseDTO>> modifySchedule(@PathVariable String id,
                                                                         @RequestBody @Valid ScheduleModificationRequest modificationRequest) {
         var schedule = scheduleService.modifySchedule(id, modificationRequest);
         return ResponseEntity.status(HttpStatus.OK)
@@ -65,7 +65,7 @@ public class ScheduleController {
     }
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT','ROLE_ADMIN')")
-    public ResponseEntity<Response<Void>> deleteSchedule(@PathVariable long id) {
+    public ResponseEntity<Response<Void>> deleteSchedule(@PathVariable String id) {
         scheduleService.deleteScheduleById(id);
         return ResponseEntity.noContent().build();
     }

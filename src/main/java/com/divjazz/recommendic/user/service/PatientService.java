@@ -15,10 +15,7 @@ import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.*;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import com.divjazz.recommendic.user.model.userAttributes.Role;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientCustomRepository;
 import com.divjazz.recommendic.user.repository.PatientProfileRepository;
@@ -158,7 +155,7 @@ public class PatientService {
         var patientProfileProjectionOpt = patientCustomRepository.getFullPatientProfileByUserId(userDTO.userId());
         if (patientProfileProjectionOpt.isPresent()) {
             var profileProjection = patientProfileProjectionOpt.get();
-            var patientProfileFull = new PatientProfileFull(
+            return new PatientProfileDetails(
                     profileProjection.getUserName(),
                     profileProjection.getEmail(),
                     profileProjection.getPhoneNumber(),
@@ -167,7 +164,6 @@ public class PatientService {
                     profileProjection.getAddress(),
                     profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet())
             );
-            return new PatientProfileDetails(patientProfileFull);
         }
 
         throw new EntityNotFoundException("User profile not found");
@@ -199,51 +195,41 @@ public class PatientService {
     @Transactional
     public PatientProfileDetails updatePatientProfileDetails(PatientProfileUpdateRequest updateRequest) {
         var userDTO = authUtils.getCurrentUser();
-        var updateProfile = updateRequest.profile();
 
         Patient patient = patientRepository.findByUserId(userDTO.userId())
                 .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
 
-        if (Objects.nonNull(updateProfile)) {
-            if (Objects.nonNull(updateProfile.address())) {
-                var addressToChange = patient.getPatientProfile().getAddress();
-                if (Objects.nonNull(updateProfile.address().getCity())) {
-                    addressToChange.setCity(updateProfile.address().getCity());
-                }
-                if (Objects.nonNull(updateProfile.address().getCountry())) {
-                    addressToChange.setCity(updateProfile.address().getCountry());
-                }
-                if (Objects.nonNull(updateProfile.address().getState())) {
-                    addressToChange.setCity(updateProfile.address().getState());
-                }
+        if (Objects.nonNull(updateRequest)) {
+            if (Objects.nonNull(updateRequest.address())) {
+                Address addressToChange = getAddressToChange(updateRequest, patient);
                 patient.getPatientProfile().setAddress(addressToChange);
 
             }
-            if (Objects.nonNull(updateProfile.dateOfBirth())) {
-                patient.getPatientProfile().setDateOfBirth(LocalDate.parse(updateProfile.dateOfBirth()));
+            if (Objects.nonNull(updateRequest.dateOfBirth())) {
+                patient.getPatientProfile().setDateOfBirth(LocalDate.parse(updateRequest.dateOfBirth()));
             }
-            if (Objects.nonNull(updateProfile.phoneNumber())) {
-                patient.getPatientProfile().setPhoneNumber(updateProfile.phoneNumber());
+            if (Objects.nonNull(updateRequest.phoneNumber())) {
+                patient.getPatientProfile().setPhoneNumber(updateRequest.phoneNumber());
             }
-            if (Objects.nonNull(updateProfile.interests())) {
-                Set<MedicalCategoryEntity> medicalCategoryToAdd = medicalCategoryService.getAllByNames(updateProfile.interests());
+            if (Objects.nonNull(updateRequest.interests())) {
+                Set<MedicalCategoryEntity> medicalCategoryToAdd = medicalCategoryService.getAllByNames(updateRequest.interests());
                 patient.setMedicalCategories(medicalCategoryToAdd);
             }
-            if (Objects.nonNull(updateProfile.userName())) {
+            if (Objects.nonNull(updateRequest.userName())) {
                 var userNameToChange = patient.getPatientProfile().getUserName();
-                if (Objects.nonNull(updateProfile.userName().getFirstName())) {
-                    userNameToChange.setFirstName(updateProfile.userName().getFirstName());
+                if (Objects.nonNull(updateRequest.userName().getFirstName())) {
+                    userNameToChange.setFirstName(updateRequest.userName().getFirstName());
                 }
-                if (Objects.nonNull(updateProfile.userName().getLastName())) {
-                    userNameToChange.setLastName(updateProfile.userName().getLastName());
+                if (Objects.nonNull(updateRequest.userName().getLastName())) {
+                    userNameToChange.setLastName(updateRequest.userName().getLastName());
                 }
                 patient.getPatientProfile().setUserName(userNameToChange);
 
             }
 
-            patient = patientRepository.save(patient);
+            patient = patientRepository.saveAndFlush(patient);
         }
-        var patientProfile = new PatientProfileFull(
+        return new PatientProfileDetails(
                 patient.getPatientProfile().getUserName(),
                 patient.getUserPrincipal().getUsername(),
                 patient.getPatientProfile().getPhoneNumber(),
@@ -252,9 +238,23 @@ public class PatientService {
                 patient.getPatientProfile().getAddress(),
                 patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet())
         );
-        return new PatientProfileDetails(
-                patientProfile
-        );
+    }
+
+    private static Address getAddressToChange(PatientProfileUpdateRequest updateRequest, Patient patient) {
+        Address addressToChange = patient.getPatientProfile().getAddress();
+        if (Objects.isNull(addressToChange)) {
+            addressToChange = new Address();
+        }
+        if (Objects.nonNull(updateRequest.address().getCity())) {
+            addressToChange.setCity(updateRequest.address().getCity());
+        }
+        if (Objects.nonNull(updateRequest.address().getCountry())) {
+            addressToChange.setCountry(updateRequest.address().getCountry());
+        }
+        if (Objects.nonNull(updateRequest.address().getState())) {
+            addressToChange.setState(updateRequest.address().getState());
+        }
+        return addressToChange;
     }
 
     private PatientInfoResponse toPatientInfoResponse(Patient patient) {

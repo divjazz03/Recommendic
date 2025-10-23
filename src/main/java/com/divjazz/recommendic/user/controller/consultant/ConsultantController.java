@@ -37,13 +37,8 @@ public class ConsultantController {
                 "lastName": "Doe",
                 "email": "johnDoe@gmail.com",
                 "password": "password",
-                "phoneNumber": "+2347044849392",
+                "dateOfBirth": "2003-12-01",
                 "gender": "Male",
-                "zipCode": "123456",
-                "city": "Ibadan",
-                "state": "Oyo",
-                "country": "Nigeria",
-                "medicalSpecialization": "Dentistry"
             }
             """;
     private final ConsultantService consultantService;

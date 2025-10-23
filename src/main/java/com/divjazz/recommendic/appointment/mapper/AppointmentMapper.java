@@ -2,9 +2,6 @@ package com.divjazz.recommendic.appointment.mapper;
 
 import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.model.Appointment;
-import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 
 import java.time.format.DateTimeFormatter;
 

@@ -26,7 +26,7 @@ public class ConsultationController {
 
     @PostMapping(value = "/{id}/start")
     @Operation(summary = "Starts a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable Long id) {
+    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable String id) {
         ConsultationResponse response = consultationService.startConsultation(id);
         return ResponseEntity.created(URI.create("/start/"+ id))
                 .body(getResponse(response, HttpStatus.CREATED));

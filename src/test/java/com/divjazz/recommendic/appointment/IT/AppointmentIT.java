@@ -119,6 +119,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .build();
         schedule = scheduleRepository.save(unsavedSchedule);
+        log.info("Schedule was saved with id {}", schedule.getScheduleId());
     }
     @Test
     void shouldCreateANewAppointmentAndReturn201Created() throws Exception{
@@ -126,9 +127,10 @@ public class AppointmentIT extends BaseIntegrationTest {
                         {
                             "consultantId": "%s",
                             "scheduleId": "%s",
-                            "channel": "video"
+                            "channel": "online",
+                            "date": "2025-12-10"
                         }
-                        """.formatted(consultant.getUserId(), schedule.getId());
+                        """.formatted(consultant.getUserId(), schedule.getScheduleId());
         var result = mockMvc.perform(
                 post(BASE_URL)
                         .content(request)
@@ -159,12 +161,13 @@ public class AppointmentIT extends BaseIntegrationTest {
         log.info("appointment = {}", result);
     }
     @Test
-    void shouldNotCreateAppointmentButReturn404BecauseScheduleDoesNotExistBadRequest() throws Exception {
+    void shouldNotCreateAppointmentButReturn404BecauseScheduleDoesNotExist() throws Exception {
         var request = """
                         {
                             "consultantId": "%s",
                             "scheduleId": "%s",
-                            "channel": "video"
+                            "channel": "online",
+                            "date" : "2001-03-09"
                         }
                         """.formatted(consultant.getUserId(), 2794879L);
         var result = mockMvc.perform(
@@ -196,7 +199,7 @@ public class AppointmentIT extends BaseIntegrationTest {
 
 
         mockMvc.perform(
-                post(BASE_URL + "/"+ appointment.getId() + "/cancel")
+                post(BASE_URL + "/"+ appointment.getAppointmentId() + "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayLoad)
                         .with(user(patient.getUserPrincipal()))
@@ -223,11 +226,29 @@ public class AppointmentIT extends BaseIntegrationTest {
 
 
         mockMvc.perform(
-                post(BASE_URL + "/"+ appointment.getId() + "/cancel")
+                post(BASE_URL + "/"+ appointment.getAppointmentId() + "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayLoad)
                         .with(user(consultant.getUserPrincipal()))
 
         ).andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+    }
+    @Test
+    void shouldConfirmAppointmentIfAuthorizedConsultant() throws Exception {
+        Appointment appointment = Appointment.builder()
+                .consultant(consultant)
+                .patient(patient)
+                .schedule(schedule)
+                .status(AppointmentStatus.REQUESTED)
+                .appointmentDate(LocalDate.of(2025, 12, 21))
+                .consultationChannel(ConsultationChannel.ONLINE)
+                .build();
+
+        appointment = appointmentRepository.save(appointment);
+
+        mockMvc.perform(
+                post(BASE_URL + "/%s/confirm".formatted(appointment.getAppointmentId()))
+                        .with(user(consultant.getUserPrincipal()))
+        ).andExpect(status().isOk());
     }
 }

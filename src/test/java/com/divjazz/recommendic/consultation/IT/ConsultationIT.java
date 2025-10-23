@@ -146,6 +146,38 @@ public class ConsultationIT extends BaseIntegrationTest {
         ).andExpect(status().isNotFound());
     }
     @Test
+    void shouldNotStartConsultationIfNotAPartOfTheConsultation() throws Exception {
+        Patient unsavedPatient = new Patient(
+                FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(FAKER.text().text(20)),patientRole
+        );
+        unsavedPatient.getUserPrincipal().setEnabled(true);
+        unsavedPatient.addMedicalCategory(medicalCategory);
+        unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
+        PatientProfile patientProfile = PatientProfile.builder()
+                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
+                .phoneNumber(FAKER.phoneNumber().phoneNumber())
+                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
+                .patient(unsavedPatient)
+                .build();
+        unsavedPatient.setPatientProfile(patientProfile);
+        patient = patientRepository.save(unsavedPatient);
+
+        Consultant unsavedConsultant = new Consultant(
+                FAKER.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(FAKER.text().text(20)), consultantRole
+        );
+        unsavedConsultant.getUserPrincipal().setEnabled(true);
+        unsavedConsultant.setSpecialization(medicalCategory);
+        unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
+        mockMvc.perform(
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                        .with(user(patient.getUserPrincipal()))
+        ).andExpect(status().isForbidden());
+    }
+    @Test
     void shouldNotRestartConsultationIfAlreadyStarted() throws Exception {
         Consultation startedConsultation = Consultation.builder()
                 .appointment(appointment)
@@ -157,7 +189,7 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
@@ -187,14 +219,14 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .build();
         var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isBadRequest());
     }
     @Test
     void shouldStartConsultationIfAppointmentExistsAndNotStarted() throws Exception {
         var result = mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         log.info("result: {}", result);
@@ -212,7 +244,7 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getId()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
@@ -234,7 +266,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 """;
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/complete".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getId()))
+                post("%s/%s/complete".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getConsultationId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonSummary)
                         .with(user(consultant.getUserPrincipal()))

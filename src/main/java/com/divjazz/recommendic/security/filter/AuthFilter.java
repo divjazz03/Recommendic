@@ -14,12 +14,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,24 +35,37 @@ public class AuthFilter extends OncePerRequestFilter {
         if (session != null
                 && session.getAttribute("role") != null
                 && session.getAttribute("email") != null
-                && session.getAttribute("authorities") != null) {
+                && session.getAttribute("authorities") != null
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             String email = (String) session.getAttribute("email");
             String role = (String) session.getAttribute("role");
-            if (session.getAttribute("authorities") instanceof String authorities ) {
+            Collection<? extends GrantedAuthority> grantedAuthorities = new HashSet<>();
+            Object authoritiesAttr = session.getAttribute("authorities");
+            if (authoritiesAttr instanceof String authorities ) {
                 try {
-                    Collection<? extends GrantedAuthority> grantedAuthorities =  Arrays.stream(authorities.split(":"))
+                     grantedAuthorities =  Arrays.stream(authorities.split(":"))
                             .map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-                    var userSession = new SessionUser(email,role,grantedAuthorities);
-                    Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(userSession,null,grantedAuthorities);
 
-                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                    securityContext.setAuthentication(authentication);
-                    SecurityContextHolder.setContext(securityContext);
+
                 } catch (Exception e) {
                     log.error("Error authenticating: {}", e.getMessage());
                 }
+
+            } else if (authoritiesAttr instanceof Collection<?> list) {
+                grantedAuthorities = list.stream()
+                        .filter(String.class::isInstance)
+                        .map(a -> new SimpleGrantedAuthority((String) a))
+                        .collect(Collectors.toSet());
             }
+            var userSession = new SessionUser(email, role, grantedAuthorities);
+            Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(userSession,null,grantedAuthorities);
+
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextRepository repo = new HttpSessionSecurityContextRepository();
+            repo.saveContext(securityContext,request,response);
+            SecurityContextHolder.setContext(securityContext);
 
         }
         filterChain.doFilter(request, response);

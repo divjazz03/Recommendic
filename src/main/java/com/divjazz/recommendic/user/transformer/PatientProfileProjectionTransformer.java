@@ -45,7 +45,10 @@ public class PatientProfileProjectionTransformer {
                 }
                 email = rs.getString("email");
                 phoneNumber = rs.getString("phoneNumber");
-                dateOfBirth = LocalDate.parse(rs.getString("dateOfBirth"));
+                var sqlDateOfBirth = rs.getDate("dateOfBirth");
+                if (Objects.nonNull(sqlDateOfBirth)) {
+                    dateOfBirth = sqlDateOfBirth.toLocalDate();
+                }
                 gender = Gender.valueOf(rs.getString("gender"));
                 var addressString = rs.getString("address");
                 if (Objects.nonNull(addressString)) {
@@ -55,14 +58,23 @@ public class PatientProfileProjectionTransformer {
                 if (Objects.nonNull(profilePictureString)) {
                     profilePicture = objectMapper.readValue(profilePictureString, ProfilePicture.class);
                 }
-            }
-            var medicalCategoryName = rs.getString("medicalCategoryName");
-            var medicalCategoryDesc = rs.getString("medicalDesc");
-            if (Objects.nonNull(medicalCategoryName)) {
-                medicalCategoryProjections.add(new MedicalCategoryProjection(
-                        medicalCategoryName,
-                        medicalCategoryDesc
-                ));
+                var medicalCategoryName = rs.getString("medicalCategoryName");
+                var medicalCategoryDesc = rs.getString("medicalDesc");
+                if (Objects.nonNull(medicalCategoryName)) {
+                    medicalCategoryProjections.add(new MedicalCategoryProjection(
+                            medicalCategoryName,
+                            medicalCategoryDesc
+                    ));
+                }
+            } else {
+                var medicalCategoryName = rs.getString("medicalCategoryName");
+                var medicalCategoryDesc = rs.getString("medicalDesc");
+                if (Objects.nonNull(medicalCategoryName)) {
+                    medicalCategoryProjections.add(new MedicalCategoryProjection(
+                            medicalCategoryName,
+                            medicalCategoryDesc
+                    ));
+                }
             }
         }
 

@@ -351,16 +351,7 @@ public class ConsultantService {
             }
 
             if (Objects.nonNull(profile.address())) {
-                var addressToChange = consultant.getProfile().getAddress();
-                if (Objects.nonNull(profile.address().getState())){
-                    addressToChange.setState(profile.address().getState());
-                }
-                if (Objects.nonNull(profile.address().getCountry())){
-                    addressToChange.setState(profile.address().getCountry());
-                }
-                if (Objects.nonNull(profile.address().getCity())){
-                    addressToChange.setState(profile.address().getCity());
-                }
+                Address addressToChange = getAddressToChange(consultant, profile);
                 consultant.getProfile().setAddress(addressToChange);
             }
 
@@ -435,6 +426,23 @@ public class ConsultantService {
                 )
         );
 
+    }
+
+    private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
+        Address addressToChange = consultant.getProfile().getAddress();
+        if (Objects.isNull(addressToChange)) {
+            addressToChange = new Address();
+        }
+        if (Objects.nonNull(profile.address().getState())){
+            addressToChange.setState(profile.address().getState());
+        }
+        if (Objects.nonNull(profile.address().getCountry())){
+            addressToChange.setCountry(profile.address().getCountry());
+        }
+        if (Objects.nonNull(profile.address().getCity())){
+            addressToChange.setCity(profile.address().getCity());
+        }
+        return addressToChange;
     }
 
     public Consultant getReference(long id) {

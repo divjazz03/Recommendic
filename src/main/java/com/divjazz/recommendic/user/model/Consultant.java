@@ -22,7 +22,7 @@ import java.util.Set;
 @Setter
 public class Consultant extends User{
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL,
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST,
             mappedBy = "ownerOfCertification", orphanRemoval = true)
     @JsonIgnore
     private Set<Certification> certificates;

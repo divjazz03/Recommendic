@@ -54,11 +54,12 @@ public class AuthService {
             generalUserService.updateLoginAttempt(authenticatedUser, LoginType.LOGIN_SUCCESS);
 
             log.info("Login success {}", authenticatedUser.getUserPrincipal().getUsername());
-            httpServletRequest.getSession(true).setAttribute("email", authenticatedUser.getUserPrincipal().getUsername());
-            httpServletRequest.getSession(true).setAttribute("role", authenticatedUser.getUserPrincipal().getRole().getName());
-            httpServletRequest.getSession(true).setAttribute("authorities",authenticated.getAuthorities().stream()
+            HttpSession httpSession = httpServletRequest.getSession(true);
+            httpSession.setAttribute("email", authenticatedUser.getUserPrincipal().getUsername());
+            httpSession.setAttribute("role", authenticatedUser.getUserPrincipal().getRole().getName());
+            httpSession.setAttribute("authorities",authenticated.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.joining(":")));
+                    .collect(Collectors.toList()));
 
             return new LoginResponse(authenticatedUser.getUserId(),
                     authenticatedUser.getUserPrincipal().getRole().getName(),

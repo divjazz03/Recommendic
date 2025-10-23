@@ -8,7 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "notification")
+@Table(name = "app_notification")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -11,6 +11,8 @@ public record AppointmentCreationRequest(
         String scheduleId,
         @AppointmentChannel
         @NotNull(message = "channel is required")
-        String channel
+        String channel,
+        @NotNull(message = "Date cannot be null")
+        String date
 ) {
 }

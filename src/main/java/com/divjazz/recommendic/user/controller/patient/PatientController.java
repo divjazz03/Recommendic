@@ -39,11 +39,8 @@ public class PatientController {
                 "lastName": "Doe",
                 "email": "johnDoe@gmail.com",
                 "password": "password",
-                "phoneNumber": "+2347044849392",
+                "dateOfBirth": "2001-07-04",
                 "gender": "Male",
-                "zipCode": "123456",
-                "city": "Ibadan",
-                "state": "Oyo",
                 "country": "Nigeria"
             }
             """;

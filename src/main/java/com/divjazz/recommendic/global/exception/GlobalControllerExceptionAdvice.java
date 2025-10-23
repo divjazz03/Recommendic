@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.global.exception;
 
+import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.consultation.exception.ConsultationStartedBeforeAppointmentException;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
@@ -43,7 +44,6 @@ public class GlobalControllerExceptionAdvice {
 
     @ExceptionHandler(AuthorizationException.class)
     public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationException e) {
-        log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(getErrorResponse(HttpStatus.FORBIDDEN,
                         e,
@@ -173,6 +173,10 @@ public class GlobalControllerExceptionAdvice {
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Response<String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
+    }
+    @ExceptionHandler(AppointmentBookedException.class)
+    public ResponseEntity<Response<String>> handleAppointmentBookedException(AppointmentBookedException ex) {
         return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
     }
 

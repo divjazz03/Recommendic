@@ -35,10 +35,10 @@ public class Appointment extends Auditable {
     @JoinColumn(name = "patient_id")
     private Patient patient;
     @ManyToOne(optional = false)
-    @JoinColumn(name = "consultant_id")
+    @JoinColumn(name = "consultant_id", updatable = false)
     private Consultant consultant;
     @ManyToOne(optional = false)
-    @JoinColumn(name = "schedule_slot_id")
+    @JoinColumn(name = "schedule_slot_id", updatable = false)
     private Schedule schedule;
     @Column(name = "note")
     private String note;
@@ -61,16 +61,4 @@ public class Appointment extends Auditable {
         return OffsetDateTime.of(appointmentDate, schedule.getEndTime(), schedule.getZoneOffset());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Appointment that = (Appointment) o;
-        return Objects.equals(schedule.getScheduleId(), that.schedule.getScheduleId()) && Objects.equals(appointmentDate, that.appointmentDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return 2024;
-    }
 }

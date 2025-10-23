@@ -69,15 +69,14 @@ public class PatientIT extends BaseIntegrationTest {
     private Admin admin;
     private Role adminRole;
     private Role patientRole;
-    private MedicalCategoryEntity medicalCategory;
+    private Set<MedicalCategoryEntity> medicalCategory;
 
 
     @BeforeEach
     void setup() {
         patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
         adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
-        medicalCategory = medicalCategoryRepository.findByName("cardiology").orElse(null);
-        log.info(medicalCategory.getName());
+        medicalCategory = medicalCategoryRepository.findAllByNameIn(Set.of("cardiology","gynecology"));
         Patient unsavedPatient = new Patient(
                 FAKER.internet().emailAddress(),
                 Gender.MALE,
@@ -96,7 +95,7 @@ public class PatientIT extends BaseIntegrationTest {
 
         unsavedPatient.setPatientProfile(patientProfile);
         patient = patientRepository.save(unsavedPatient);
-        if (Objects.nonNull(medicalCategory)) patient.addMedicalCategory(medicalCategory);
+        patient.addMedicalCategories(medicalCategory);
         patient = patientRepository.save(patient);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
@@ -217,7 +216,7 @@ public class PatientIT extends BaseIntegrationTest {
                 patientRole
         );
         unsavedPatient.getUserPrincipal().setEnabled(true);
-        if (Objects.nonNull(medicalCategory)) unsavedPatient.addMedicalCategory(medicalCategory);
+        if (Objects.nonNull(medicalCategory)) unsavedPatient.addMedicalCategories(medicalCategory);
         unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -271,7 +270,7 @@ public class PatientIT extends BaseIntegrationTest {
                 patientRole);
         patientInOnboardingStage.setUserStage(UserStage.ONBOARDING);
         patientInOnboardingStage.getUserPrincipal().setEnabled(true);
-        if (Objects.nonNull(medicalCategory)) patientInOnboardingStage.addMedicalCategory(medicalCategory);
+        patientInOnboardingStage.addMedicalCategories(medicalCategory);
         PatientProfile patientProfile = PatientProfile.builder()
                 .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
                 .dateOfBirth(FAKER.timeAndDate().birthday())
@@ -311,9 +310,13 @@ public class PatientIT extends BaseIntegrationTest {
     void shouldUpdatePatientProfileDetails() throws Exception {
         String request = """
                 {
-                    "profile": {
-                        "phoneNumber": "09046641978"
-                    }
+                  "phoneNumber": "09046641978",
+                  "address" : {
+                    "state": "Oyo",
+                    "city": "Ibadan",
+                    "country": "Nigeria"
+                  },
+                  "interests": ["cardiology", "gynecology"]
                 }
                 """;
         String response = mockMvc.perform(
@@ -352,7 +355,7 @@ public class PatientIT extends BaseIntegrationTest {
                             patientRole
                     );
                     unsavedPatient.getUserPrincipal().setEnabled(true);
-                    if (Objects.nonNull(medicalCategory)) unsavedPatient.addMedicalCategory(medicalCategory);
+                    unsavedPatient.addMedicalCategories(medicalCategory);
                     unsavedPatient.setUserStage(UserStage.ACTIVE_USER);
 
                     PatientProfile patientProfile = PatientProfile.builder()

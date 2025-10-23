@@ -24,7 +24,7 @@ public class PatientCustomRepository {
         final String sql = """
             SELECT      p.user_id as userId,
                         pf.username as userName,
-                        p.user_credential ->> 'email' as email,
+                        p.email as email,
                         pf.phone_number as phoneNumber,
                         pf.date_of_birth as dateOfBirth,
                         p.gender as gender,
@@ -34,7 +34,8 @@ public class PatientCustomRepository {
                         mc.description as medicalDesc
                         FROM patient p
                         LEFT JOIN patient_profiles pf on p.id = pf.id
-                        LEFT JOIN medical_category mc on p.id = mc.id
+                        LEFT JOIN patient_medical_category pmc on p.id = pmc.patient_id
+                        LEFT JOIN medical_category mc on mc.id = pmc.medical_category_id
                         WHERE p.user_id = :userId
             """;
 

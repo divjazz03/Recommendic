@@ -3,13 +3,16 @@ package com.divjazz.recommendic.appointment.service;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
 import com.divjazz.recommendic.appointment.domain.Availability;
+import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.enums.AppointmentEventType;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.event.AppointmentEvent;
+import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
+import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
@@ -53,8 +56,8 @@ public class AppointmentService {
     private final AuthUtils authUtils;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public Appointment getAppointmentById(Long appointmentId) {
-        return appointmentRepository.findById(appointmentId)
+    public Appointment getAppointmentByAppointmentId(String appointmentId) {
+        return appointmentRepository.findByAppointmentId(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment with id: %s not found".formatted(appointmentId)));
     }
 
@@ -65,7 +68,10 @@ public class AppointmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Schedule was not found or doesn't exist"));
         UserDTO userDTO = authUtils.getCurrentUser();
         Patient patient = patientRepository.getReferenceById(userDTO.id());
-
+        boolean appointmentExists = appointmentRepository.existsByAppointmentDateAndSchedule_Id(LocalDate.parse(appointmentCreationRequest.date()), schedule.getId());
+        if (appointmentExists) {
+            throw new AppointmentBookedException("The schedule at this time for this day has already been booked");
+        }
         Consultant consultant = schedule.getConsultant();
         Appointment appointment = Appointment.builder()
                 .consultant(consultant)
@@ -80,7 +86,7 @@ public class AppointmentService {
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_REQUESTED,
                 Map.of("name", patient.getPatientProfile().getUserName().getFullName(),
-                        "subjectId", appointment.getId(),
+                        "subjectId", appointment.getAppointmentId(),
                         "targetId", consultant.getUserId(),
                         "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
                         "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
@@ -97,46 +103,43 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void confirmAppointment(Long appointmentId) {
-        Appointment appointment = getAppointmentById(appointmentId);
-        if (!authUtils.getCurrentUser().userId().equals(appointment.getConsultant().getUserId())) {
+    public void confirmAppointment(String appointmentId) {
+        AppointmentProjection appointment = appointmentRepository.findAppointmentByAppointmentId(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment does not exist"));
+        if (!authUtils.getCurrentUser().userId().equals(appointment.getConsultantId())) {
             throw new AuthorizationException("You do not have authority to confirm this appointment");
         }
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointmentRepository.updateAppointmentStatusByAppointmentId(appointmentId, AppointmentStatus.CONFIRMED);
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_CONFIRMED,
-                Map.of("name", appointment.getConsultant().getProfile().getUserName().getFullName(),
-                        "subjectId", appointment.getId(),
-                        "targetId", appointment.getPatient().getUserId(),
-                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
-                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                Map.of("name", appointment.getConsultantFullName().getFullName(),
+                        "subjectId", appointmentId,
+                        "targetId", appointment.getPatientId(),
+                        "startDateTime", OffsetDateTime.of(appointment.getStartDate(),appointment.getStartTime(),appointment.getOffset()).toString(),
+                        "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString()
+                )
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
     @Transactional
-    public void cancelAppointment(long id, String reason) {
+    public void cancelAppointment(String appointmentId, String reason) {
         var currentUser = authUtils.getCurrentUser();
-        var appointment = appointmentRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Appointment does not exist or has been deleted"));
-        var userIsAuthorizedToCancel = currentUser.userId().equals(appointment.getPatient().getUserId());
+        AppointmentProjection appointment = appointmentRepository.findAppointmentByAppointmentId(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment does not exist"));
+        var userIsAuthorizedToCancel = currentUser.userId().equals(appointment.getPatientId());
         if (!userIsAuthorizedToCancel) {
             throw new AuthorizationException("You do not have authority to cancel this appointment");
         }
-        String name = "Couldn't get Name";
-        var patientProfileProjection = patientCustomRepository.getFullPatientProfileByUserId(currentUser.userId());
-        if (patientProfileProjection.isPresent()) {
-            name = patientProfileProjection.get().getUserName().getFullName();
-        }
-        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointmentRepository.updateAppointmentStatusByAppointmentId(appointmentId,AppointmentStatus.CANCELLED);
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_CANCELLED,
-                Map.of("targetId", appointment.getConsultant().getUserId(),
-                        "subjectId", appointment.getId(),
+                Map.of("targetId", appointment.getConsultantId(),
+                        "subjectId", appointmentId,
                         "reason", reason,
-                        "name", name,
-                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                        "name", appointment.getPatientFullName().getFullName(),
+                        "startDateTime", OffsetDateTime.of(appointment.getStartDate(),appointment.getStartTime(),appointment.getOffset()).toString(),
+                        "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString())
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
@@ -170,13 +173,13 @@ public class AppointmentService {
                 .map(Appointment::getStartDateAndTime)
                 .collect(Collectors.toSet());
 
-        Set<OffsetDateTime> today = new TreeSet<>(offsetDateTimeComparator);
+        Set<OffsetDateTime> todaySlots = new TreeSet<>(offsetDateTimeComparator);
         for (var schedule: consultantSchedules) {
             generateTimeSlots(schedule,startDate,startDate.withHour(23).withMinute(59).withSecond(59))
                     .filter(slot -> !bookedSlots.contains(slot))
-                    .forEach(today::add);
+                    .forEach(todaySlots::add);
         }
-        return today;
+        return todaySlots;
 
     }
     @Transactional(readOnly = true)
