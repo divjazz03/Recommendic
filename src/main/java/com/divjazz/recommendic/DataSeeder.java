@@ -253,7 +253,7 @@ public class DataSeeder implements ApplicationRunner {
                             rs -> {
                                 Map<String, Long> map = new HashMap<>();
                                 while (rs.next()) {
-                                    map.put(rs.getString("email"), rs.getLong("id"));
+                                    map.put("id", rs.getLong("id"));
                                 }
                                 return map;
                             },
@@ -263,8 +263,10 @@ public class DataSeeder implements ApplicationRunner {
                     List<Object[]> remappedProfiles = new ArrayList<>(patientProfiles.size());
                     for (Object[] profileRow : patientProfiles) {
                         String userId = (String) profileRow[0];
-                        Long generatedId = returned.get(userId);
-                        if (generatedId == null) {
+                        Long generatedId;
+                        try {
+                            generatedId = Objects.requireNonNull(returned).get(userId);
+                        } catch (NullPointerException e) {
                             throw new IllegalStateException("No generated ID for targetId: %s".formatted(userId));
                         }
 
@@ -405,11 +407,12 @@ public class DataSeeder implements ApplicationRunner {
                     List<Object[]> remappedProfiles = new ArrayList<>(consultantProfiles.size());
                     for (Object[] profileRow : consultantProfiles) {
                         String email = (String) profileRow[0];
-                        Long generatedId = returned.get(email);
-                        if (generatedId == null) {
+                        Long generatedId;
+                        try {
+                            generatedId = Objects.requireNonNull(returned).get(email);
+                        } catch (NullPointerException e) {
                             throw new IllegalStateException("No generated ID for targetId: %s".formatted(email));
                         }
-
                         remappedProfiles.add(new Object[]{
                                 generatedId,
                                 profileRow[1],
@@ -438,8 +441,10 @@ public class DataSeeder implements ApplicationRunner {
                     List<Object[]> remappedStats = new ArrayList<>(consultantStats.size());
                     for (Object[] profileRow : consultantStats) {
                         String email = (String) profileRow[0];
-                        Long generatedId = returned.get(email);
-                        if (generatedId == null) {
+                        Long generatedId;
+                        try {
+                            generatedId = Objects.requireNonNull(returned).get(email);
+                        } catch (NullPointerException e) {
                             throw new IllegalStateException("No generated ID for targetId: %s".formatted(email));
                         }
 

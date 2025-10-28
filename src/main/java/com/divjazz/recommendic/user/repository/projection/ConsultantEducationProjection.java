@@ -1,7 +1,7 @@
 package com.divjazz.recommendic.user.repository.projection;
 
-public interface ConsultantEducationProjection {
-    String getDegree();
-    String getInstitution();
-    int getYear();
-}
+public record ConsultantEducationProjection (
+    String degree,
+    String institution,
+    int year
+){}

@@ -102,73 +102,21 @@ public class ConsultantProfileProjectionTransformer {
         String[] finalLanguages = languages;
         String finalBio = bio;
         String finalLocation = location;
-        return Optional.of(
-                new ConsultantProfileProjection() {
-                    @Override
-                    public UserName getUserName() {
-                        return finalUserName;
-                    }
-
-                    @Override
-                    public String getEmail() {
-                        return finalEmail;
-                    }
-
-                    @Override
-                    public String getPhoneNumber() {
-                        return finalPhoneNumber;
-                    }
-
-                    @Override
-                    public LocalDate getDateOfBirth() {
-                        return finalDateOfBirth;
-                    }
-
-                    @Override
-                    public Gender getGender() {
-                        return finalGender;
-                    }
-
-                    @Override
-                    public String getLocation() {
-                        return finalLocation;
-                    }
-
-                    @Override
-                    public Address getAddress() {
-                        return finalAddress;
-                    }
-
-                    @Override
-                    public MedicalCategoryProjection getSpecialty() {
-                        return finalMedicalCategoryProjection;
-                    }
-
-                    @Override
-                    public int getExperience() {
-                        return finalExperience;
-                    }
-
-                    @Override
-                    public String[] getLanguages() {
-                        return finalLanguages;
-                    }
-
-                    @Override
-                    public String getBio() {
-                        return finalBio;
-                    }
-
-                    @Override
-                    public Set<ConsultantEducationProjection> getEducations() {
-                        return consultantEducationProjections;
-                    }
-
-                    @Override
-                    public ProfilePicture getProfilePicture() {
-                        return finalProfilePicture;
-                    }
-                });
+        return Optional.of(new ConsultantProfileProjection(
+                finalUserName,
+                finalEmail,
+                finalPhoneNumber,
+                finalDateOfBirth,
+                finalGender,
+                finalLocation,
+                finalAddress,
+                finalMedicalCategoryProjection,
+                finalExperience,
+                finalLanguages,
+                finalBio,
+                consultantEducationProjections,
+                finalProfilePicture
+        ));
     }
 
     private static void populateEducation(ResultSet rs, Set<ConsultantEducationProjection> consultantEducationProjections) throws SQLException {
@@ -178,22 +126,11 @@ public class ConsultantProfileProjectionTransformer {
         var educationId = rs.getString("educationId");
 
         if (Objects.nonNull(educationId)) {
-            consultantEducationProjections.add(new ConsultantEducationProjection() {
-                @Override
-                public String getDegree() {
-                    return educationDegree;
-                }
-
-                @Override
-                public String getInstitution() {
-                    return educationInstitution;
-                }
-
-                @Override
-                public int getYear() {
-                    return educationYear;
-                }
-            });
+            consultantEducationProjections.add(new ConsultantEducationProjection(
+                    educationDegree,
+                    educationInstitution,
+                    educationYear
+            ) );
         }
     }
 }

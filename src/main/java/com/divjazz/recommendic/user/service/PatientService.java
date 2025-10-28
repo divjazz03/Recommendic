@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
@@ -56,6 +57,7 @@ public class PatientService {
     private final RoleService roleService;
     private final MedicalCategoryService medicalCategoryService;
     private final PatientCustomRepository patientCustomRepository;
+    private final AppNotificationService appNotificationService;
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
@@ -92,6 +94,7 @@ public class PatientService {
                             "firstname", patientProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
             recommendationService.createConsultantRecommendationForPatient(savedPatient);
+            appNotificationService.createNotificationSetting(savedPatient);
             log.info("New user with id {} created", user.getUserId());
             return new PatientInfoResponse(
                     user.getUserId(),

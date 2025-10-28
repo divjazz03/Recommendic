@@ -81,6 +81,7 @@ spring:
     default: test
   main:
     banner-mode: off
+    lazy-initialization: true
 
 management:
   endpoint:
@@ -90,6 +91,8 @@ management:
     metrics:
       access: read_only
     info:
+      access: read_only
+    startup:
       access: read_only
   prometheus:
     metrics:

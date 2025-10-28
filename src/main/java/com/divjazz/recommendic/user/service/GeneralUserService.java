@@ -87,10 +87,10 @@ public class GeneralUserService {
                         .findConsultantProjectionByUserId(user.getUserId());
                 consultantProfileProjectionOpt.ifPresent(profile -> response .put("profile",
                         new ConsultantProfileResponse(
-                                profile.getUserName(),
-                                profile.getPhoneNumber(),
-                                profile.getAddress(),
-                                profile.getProfilePicture()
+                                profile.userName(),
+                                profile.phoneNumber(),
+                                profile.address(),
+                                profile.profilePicture()
                         )));
 
 

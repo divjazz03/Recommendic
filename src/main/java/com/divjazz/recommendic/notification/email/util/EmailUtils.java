@@ -7,9 +7,9 @@ public class EmailUtils {
         return String
                 .format("""
                         Hello %s,
-                            
+                        
                         Your new account has been created. Please click on the link below to verify your account.\s
-                            
+                        
                         %s
                             
                         The Support Team""", name, getVerificationUrl(host, key));
@@ -19,9 +19,9 @@ public class EmailUtils {
         return String
                 .format("""
                         Hello %s,
-                            
+                        
                         Your reset password token has been created. Please click on the link below to change your password.\s
-                            
+                        
                         %s
                             
                         The Support Team""", name, getResetPasswordUrl(host, key));
@@ -29,15 +29,15 @@ public class EmailUtils {
 
     public static String getAdminRegistrationEmailMessage(String name, String host, String key, String password) {
         return String.format("""
-                            
+                
                 Hello %s,
-                    
+                
                 Your new admin account has been create. Please click the link below to verify your account.\s
-                    
-                %s\s
-                    
-                Your password is %s\s
-                    
+                
+                %s
+                
+                Your password is %s
+                
                 The Support Team""", name, password, getVerificationUrl(host, key));
     }
 

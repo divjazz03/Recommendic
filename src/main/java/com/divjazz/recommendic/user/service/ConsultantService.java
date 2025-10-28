@@ -5,6 +5,8 @@ import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.notification.app.model.AppNotification;
+import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
@@ -62,6 +64,7 @@ public class ConsultantService {
     private final AppointmentService appointmentService;
     private final ConsultationService consultationService;
     private final ConsultantCustomRepository consultantCustomRepository;
+    private final AppNotificationService appNotificationService;
 
 
     @Transactional
@@ -103,6 +106,7 @@ public class ConsultantService {
                             "email", user.getUserPrincipal().getUsername(),
                             "firstname", consultantProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
+            appNotificationService.createNotificationSetting(savedConsultant);
             return new ConsultantInfoResponse(
                     savedConsultant.getUserId(),
                     savedConsultant.getProfile().getUserName().getLastName(),
@@ -303,24 +307,24 @@ public class ConsultantService {
         if (consultantProfileWithEducationProjectionOpt.isPresent()) {
             var consultantProfile = consultantProfileWithEducationProjectionOpt.get();
             var consultantProfileDetails = ConsultantProfileFull.builder()
-                    .address(consultantProfile.getAddress())
-                    .bio(consultantProfile.getBio())
-                    .dateOfBirth(consultantProfile.getDateOfBirth().toString())
+                    .address(consultantProfile.address())
+                    .bio(consultantProfile.bio())
+                    .dateOfBirth(consultantProfile.dateOfBirth().toString())
                     .email(userProjection.userPrincipal().getUsername())
-                    .location(consultantProfile.getLocation())
-                    .experience(String.valueOf(consultantProfile.getExperience()))
+                    .location(consultantProfile.location())
+                    .experience(String.valueOf(consultantProfile.experience()))
                     .gender(userProjection.gender().name().toLowerCase())
-                    .languages(consultantProfile.getLanguages())
-                    .specialty(consultantProfile.getSpecialty().name())
-                    .userName(consultantProfile.getUserName())
-                    .phoneNumber(consultantProfile.getPhoneNumber())
+                    .languages(consultantProfile.languages())
+                    .specialty(consultantProfile.specialty().name())
+                    .userName(consultantProfile.userName())
+                    .phoneNumber(consultantProfile.phoneNumber())
                     .build();
 
-            ConsultantEducationResponse educationResponse = consultantProfile.getEducations().stream()
+            ConsultantEducationResponse educationResponse = consultantProfile.educations().stream()
                 .map(consultantEducation -> new ConsultantEducationResponse(
-                    String.valueOf(consultantEducation.getYear()),
-                    consultantEducation.getInstitution(),
-                    consultantEducation.getDegree())).findAny().orElse(null);
+                    String.valueOf(consultantEducation.year()),
+                    consultantEducation.institution(),
+                    consultantEducation.degree())).findAny().orElse(null);
 
             return new ConsultantProfileDetails(
                     consultantProfileDetails,
