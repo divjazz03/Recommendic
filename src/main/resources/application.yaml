@@ -81,7 +81,6 @@ spring:
     default: test
   main:
     banner-mode: off
-    lazy-initialization: true
 
 management:
   endpoint:

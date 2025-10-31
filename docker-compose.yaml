@@ -3,13 +3,13 @@ services:
 
   postgres:
     container_name: recommendic_db
-    image: postgres:17.5-alpine3.22
+    image: postgres:18-alpine3.22
     env_file: .env
     restart: unless-stopped
     ports:
       - "5432:5432"
     volumes:
-      - postgresvolume:/var/lib/postgresql/data
+      - postgres2volume:/var/lib/postgresql/data
 
 volumes:
-  postgresvolume:
+  postgres2volume:

@@ -47,7 +47,7 @@ public class AppNotificationService {
         return notificationDTO;
     }
 
-    @Async("recommendicTaskExecutor")
+
     public void createNotificationSetting(User user) {
         switch (user.getUserType()) {
             case CONSULTANT -> {
@@ -126,30 +126,30 @@ public class AppNotificationService {
                     yield toConsultantNotificationResponse(notificationSetting);
                 }
                 var notificationRequest = (ConsultantNotificationSettingUpdateRequest) updateRequest;
-                if (Objects.nonNull(notificationRequest.emailNotificationEnabled())
-                        && Boolean.compare(notificationRequest.emailNotificationEnabled(),
+                if (Objects.nonNull(notificationRequest.emailNotificationsEnabled())
+                        && Boolean.compare(notificationRequest.emailNotificationsEnabled(),
                         notificationSetting.isEmailNotificationEnabled()) != 0) {
-                    notificationSetting.setEmailNotificationEnabled(notificationRequest.emailNotificationEnabled());
+                    notificationSetting.setEmailNotificationEnabled(notificationRequest.emailNotificationsEnabled());
                 }
                 if (Objects.nonNull(notificationRequest.appointmentRemindersEnabled())
                         && Boolean.compare(notificationRequest.appointmentRemindersEnabled(),
                         notificationSetting.isAppointmentRemindersEnabled()) != 0) {
                     notificationSetting.setAppointmentRemindersEnabled(notificationRequest.appointmentRemindersEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.labResultsUpdateEnabled())
-                        && Boolean.compare(notificationRequest.labResultsUpdateEnabled(),
+                if (Objects.nonNull(notificationRequest.labResultUpdatesEnabled())
+                        && Boolean.compare(notificationRequest.labResultUpdatesEnabled(),
                         notificationSetting.isLabResultsUpdateEnabled()) != 0) {
-                    notificationSetting.setLabResultsUpdateEnabled(notificationRequest.labResultsUpdateEnabled());
+                    notificationSetting.setLabResultsUpdateEnabled(notificationRequest.labResultUpdatesEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.marketingEmailEnabled())
-                        && Boolean.compare(notificationRequest.marketingEmailEnabled(),
+                if (Objects.nonNull(notificationRequest.marketingEmailsEnabled())
+                        && Boolean.compare(notificationRequest.marketingEmailsEnabled(),
                         notificationSetting.isMarketingEmailEnabled()) != 0) {
-                    notificationSetting.setMarketingEmailEnabled(notificationRequest.marketingEmailEnabled());
+                    notificationSetting.setMarketingEmailEnabled(notificationRequest.marketingEmailsEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.smsNotificationEnabled())
-                        && Boolean.compare(notificationRequest.smsNotificationEnabled(),
+                if (Objects.nonNull(notificationRequest.smsNotificationsEnabled())
+                        && Boolean.compare(notificationRequest.smsNotificationsEnabled(),
                         notificationSetting.isSmsNotificationEnabled()) != 0) {
-                    notificationSetting.setSmsNotificationEnabled(notificationRequest.smsNotificationEnabled());
+                    notificationSetting.setSmsNotificationEnabled(notificationRequest.smsNotificationsEnabled());
                 }
                 if (Objects.nonNull(notificationRequest.systemUpdatesEnabled())
                         && Boolean.compare(notificationRequest.systemUpdatesEnabled(),
@@ -168,30 +168,30 @@ public class AppNotificationService {
                     yield toPatientNotificationResponse(notificationSetting);
                 }
                 var notificationRequest = (PatientNotificationSettingUpdateRequest) updateRequest;
-                if (Objects.nonNull(notificationRequest.emailNotificationEnabled())
-                        && Boolean.compare(notificationRequest.emailNotificationEnabled(),
+                if (Objects.nonNull(notificationRequest.emailNotificationsEnabled())
+                        && Boolean.compare(notificationRequest.emailNotificationsEnabled(),
                         notificationSetting.isEmailNotificationEnabled()) != 0) {
-                    notificationSetting.setEmailNotificationEnabled(notificationRequest.emailNotificationEnabled());
+                    notificationSetting.setEmailNotificationEnabled(notificationRequest.emailNotificationsEnabled());
                 }
                 if (Objects.nonNull(notificationRequest.appointmentRemindersEnabled())
                         && Boolean.compare(notificationRequest.appointmentRemindersEnabled(),
                         notificationSetting.isAppointmentRemindersEnabled()) != 0) {
                     notificationSetting.setAppointmentRemindersEnabled(notificationRequest.appointmentRemindersEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.labResultsUpdateEnabled())
-                        && Boolean.compare(notificationRequest.labResultsUpdateEnabled(),
+                if (Objects.nonNull(notificationRequest.labResultUpdatesEnabled())
+                        && Boolean.compare(notificationRequest.labResultUpdatesEnabled(),
                         notificationSetting.isLabResultsUpdateEnabled()) != 0) {
-                    notificationSetting.setLabResultsUpdateEnabled(notificationRequest.labResultsUpdateEnabled());
+                    notificationSetting.setLabResultsUpdateEnabled(notificationRequest.labResultUpdatesEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.marketingEmailEnabled())
-                        && Boolean.compare(notificationRequest.marketingEmailEnabled(),
+                if (Objects.nonNull(notificationRequest.marketingEmailsEnabled())
+                        && Boolean.compare(notificationRequest.marketingEmailsEnabled(),
                         notificationSetting.isMarketingEmailEnabled()) != 0) {
-                    notificationSetting.setMarketingEmailEnabled(notificationRequest.marketingEmailEnabled());
+                    notificationSetting.setMarketingEmailEnabled(notificationRequest.marketingEmailsEnabled());
                 }
-                if (Objects.nonNull(notificationRequest.smsNotificationEnabled())
-                        && Boolean.compare(notificationRequest.smsNotificationEnabled(),
+                if (Objects.nonNull(notificationRequest.smsNotificationsEnabled())
+                        && Boolean.compare(notificationRequest.smsNotificationsEnabled(),
                         notificationSetting.isSmsNotificationEnabled()) != 0) {
-                    notificationSetting.setSmsNotificationEnabled(notificationRequest.smsNotificationEnabled());
+                    notificationSetting.setSmsNotificationEnabled(notificationRequest.smsNotificationsEnabled());
                 }
                 if (Objects.nonNull(notificationRequest.systemUpdatesEnabled())
                         && Boolean.compare(notificationRequest.systemUpdatesEnabled(),

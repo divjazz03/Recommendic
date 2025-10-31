@@ -9,9 +9,9 @@ CREATE TYPE appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELLED');
 CREATE TABLE IF NOT EXISTS schedule_slot
 (
     id                   BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
-    schedule_uuid UUID                        DEFAULT gen_random_uuid() UNIQUE,
+    schedule_uuid UUID                        DEFAULT uuidv7() UNIQUE,
     schedule_id   TEXT GENERATED ALWAYS AS ( 'SCH-' || schedule_uuid ) STORED,
-    consultant_id        BIGINT REFERENCES consultant (id)               NOT NULL,
+    consultant_id        BIGINT REFERENCES consultant (id) ON DELETE CASCADE  NOT NULL,
     start_time           TIME                                            NOT NULL,
     end_time             TIME                                            NOT NULL,
     utf_offset           VARCHAR                                         NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS schedule_slot
 CREATE TABLE IF NOT EXISTS appointment
 (
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY        NOT NULL,
-    appointment_uuid UUID                        DEFAULT gen_random_uuid() UNIQUE,
+    appointment_uuid UUID                        DEFAULT uuidv7() UNIQUE,
     appointment_id   TEXT GENERATED ALWAYS AS ( 'APT-' || appointment_uuid ) STORED,
     patient_id       BIGINT REFERENCES patient (id) ON DELETE RESTRICT      NOT NULL,
     consultant_id    BIGINT REFERENCES consultant (id) ON DELETE RESTRICT   NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS appointment
 CREATE TABLE IF NOT EXISTS consultation
 (
     id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    consultation_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    consultation_uuid           UUID DEFAULT uuidv7() UNIQUE,
     consultation_id             TEXT GENERATED ALWAYS AS ( 'CS-' || consultation_uuid ) STORED ,
     channel         session_channel                                               NOT NULL,
     status          consultation_status                                           NOT NULL,

@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS appNotification CASCADE ;
-DROP TYPE IF EXISTS notification_category;
+DROP TYPE IF EXISTS notification_category CASCADE;
 
 
 CREATE TYPE notification_category
@@ -7,7 +7,7 @@ AS ENUM ('ARTICLE', 'APPOINTMENT', 'CONSULTATION', 'USER', 'CHAT');
 
 CREATE TABLE IF NOT EXISTS app_notification (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
-    notification_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    notification_uuid           UUID DEFAULT uuidv7() UNIQUE,
     notification_id             TEXT GENERATED ALWAYS AS ( 'NTF-' || notification_uuid ) STORED ,
     header TEXT NOT NULL,
     summary TEXT,

@@ -1,11 +1,11 @@
 package com.divjazz.recommendic.notification.app.controller.payload;
 
 public record PatientNotificationSettingUpdateRequest (
-        Boolean emailNotificationEnabled,
-        Boolean smsNotificationEnabled,
+        Boolean emailNotificationsEnabled,
+        Boolean smsNotificationsEnabled,
         Boolean appointmentRemindersEnabled,
-        Boolean labResultsUpdateEnabled,
+        Boolean labResultUpdatesEnabled,
         Boolean systemUpdatesEnabled,
-        Boolean marketingEmailEnabled
+        Boolean marketingEmailsEnabled
 ) implements NotificationSettingUpdateRequest {
 }

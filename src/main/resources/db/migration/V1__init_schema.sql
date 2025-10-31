@@ -72,7 +72,7 @@ VALUES ('pediatrician', 'Dealing with care and basic treatment of children'),
 CREATE TABLE IF NOT EXISTS admin
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_uuid           UUID DEFAULT uuidv7() UNIQUE,
     user_id             TEXT GENERATED ALWAYS AS ( 'ADM-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS admin
 CREATE TABLE IF NOT EXISTS patient
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_uuid           UUID DEFAULT uuidv7() UNIQUE,
     user_id             TEXT GENERATED ALWAYS AS ( 'PT-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
@@ -116,14 +116,14 @@ CREATE TABLE IF NOT EXISTS patient
 );
 
 CREATE TABLE IF NOT EXISTS patient_medical_category (
-    patient_id BIGINT REFERENCES patient(id),
+    patient_id BIGINT REFERENCES patient(id) ON DELETE CASCADE,
     medical_category_id BIGINT REFERENCES medical_category(id)
 );
 
 CREATE TABLE IF NOT EXISTS consultant
 (
     id                  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    user_uuid           UUID DEFAULT uuidv7() UNIQUE,
     user_id             TEXT GENERATED ALWAYS AS ( 'CST-' || user_uuid ) STORED ,
     email               TEXT UNIQUE NOT NULL,
     user_type           TEXT        NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS users_confirmation
 CREATE TABLE IF NOT EXISTS assignment
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    assignment_uuid      UUID DEFAULT gen_random_uuid() UNIQUE,
+    assignment_uuid      UUID DEFAULT uuidv7() UNIQUE,
     assignment_id  TEXT GENERATED ALWAYS AS ( 'ASS-' || assignment_uuid ) STORED ,
     admin_id   BIGINT REFERENCES admin (id),
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS assignment
 CREATE TABLE IF NOT EXISTS certification
 (
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    certification_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    certification_uuid           UUID DEFAULT uuidv7() UNIQUE,
     certification_id             TEXT GENERATED ALWAYS AS ( 'CRT-' || certification_uuid ) STORED ,
     consultant_id    BIGINT REFERENCES consultant (id) NOT NULL,
     assignment_id    BIGINT REFERENCES assignment (id) NOT NULL,
@@ -245,7 +245,7 @@ CREATE TYPE article_status_enum AS ENUM ('DRAFT','ARCHIVED','PUBLISHED');
 CREATE TABLE IF NOT EXISTS article
 (
     id             BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    article_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    article_uuid           UUID DEFAULT uuidv7() UNIQUE,
     article_id             TEXT GENERATED ALWAYS AS ( 'ART-' || article_uuid ) STORED ,
     title          TEXT                              NOT NULL,
     subtitle       TEXT                              NOT NULL,
@@ -272,8 +272,8 @@ CREATE TABLE IF NOT EXISTS article
 CREATE TABLE IF NOT EXISTS consultant_recommendation
 (
     id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    patient_id    BIGINT REFERENCES patient (id) NOT NULL,
-    consultant_id BIGINT REFERENCES consultant (id)             NOT NULL,
+    patient_id    BIGINT REFERENCES patient (id) ON DELETE CASCADE NOT NULL,
+    consultant_id BIGINT REFERENCES consultant (id) ON DELETE CASCADE NOT NULL,
     updated_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by    TEXT                                          NOT NULL,
@@ -284,8 +284,8 @@ CREATE TABLE IF NOT EXISTS consultant_recommendation
 CREATE TABLE IF NOT EXISTS article_recommendation
 (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    patient_id BIGINT REFERENCES patient (id) NOT NULL,
-    article_id BIGINT REFERENCES article (id)                NOT NULL,
+    patient_id BIGINT REFERENCES patient (id) ON DELETE CASCADE NOT NULL,
+    article_id BIGINT REFERENCES article (id) ON DELETE CASCADE NOT NULL,
     updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
     created_by TEXT,
@@ -315,7 +315,7 @@ CREATE TABLE IF NOT EXISTS message
 CREATE TABLE IF NOT EXISTS comment
 (
     id                BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    comment_uuid           UUID DEFAULT gen_random_uuid() UNIQUE,
+    comment_uuid           UUID DEFAULT uuidv7() UNIQUE,
     comment_id             TEXT GENERATED ALWAYS AS ( 'CMT-' || comment_uuid ) STORED ,
     user_id           TEXT NOT NULL,
     article_id        BIGINT REFERENCES article (id),
