@@ -29,6 +29,7 @@ spring:
     redis:
       flush-mode: on_save
       namespace: 'recommendic:session'
+    timeout: 30M
   data:
     redis:
       url: ${REDIS_DATABASE_URL}

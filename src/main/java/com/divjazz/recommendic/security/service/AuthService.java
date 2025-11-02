@@ -40,6 +40,8 @@ public class AuthService {
     private final UserLoginRetryHandler userLoginRetryHandler;
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final UserConfirmationRepository userConfirmationRepository;
+    private final SecurityService securityService;
+
 
     public LoginResponse handleUserLogin(LoginRequest loginRequest, HttpServletRequest httpServletRequest) {
 
@@ -55,6 +57,8 @@ public class AuthService {
 
             log.info("Login success {}", authenticatedUser.getUserPrincipal().getUsername());
             HttpSession httpSession = httpServletRequest.getSession(true);
+            var durationMinutes = securityService.getUserSessionExpiryDurationInMinutes(authenticatedUser.getUserType(),authenticatedUser.getUserId()) * 60;
+            httpSession.setMaxInactiveInterval(durationMinutes);
             httpSession.setAttribute("email", authenticatedUser.getUserPrincipal().getUsername());
             httpSession.setAttribute("role", authenticatedUser.getUserPrincipal().getRole().getName());
             httpSession.setAttribute("authorities",authenticated.getAuthorities().stream()
@@ -67,7 +71,7 @@ public class AuthService {
         } catch (BadCredentialsException ex) {
             var unauthenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());
             generalUserService.updateLoginAttempt(unauthenticatedUser, LoginType.LOGIN_FAILED);
-            throw new AuthenticationException("Invalid credentials try again");
+            throw new AuthenticationException("Email and password combination invalid try again");
         }
     }
 

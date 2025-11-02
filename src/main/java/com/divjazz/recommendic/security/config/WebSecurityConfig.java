@@ -1,15 +1,20 @@
 package com.divjazz.recommendic.security.config;
 
+import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.CustomUserDetailsService;
+import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.filter.AuthFilter;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -24,11 +29,14 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
+import static com.divjazz.recommendic.global.RequestUtils.getErrorResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -59,9 +67,15 @@ public class WebSecurityConfig {
             "/api/v1/medical-categories","/error",
             "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*",
             "/actuator/**", "/favicon.ico", "/api/v1/auth/*");
+    @Getter
+    private static final List<String> NoAuthPostPaths = List.of(
+            "/api/v1/consultants","/api/v1/patients"
+    );
 
     @Bean
-    public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
+    public SecurityFilterChain webSecurity(HttpSecurity http,
+                                           ObjectMapper objectMapper,
+                                           AuthFilter authFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -69,11 +83,12 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(WHITELIST_PATHS.toArray(String[]::new)).permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/v1/consultants","/api/v1/patients").permitAll()
+                        .requestMatchers(HttpMethod.POST, NoAuthPostPaths.toArray(String[]::new)).permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new AuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
                 .build();
     }
 
@@ -82,6 +97,11 @@ public class WebSecurityConfig {
                                                            PasswordEncoder passwordEncoder,
                                                            GeneralUserService generalUserService){
         return new CustomAuthenticationProvider(passwordEncoder, userDetailsService, generalUserService);
+    }
+
+    @Bean
+    AuthFilter authFilter(ObjectMapper ob) {
+        return new AuthFilter(ob);
     }
 
     @Bean

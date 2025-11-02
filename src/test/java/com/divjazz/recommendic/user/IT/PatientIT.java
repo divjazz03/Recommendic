@@ -139,8 +139,8 @@ public class PatientIT extends BaseIntegrationTest {
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isCreated())
-                .andReturn().getResponse();
-        var patientInfoResponseResponse = patientInfoJacksonTester.parseObject(response.getContentAsString());
+                .andReturn().getResponse().getContentAsString();
+        log.info(response);
     }
 
     private static Stream<Arguments> invalidCreateUserArguments() {

@@ -5,6 +5,7 @@ import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
+import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
@@ -58,6 +59,7 @@ public class PatientService {
     private final MedicalCategoryService medicalCategoryService;
     private final PatientCustomRepository patientCustomRepository;
     private final AppNotificationService appNotificationService;
+    private final SecurityService securityService;
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
@@ -95,6 +97,7 @@ public class PatientService {
             applicationEventPublisher.publishEvent(userEvent);
             recommendationService.createConsultantRecommendationForPatient(savedPatient);
             appNotificationService.createNotificationSetting(savedPatient);
+            securityService.createUserSetting(savedPatient);
             log.info("New user with id {} created", user.getUserId());
             return new PatientInfoResponse(
                     user.getUserId(),

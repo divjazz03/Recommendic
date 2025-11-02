@@ -7,6 +7,7 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.app.model.AppNotification;
 import com.divjazz.recommendic.notification.app.service.AppNotificationService;
+import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
@@ -65,6 +66,7 @@ public class ConsultantService {
     private final ConsultationService consultationService;
     private final ConsultantCustomRepository consultantCustomRepository;
     private final AppNotificationService appNotificationService;
+    private final SecurityService securityService;
 
 
     @Transactional
@@ -107,6 +109,7 @@ public class ConsultantService {
                             "firstname", consultantProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
             appNotificationService.createNotificationSetting(savedConsultant);
+            securityService.createUserSetting(savedConsultant);
             return new ConsultantInfoResponse(
                     savedConsultant.getUserId(),
                     savedConsultant.getProfile().getUserName().getLastName(),

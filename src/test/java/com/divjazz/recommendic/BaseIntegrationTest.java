@@ -2,16 +2,23 @@ package com.divjazz.recommendic;
 
 import com.divjazz.recommendic.config.BaseTestConfiguration;
 import com.divjazz.recommendic.config.CustomPostgresContainer;
+import com.divjazz.recommendic.security.UserPrincipal;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.stream.Collectors;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {BaseTestConfiguration.class})
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        classes = {BaseTestConfiguration.class})
 @ActiveProfiles("test")
 @Testcontainers
 public abstract class BaseIntegrationTest {
@@ -24,6 +31,19 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
         registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgresContainer::getUsername);
+    }
+
+    public RequestPostProcessor baseAuthenticatedSession(UserPrincipal user) {
+        return request -> {
+            HttpSession httpSession = request.getSession(true);
+            if (httpSession == null) return request;
+            httpSession.setAttribute("email", user.getUsername());
+            httpSession.setAttribute("role", user.getRole().getName());
+            httpSession.setAttribute("authorities",user.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList()));
+            return request;
+        };
     }
 
 }

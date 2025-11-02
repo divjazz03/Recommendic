@@ -4,7 +4,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public class CustomPostgresContainer extends PostgreSQLContainer<CustomPostgresContainer> {
-    private static final String IMAGE_VERSION = "postgres:17.5-alpine3.22";
+    private static final String IMAGE_VERSION = "postgres:18-alpine3.22";
     private static CustomPostgresContainer customPostgresContainer;
 
     private CustomPostgresContainer () {
