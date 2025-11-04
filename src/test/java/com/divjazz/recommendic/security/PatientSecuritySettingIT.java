@@ -82,7 +82,6 @@ public class PatientSecuritySettingIT extends BaseIntegrationTest {
         var responseString = mockMvc.perform(
                 get(SECURITY_BASE_URL)
                         .with(user(patient.getUserPrincipal()))
-                        .with(baseAuthenticatedSession(patient.getUserPrincipal()))
         )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();

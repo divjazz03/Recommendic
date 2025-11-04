@@ -1,3 +1,5 @@
 package com.divjazz.recommendic.appointment.controller.payload;
 
-public record ConsultationFee(int inPerson, int online){}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record ConsultationFee(@JsonProperty("in_person") int inPerson, @JsonProperty("online") int online){}

@@ -8,6 +8,7 @@ import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleCustomRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.UserDTO;
@@ -24,9 +25,11 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,21 +45,56 @@ public class ScheduleService {
     private final ConsultantStatRepository consultantStatRepository;
     private final AppointmentService appointmentService;
 
+    private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
+        return Arrays.stream(consultationChannels)
+                .map(consultationChannel -> consultationChannel.toString().toLowerCase())
+                .collect(Collectors.toSet());
+    }
+
+    private static ScheduleDisplay toScheduleDisplay(Schedule schedule) {
+        return new ScheduleDisplay(
+                schedule.getId(),
+                schedule.getName(),
+                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getZoneOffset().toString(),
+                fromConsultationChannels(schedule.getConsultationChannels()),
+                schedule.getRecurrenceRule(),
+                schedule.isActive(),
+                schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                0
+        );
+    }
+
+    public static ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
+        return new ScheduleResponseDTO(
+                schedule.getScheduleId(),
+                schedule.getName(),
+                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getZoneOffset().getId(),
+                fromConsultationChannels(schedule.getConsultationChannels()),
+                schedule.getRecurrenceRule() != null
+                        ? schedule.getRecurrenceRule() : null,
+                schedule.isActive()
+        );
+    }
+
     @Transactional
     public ScheduleResponseDTO createSchedule(List<ScheduleCreationRequest> creationRequests) {
-        UserDTO userProjection =  authUtils.getCurrentUser();
+        UserDTO userProjection = authUtils.getCurrentUser();
         Consultant consultant = consultantService.getReference(userProjection.id());
         List<Schedule> schedules = creationRequests.stream()
                 .map(creationRequest -> {
                     var schedule = Schedule.builder()
-                        .name(creationRequest.name())
-                        .consultant(consultant)
-                        .consultationChannels(toConsultationChannels(creationRequest.channels()))
-                        .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
-                        .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
-                        .isActive(creationRequest.isActive())
-                        .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
-                        .build();
+                            .name(creationRequest.name())
+                            .consultant(consultant)
+                            .consultationChannels(toConsultationChannels(creationRequest.channels()))
+                            .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
+                            .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
+                            .isActive(creationRequest.isActive())
+                            .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
+                            .build();
 
                     if (Objects.nonNull(creationRequest.recurrenceRule())) {
                         var recurrenceRule = new RecurrenceRule(
@@ -88,11 +126,23 @@ public class ScheduleService {
         return toScheduleResponseDTO(schedule);
     }
 
-    public ConsultantSchedulesResponse getSchedulesByConsultantIdHandler(String consultantId) {
+    public ConsultantSchedulesResponse getSchedulesByConsultantIdHandler(String consultantId, String date) {
+
         ConsultantProfile consultantProfile = consultantService.getConsultantProfileByConsultantId(consultantId);
         ConsultantStat consultantStat = consultantStatRepository
                 .findConsultantStatByConsultantId(consultantId).orElse(ConsultantStat.ofEmpty());
-        Set<ScheduleWithAppointmentDetail> schedules = new HashSet<>(getSchedulesByConsultantId(consultantId));
+        Set<ScheduleWithAppointmentDetail> schedules = new HashSet<>();
+        if (Objects.nonNull(date)){
+            try {
+                var localDate = LocalDate.parse(date);
+                schedules.addAll(getSchedulesByConsultantIdAndDate(consultantId, localDate));
+            } catch (DateTimeParseException ex) {
+                throw new AppBadRequestException(ex.getMessage());
+            }
+        }else {
+            schedules.addAll(getSchedulesByConsultantId(consultantId));
+        }
+
 
         return new ConsultantSchedulesResponse(
                 schedules,
@@ -101,7 +151,7 @@ public class ScheduleService {
                         consultantProfile.getTitle(),
                         consultantStat.getRating(),
                         consultantProfile.getProfilePicture().getPictureUrl(),
-                        new ConsultationFee(30,15),
+                        new ConsultationFee(30, 15),
                         consultantProfile.getLocationOfInstitution()
                 )
         );
@@ -118,6 +168,19 @@ public class ScheduleService {
                             appointmentDateAndTime
                     );
                 }).toList();
+    }
+
+    public List<ScheduleWithAppointmentDetail> getSchedulesByConsultantIdAndDate(String consultantId, LocalDate date) {
+        return scheduleRepository.findAllByConsultant_UserId(consultantId)
+                .stream()
+                .map(
+                        schedule -> {
+                            var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForScheduleAndDate(schedule, date);
+                            return new ScheduleWithAppointmentDetail(
+                                    ScheduleService.toScheduleResponseDTO(schedule),
+                                    appointmentDateAndTime
+                            );
+                        }).toList();
     }
 
     @Transactional
@@ -154,47 +217,12 @@ public class ScheduleService {
         return toScheduleResponseDTO(schedule);
     }
 
-
     private ConsultationChannel[] toConsultationChannels(Set<String> consultationChannelStrings) {
         return consultationChannelStrings.stream()
                 .map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
                 .toArray(ConsultationChannel[]::new);
     }
 
-    private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
-        return Arrays.stream(consultationChannels)
-                .map(consultationChannel -> consultationChannel.toString().toLowerCase())
-                .collect(Collectors.toSet());
-    }
-
-    private static ScheduleDisplay toScheduleDisplay(Schedule schedule) {
-        return new ScheduleDisplay(
-                schedule.getId(),
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().toString(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.getRecurrenceRule(),
-                schedule.isActive(),
-                schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                0
-        );
-    }
-
-    public static ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
-        return new ScheduleResponseDTO(
-                schedule.getScheduleId(),
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().getId(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.getRecurrenceRule() != null
-                        ? schedule.getRecurrenceRule() : null,
-                schedule.isActive()
-        );
-    }
     @Transactional
     public void deleteScheduleById(String id) {
         var consultantId = scheduleRepository.getScheduleForDeletionReturningConsultantId(id)

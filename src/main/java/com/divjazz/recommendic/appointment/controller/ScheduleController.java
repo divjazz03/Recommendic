@@ -50,9 +50,11 @@ public class ScheduleController {
     }
     @GetMapping("/consultant/{id}")
     public ResponseEntity<Response<ConsultantSchedulesResponse>> getScheduleByConsultantId (
-            @PathVariable String id
+            @PathVariable String id,
+            @RequestParam(required = false) String date
     ) {
-        var schedules = scheduleService.getSchedulesByConsultantIdHandler(id);
+
+        var schedules = scheduleService.getSchedulesByConsultantIdHandler(id, date);
         return ResponseEntity.ok(getResponse(schedules, HttpStatus.OK));
     }
     @PatchMapping("/{id}")

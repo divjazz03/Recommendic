@@ -33,17 +33,4 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.username", postgresContainer::getUsername);
     }
 
-    public RequestPostProcessor baseAuthenticatedSession(UserPrincipal user) {
-        return request -> {
-            HttpSession httpSession = request.getSession(true);
-            if (httpSession == null) return request;
-            httpSession.setAttribute("email", user.getUsername());
-            httpSession.setAttribute("role", user.getRole().getName());
-            httpSession.setAttribute("authorities",user.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList()));
-            return request;
-        };
-    }
-
 }

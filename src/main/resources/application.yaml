@@ -113,5 +113,5 @@ logging:
   level:
     org.flywaydb: warn
     io.zonky.test: warn
-    org.springframework.security.authentication: debug
+    org.springframework.security: warn
     org.springframework.security.web.context.HttpSessionSecurityContextRepository: error

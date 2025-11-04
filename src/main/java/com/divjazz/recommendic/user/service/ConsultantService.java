@@ -266,10 +266,7 @@ public class ConsultantService {
                 .orElse(ConsultantStat.ofEmpty());
         Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
 
-        var availableSlots =  appointmentService.getTodayAvailableSlots(consultantId)
-                .stream()
-                .map(OffsetDateTime::toString)
-                .collect(Collectors.toSet());
+        var availableSlots =  appointmentService.getTodayAvailableSlots(consultantId);
         return ConsultantFull.builder()
                 .bio(consultantProfile.getBio())
                 .experience(consultantProfile.getYearsOfExperience())
@@ -348,8 +345,10 @@ public class ConsultantService {
             consultantEducation = consultantEducationRepository
                     .findAllByConsultant_UserId(consultantId)
                     .stream().findAny().orElse(ConsultantEducation.ofEmpty());
+            consultantEducation.setConsultant(consultant);
         } catch (NoSuchElementException ex) {
             consultantEducation = ConsultantEducation.ofEmpty();
+            consultantEducation.setConsultant(consultant);
         }
         ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
         if (Objects.nonNull(profile)) {

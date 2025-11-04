@@ -106,13 +106,13 @@ public class ConsultantIT extends BaseIntegrationTest {
                 .build();
         unSavedConsultant.setProfile(consultantProfile);
         consultant = consultantRepository.save(unSavedConsultant);
-        ConsultantEducation consultantEducation = new ConsultantEducation(
-                consultant,
-                FAKER.university().degree(),
-                FAKER.university().name(),
-                2004);
-
-        consultantEducationRepository.save(consultantEducation);
+//        ConsultantEducation consultantEducation = new ConsultantEducation(
+//                consultant,
+//                FAKER.university().degree(),
+//                FAKER.university().name(),
+//                2004);
+//
+//        consultantEducationRepository.save(consultantEducation);
         adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
@@ -324,6 +324,11 @@ public class ConsultantIT extends BaseIntegrationTest {
     void shouldModifyConsultantProfileDetails() throws Exception {
         String request = """
                 {
+                    "education": {
+                        "year": "2003",
+                        "degree": "Masters",
+                        "institution": "Nnamdi Azikwe University"
+                    },
                     "profile": {
                         "phoneNumber": "09046641978"
                     }

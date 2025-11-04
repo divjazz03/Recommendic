@@ -1,10 +1,10 @@
 package com.divjazz.recommendic.security.config;
 
-import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.CustomUserDetailsService;
-import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.filter.AuthFilter;
+import com.divjazz.recommendic.security.filter.BaseAuthFilter;
+import com.divjazz.recommendic.security.filter.TestAuthFilter;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -12,9 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -28,15 +27,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
-import static com.divjazz.recommendic.global.RequestUtils.getErrorResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -74,8 +70,7 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http,
-                                           ObjectMapper objectMapper,
-                                           AuthFilter authFilter) throws Exception {
+                                           BaseAuthFilter authFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -84,10 +79,10 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(WHITELIST_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.POST, NoAuthPostPaths.toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
                 .build();
     }
@@ -100,8 +95,15 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    AuthFilter authFilter(ObjectMapper ob) {
+    @Profile("dev")
+    BaseAuthFilter authFilter(ObjectMapper ob) {
         return new AuthFilter(ob);
+    }
+
+    @Bean
+    @Profile("test")
+    BaseAuthFilter testAuthFilter() {
+        return new TestAuthFilter();
     }
 
     @Bean
@@ -120,7 +122,7 @@ public class WebSecurityConfig {
                     List.of(corsFrontendDomain)
             );
             corsConfiguration.setAllowedMethods(
-                    List.of("GET", "POST", "PATCH", "DELETE")
+                    List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS")
             );
             corsConfiguration.setAllowedHeaders(List.of("*"));
             corsConfiguration.setAllowCredentials(true);

@@ -43,7 +43,7 @@ public class ConsultantCustomRepository {
                 FROM consultant c
                 LEFT JOIN consultant_profiles cf on c.id = cf.id
                 LEFT JOIN consultant_education ce on c.id = ce.consultant_id
-                LEFT JOIN medical_category mc on c.id = mc.id
+                LEFT JOIN medical_category mc on c.specialization = mc.id
                 WHERE c.user_id = :userId
                 """;
         return jdbcClient.sql(sql)

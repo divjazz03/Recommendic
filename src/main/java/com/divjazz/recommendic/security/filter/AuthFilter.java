@@ -21,11 +21,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,7 +34,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getErrorResponse;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AuthFilter extends OncePerRequestFilter {
+public class AuthFilter extends BaseAuthFilter {
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
@@ -100,9 +97,10 @@ public class AuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) return true;
         return WebSecurityConfig.getWHITELIST_PATHS().stream()
                 .anyMatch(skipPath -> antPathMatcher.match(skipPath, request.getRequestURI()))
                 || WebSecurityConfig.getNoAuthPostPaths().stream()
-                .anyMatch(skipPath -> antPathMatcher.match(skipPath,request.getRequestURI()) && request.getMethod().equals("POST"));
+                .anyMatch(skipPath -> antPathMatcher.match(skipPath,request.getRequestURI()) && (request.getMethod().equals("POST")));
     }
 }

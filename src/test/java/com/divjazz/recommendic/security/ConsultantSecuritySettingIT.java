@@ -27,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -101,7 +100,7 @@ public class ConsultantSecuritySettingIT extends BaseIntegrationTest {
         var responseString = mockMvc.perform(
                         get(SECURITY_BASE_URL)
                                 .with(user(consultant.getUserPrincipal()))
-                                .with(baseAuthenticatedSession(consultant.getUserPrincipal()))
+
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -122,7 +121,6 @@ public class ConsultantSecuritySettingIT extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request)
                         .with(user(consultant.getUserPrincipal()))
-                        .with(baseAuthenticatedSession(consultant.getUserPrincipal()))
         ).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

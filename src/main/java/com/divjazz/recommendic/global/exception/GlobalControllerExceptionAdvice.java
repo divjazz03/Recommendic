@@ -179,6 +179,10 @@ public class GlobalControllerExceptionAdvice {
     public ResponseEntity<Response<String>> handleAppointmentBookedException(AppointmentBookedException ex) {
         return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
     }
+    @ExceptionHandler(AppBadRequestException.class)
+    public ResponseEntity<Response<String>> handleAppBadRequestException(AppBadRequestException ex) {
+        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
+    }
 
 
 }

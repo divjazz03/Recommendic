@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS appNotification CASCADE ;
+DROP TABLE IF EXISTS app_notification CASCADE ;
 DROP TYPE IF EXISTS notification_category CASCADE;
 
 

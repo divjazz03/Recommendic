@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.patient.payload;
 
+import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.user.dto.ConsultantEducationDTO;
 import com.divjazz.recommendic.user.dto.ConsultantStatDTO;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
@@ -22,7 +23,7 @@ public record PatientFullConsultantView(
         int fee,
         Set<ConsultantEducationDTO> educations,
         ConsultantStatDTO stats,
-        Set<String> availableSlots,
+        Set<Slot> availableSlots,
         Set<ReviewDTO> reviews
 ) {
 }
