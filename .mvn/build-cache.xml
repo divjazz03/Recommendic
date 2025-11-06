@@ -1,0 +1,10 @@
+<cache xmlns="http://maven.apache.org/BUILD-CACHE-CONFIG/1.2.0" >
+    <configuration>
+        <enabled>true</enabled>
+        <remote enabled="false" />
+        <local>
+            <maxBuildsCached>10</maxBuildsCached>
+        </local>
+    </configuration>
+
+</cache>

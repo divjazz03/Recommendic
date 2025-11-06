@@ -35,6 +35,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -95,7 +97,14 @@ public class PatientService {
                             "email", user.getUserPrincipal().getUsername(),
                             "firstname", patientProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
-            recommendationService.createConsultantRecommendationForPatient(savedPatient);
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            recommendationService.createConsultantRecommendationForPatient(savedPatient);
+                        }
+                    }
+            );
             appNotificationService.createNotificationSetting(savedPatient);
             securityService.createUserSetting(savedPatient);
             log.info("New user with id {} created", user.getUserId());

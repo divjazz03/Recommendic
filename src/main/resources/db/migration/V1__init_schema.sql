@@ -116,8 +116,9 @@ CREATE TABLE IF NOT EXISTS patient
 );
 
 CREATE TABLE IF NOT EXISTS patient_medical_category (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     patient_id BIGINT REFERENCES patient(id) ON DELETE CASCADE,
-    medical_category_id BIGINT REFERENCES medical_category(id)
+    medical_category_id BIGINT REFERENCES medical_category(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS consultant
@@ -214,7 +215,7 @@ CREATE TABLE IF NOT EXISTS certification
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     certification_uuid           UUID DEFAULT uuidv7() UNIQUE,
     certification_id             TEXT GENERATED ALWAYS AS ( 'CRT-' || certification_uuid ) STORED ,
-    consultant_id    BIGINT REFERENCES consultant (id) NOT NULL,
+    consultant_id    BIGINT REFERENCES consultant (id) ON DELETE CASCADE NOT NULL,
     assignment_id    BIGINT REFERENCES assignment (id) NOT NULL,
     file_name        TEXT                              NOT NULL,
     file_url         TEXT                              NOT NULL,
@@ -252,7 +253,7 @@ CREATE TABLE IF NOT EXISTS article
     content        TEXT                              NOT NULL,
     like_ids       BIGINT[],
     tags           TEXT[],
-    writer_id      BIGINT REFERENCES consultant (id) NOT NULL,
+    writer_id      BIGINT REFERENCES consultant (id) ON DELETE CASCADE NOT NULL,
     no_of_reads    BIGINT       DEFAULT 0,
     article_status VARCHAR(10)  DEFAULT 'DRAFT',
     search_vector  TSVECTOR GENERATED ALWAYS AS (

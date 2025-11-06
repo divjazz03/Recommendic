@@ -53,7 +53,7 @@ public class ScheduleService {
 
     private static ScheduleDisplay toScheduleDisplay(Schedule schedule) {
         return new ScheduleDisplay(
-                schedule.getId(),
+                schedule.getScheduleId(),
                 schedule.getName(),
                 schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
                 schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
@@ -120,9 +120,9 @@ public class ScheduleService {
         return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().id(), Pageable.ofSize(10));
     }
 
-    public ScheduleResponseDTO getScheduleById(long id) {
+    public ScheduleResponseDTO getScheduleById(String id) {
         var schedule = scheduleRepository
-                .findById(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
+                .findByScheduleId(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
         return toScheduleResponseDTO(schedule);
     }
 

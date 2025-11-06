@@ -25,7 +25,7 @@ public class ScheduleCustomRepository {
     public Set<ScheduleDisplay> findAllScheduleDisplaysByConsultantId(long consultantId, Pageable pageable) {
         var query = """
                 SELECT
-                id,
+                schedule_id,
                 name,
                 start_time,
                 end_time,
@@ -48,7 +48,7 @@ public class ScheduleCustomRepository {
             try {
                 var recurrenceRuleString = rs.getString("recurrence_rule");
                 return new ScheduleDisplay(
-                        rs.getLong("id"),
+                        rs.getString("schedule_id"),
                         rs.getString("name"),
                         rs.getTime("start_time").toString(),
                         rs.getTime("end_time").toString(),

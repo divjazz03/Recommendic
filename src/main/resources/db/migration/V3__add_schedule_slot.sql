@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS appointment
     id               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY        NOT NULL,
     appointment_uuid UUID                        DEFAULT uuidv7() UNIQUE,
     appointment_id   TEXT GENERATED ALWAYS AS ( 'APT-' || appointment_uuid ) STORED,
-    patient_id       BIGINT REFERENCES patient (id) ON DELETE RESTRICT      NOT NULL,
-    consultant_id    BIGINT REFERENCES consultant (id) ON DELETE RESTRICT   NOT NULL,
+    patient_id       BIGINT REFERENCES patient (id) ON DELETE CASCADE  NOT NULL,
+    consultant_id    BIGINT REFERENCES consultant (id) ON DELETE CASCADE  NOT NULL,
     schedule_slot_id BIGINT REFERENCES schedule_slot (id) ON DELETE CASCADE NOT NULL,
     note             TEXT,
     status           appointment_status          DEFAULT 'REQUESTED',
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS consultation
     consultation_id             TEXT GENERATED ALWAYS AS ( 'CS-' || consultation_uuid ) STORED ,
     channel         session_channel                                               NOT NULL,
     status          consultation_status                                           NOT NULL,
-    appointment_id  BIGINT REFERENCES appointment (id),
+    appointment_id  BIGINT REFERENCES appointment (id) ON DELETE CASCADE ,
     search_vector   TSVECTOR,
     summary         TEXT,
     started_at      TIMESTAMP,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS consultation
 CREATE TABLE consultation_review
 (
     id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    consultation_id BIGINT REFERENCES consultation (id) NOT NULL,
+    consultation_id BIGINT REFERENCES consultation (id) ON DELETE CASCADE NOT NULL,
     rating          INTEGER                  DEFAULT 0,
     comment         TEXT NOT NULL ,
     name            TEXT NOT NULL ,
