@@ -30,10 +30,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
@@ -46,13 +43,9 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
-    private static final int HOURS_TO_SKIP = 12;
-    private static final int NINE_PM_IN_24HOURS = 21;
-    private static final int NINE_AM_IN_24HOURS = 9;
     private final AppointmentRepository appointmentRepository;
     private final ScheduleRepository scheduleRepository;
     private final PatientRepository patientRepository;
-    private final PatientCustomRepository patientCustomRepository;
     private final AuthUtils authUtils;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -233,7 +226,21 @@ public class AppointmentService {
     private Stream<Slot> generateTimeSlots(Schedule schedule, OffsetDateTime startDate, OffsetDateTime endOfThisWeek) {
         Set<OffsetDateTime> offsetDateTimes = new TreeSet<>();
         switch (schedule.getRecurrenceRule().frequency()) {
-            case ONE_OFF, DAILY -> {
+            case ONE_OFF -> {
+                var currentDay = startDate.truncatedTo(ChronoUnit.DAYS);
+
+                while (!currentDay.isAfter(endOfThisWeek)) {
+                    var dateToCompare = LocalDate.parse(schedule.getRecurrenceRule().endDate());
+                    if (currentDay.toLocalDate().isEqual(dateToCompare)){
+                        var slot = currentDay
+                                .withHour(schedule.getStartTime().getHour())
+                                .withMinute(schedule.getStartTime().getMinute());
+                        offsetDateTimes.add(slot);
+                    }
+                    currentDay = currentDay.plusDays(1);
+                }
+            }
+            case DAILY -> {
                 var currentDay = startDate.truncatedTo(ChronoUnit.DAYS);
 
                 while (!currentDay.isAfter(endOfThisWeek)) {
@@ -246,7 +253,7 @@ public class AppointmentService {
                 }
             }
             case MONTHLY -> {
-                log.warn("Monthly recurrence no yet implemented");
+                log.warn("Monthly recurrence not yet implemented");
             }
 
             case WEEKLY -> {
@@ -265,55 +272,4 @@ public class AppointmentService {
         return offsetDateTimes.stream().map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.toString()));
     }
 
-    private LocalDate getADateFromWeeklySchedule(Schedule schedule) {
-        Set<String> daysOfWeek = schedule.getRecurrenceRule().weekDays();
-        LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
-        if (Objects.nonNull(localDate)) {
-            for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
-                if (daysOfWeek.contains(dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH).toUpperCase(Locale.ENGLISH))) {
-                    while (localDate.getDayOfWeek() != dayOfWeek) {
-                        localDate = localDate.plusDays(1);
-                    }
-                }
-            }
-            return localDate;
-        } else {
-            LocalDate localDate1 = LocalDate.now().plusDays(1);
-            for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
-                if (daysOfWeek.contains(dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH).toLowerCase(Locale.ENGLISH))) {
-                    while (localDate1.getDayOfWeek() != dayOfWeek) {
-                        localDate1 = localDate1.plusDays(1);
-                    }
-                }
-            }
-            return localDate1;
-        }
-    }
-
-    private LocalDate getADateFromMonthlySchedule(Schedule schedule) {
-        LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
-        if (Objects.nonNull(localDate)) {
-            return localDate.plusMonths(1);
-        }
-        return LocalDate.now().plusDays(1);
-
-    }
-
-    private LocalDate getADateFromDailySchedule(Schedule schedule) {
-        LocalDate localDate = appointmentRepository.findLatestAppointmentDateForTheSchedule(schedule.getId());
-        if (Objects.nonNull(localDate)) {
-            return localDate.plusDays(1);
-        }
-        return LocalDate.now().plusDays(1);
-
-    }
-
-
-    private LocalDate getADateFromSchedule(Schedule schedule) {
-        return switch (schedule.getRecurrenceRule().frequency()) {
-            case ONE_OFF, DAILY -> getADateFromDailySchedule(schedule);
-            case WEEKLY -> getADateFromWeeklySchedule(schedule);
-            case MONTHLY -> getADateFromMonthlySchedule(schedule);
-        };
-    }
 }

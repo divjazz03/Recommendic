@@ -1,9 +1,11 @@
 package com.divjazz.recommendic.user.dto;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
+import com.divjazz.recommendic.appointment.domain.Slot;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;
-
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ConsultantMinimal(
         String id,
         String name,
@@ -17,6 +19,6 @@ public record ConsultantMinimal(
         String image,
         List<String> qualifications,
         List<String> languages,
-        String nextSlot
+        Slot nextSlot
 ) {
 }

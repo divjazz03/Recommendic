@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -399,6 +400,146 @@ public class ScheduleIT extends BaseIntegrationTest {
                 delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(this.consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldNotCreateScheduleIfAnyDailyScheduleExistsThatHasTheSameStartTime() throws Exception{
+        var schedule = Schedule.builder()
+                .consultant(consultant)
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
+                .endTime(LocalTime.of(11,0))
+                .startTime(LocalTime.of(9,0))
+                .isActive(true)
+                .name("Schedule that already exists")
+                .recurrenceRule(new RecurrenceRule(
+                        RecurrenceFrequency.DAILY,
+                        Collections.emptySet(),
+                        1,
+                        null
+                ))
+                .zoneOffset(ZoneOffset.ofHours(1))
+                .build();
+
+        scheduleRepository.save(schedule);
+
+        var request = """
+                
+                    [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["in_person"],
+                            "recurrenceRule": {
+                                "frequency": "daily",
+                                "interval": 1
+                            },
+                            "isActive": true
+                    }]
+                
+                """;
+        var response = mockMvc.perform(
+                post(BASE_URL)
+                        .with(user(consultant.getUserPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request)
+        ).andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+
+        log.error(response);
+    }
+
+    @Test
+    void shouldNotCreateAWeeklyScheduleIfAScheduleWithTheSameWeekDaysAndStartTimesExist() throws Exception{
+        var schedule = Schedule.builder()
+                .consultant(consultant)
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
+                .endTime(LocalTime.of(11,0))
+                .startTime(LocalTime.of(9,0))
+                .isActive(true)
+                .name("Schedule that already exists")
+                .recurrenceRule(new RecurrenceRule(
+                        RecurrenceFrequency.WEEKLY,
+                        Set.of("monday", "wednesday"),
+                        0,
+                        null
+                ))
+                .zoneOffset(ZoneOffset.ofHours(1))
+                .build();
+
+        scheduleRepository.save(schedule);
+
+        var request = """
+                
+                    [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["in_person","online"],
+                            "recurrenceRule": {
+                                "frequency": "weekly",
+                                "weekDays": ["monday","wednesday"]
+                            },
+                            "isActive": true
+                    }]
+                
+                """;
+        var response = mockMvc.perform(
+                        post(BASE_URL)
+                                .with(user(consultant.getUserPrincipal()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                ).andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+
+        log.error(response);
+    }
+    @Test
+    void shouldNotCreateAOneOffScheduleIfAWeeklyScheduleCoincides() throws Exception{
+        var schedule = Schedule.builder()
+                .consultant(consultant)
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.ONLINE})
+                .endTime(LocalTime.of(11,0))
+                .startTime(LocalTime.of(9,0))
+                .isActive(true)
+                .name("Weekly Schedule that already exists")
+                .recurrenceRule(new RecurrenceRule(
+                        RecurrenceFrequency.WEEKLY,
+                        Set.of("saturday", "sunday"),
+                        0,
+                        null
+                ))
+                .zoneOffset(ZoneOffset.ofHours(1))
+                .build();
+
+        scheduleRepository.save(schedule);
+
+        var request = """
+                
+                    [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["in_person","online"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "endDate": "2025-06-01"
+                            },
+                            "isActive": true
+                    }]
+                
+                """;
+        var response = mockMvc.perform(
+                        post(BASE_URL)
+                                .with(user(consultant.getUserPrincipal()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                ).andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+
+        log.error(response);
     }
 
 

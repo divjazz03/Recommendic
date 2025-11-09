@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.appointment.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.*;
+import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
@@ -16,8 +17,9 @@ import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantStat;
 import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
-import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.ConsultantService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +46,8 @@ public class ScheduleService {
     private final ConsultantService consultantService;
     private final ConsultantStatRepository consultantStatRepository;
     private final AppointmentService appointmentService;
+    private final ObjectMapper mapper;
+    private final ObjectMapper objectMapper;
 
     private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
         return Arrays.stream(consultationChannels)
@@ -104,6 +108,7 @@ public class ScheduleService {
                                 creationRequest.recurrenceRule().endDate()
                         );
                         schedule.setRecurrenceRule(recurrenceRule);
+                        verifyScheduleDoesNotConflictWithOthers(recurrenceRule, schedule);
                     }
                     return schedule;
 
@@ -113,6 +118,42 @@ public class ScheduleService {
         schedules = scheduleRepository.saveAll(schedules);
 
         return toScheduleResponseDTO(schedules.getFirst());
+    }
+
+    private void verifyScheduleDoesNotConflictWithOthers(RecurrenceRule recurrenceRule, Schedule schedule) {
+
+        var existsByStartTimeAndRecurrenceRuleFrequency = scheduleRepository.existsByStartTimeAndEndTimeAndRecurrenceRule_Frequency(
+                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
+                RecurrenceFrequency.DAILY.getValue());
+        if (existsByStartTimeAndRecurrenceRuleFrequency) {
+            throw new AppBadRequestException("A schedule of frequency %s at time %s already exists".formatted(RecurrenceFrequency.DAILY, schedule.getStartTime()));
+        }
+
+        if (recurrenceRule.frequency().equals(RecurrenceFrequency.WEEKLY)) {
+            boolean existsByWeekdaysAndStartTime;
+            try {
+                existsByWeekdaysAndStartTime = scheduleRepository.existsByWeekDaysAndStartTimeAndEndTime(
+                        objectMapper.writeValueAsString(recurrenceRule.weekDays()),
+                        schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                        schedule.getEndTime().format(DateTimeFormatter.ISO_TIME));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            if (existsByWeekdaysAndStartTime) {
+                throw new AppBadRequestException("A schedule with those weekdays and schedule start time exists");
+            }
+        }
+        if (recurrenceRule.frequency().equals(RecurrenceFrequency.ONE_OFF)) {
+            boolean existsWeeklyScheduleWithStartTime = scheduleRepository.existsByStartTimeAndEndTimeAndRecurrenceRule_Frequency(
+                    schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
+                    schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
+                    RecurrenceFrequency.WEEKLY.getValue());
+            if (existsWeeklyScheduleWithStartTime) {
+                throw new AppBadRequestException("A weekly schedule is conflicting with this startTime");
+            }
+
+        }
     }
 
     @Transactional(readOnly = true)
@@ -132,14 +173,14 @@ public class ScheduleService {
         ConsultantStat consultantStat = consultantStatRepository
                 .findConsultantStatByConsultantId(consultantId).orElse(ConsultantStat.ofEmpty());
         Set<ScheduleWithAppointmentDetail> schedules = new HashSet<>();
-        if (Objects.nonNull(date)){
+        if (Objects.nonNull(date)) {
             try {
                 var localDate = LocalDate.parse(date);
                 schedules.addAll(getSchedulesByConsultantIdAndDate(consultantId, localDate));
             } catch (DateTimeParseException ex) {
                 throw new AppBadRequestException(ex.getMessage());
             }
-        }else {
+        } else {
             schedules.addAll(getSchedulesByConsultantId(consultantId));
         }
 

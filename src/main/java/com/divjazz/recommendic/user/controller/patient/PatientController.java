@@ -141,7 +141,7 @@ public class PatientController {
         );
         return ResponseEntity.ok().body(response);
     }
-
+    @Operation(summary = "Get the consultants full information")
     @GetMapping("/profiles/consultants/details/{id}")
     public ResponseEntity<Response<PatientFullConsultantView>> retrieveConsultantFullInfo(@PathVariable String id) {
         var response = patientService.getFullConsultantView(id);

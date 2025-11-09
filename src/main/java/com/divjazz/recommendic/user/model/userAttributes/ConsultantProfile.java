@@ -20,6 +20,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "consultant_profiles")
@@ -96,5 +97,12 @@ public class ConsultantProfile{
 
     public String getAge() {
         return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
+    }
+
+    public String[] getLanguages() {
+        if (Objects.nonNull(languages)){
+            return languages;
+        }
+        return new String[0];
     }
 }

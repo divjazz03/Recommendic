@@ -9,6 +9,7 @@ import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,6 +33,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -72,7 +75,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain webSecurity(HttpSecurity http,
                                            BaseAuthFilter authFilter) throws Exception {
         return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -99,6 +102,12 @@ public class WebSecurityConfig {
     BaseAuthFilter authFilter(ObjectMapper ob) {
         return new AuthFilter(ob);
     }
+    @Bean
+    FilterRegistrationBean<CorsFilter> corsFilterFilterRegistrationBean(CorsConfigurationSource configurationSource) {
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(configurationSource));
+        bean.setOrder(-102);
+        return bean;
+    }
 
     @Bean
     @Profile("test")
@@ -116,6 +125,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    @Primary
     CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
             corsConfiguration.setAllowedOrigins(
@@ -126,6 +136,7 @@ public class WebSecurityConfig {
             );
             corsConfiguration.setAllowedHeaders(List.of("*"));
             corsConfiguration.setAllowCredentials(true);
+            corsConfiguration.setMaxAge(3600L);
 
             UrlBasedCorsConfigurationSource configurationSource = new UrlBasedCorsConfigurationSource();
             configurationSource.registerCorsConfiguration("/**", corsConfiguration);

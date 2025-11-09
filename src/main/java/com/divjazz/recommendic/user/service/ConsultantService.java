@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
+import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
@@ -240,6 +241,21 @@ public class ConsultantService {
     public ConsultantMinimal getConsultantRecommendationProfileMinimal(Consultant consultant) {
         ConsultantProfile consultantProfile = consultant.getProfile();
         Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
+        var availabilityResult = appointmentService.getConsultantAvailability(consultant.getUserId());
+
+        String availabilty = null;
+        Slot nextSlot = null;
+        if (!availabilityResult.today().isEmpty()) {
+            availabilty = "Available Today";
+            nextSlot = availabilityResult.today().stream().findAny().orElse(null);
+        }
+        if (!availabilityResult.tomorrow().isEmpty()) {
+            availabilty = "Available Tomorrow";
+            nextSlot = availabilityResult.tomorrow().stream().findAny().orElse(null);
+        }
+        if (!availabilityResult.thisWeek().isEmpty()) {
+            availabilty = "Available This Week";
+        }
 
         return new ConsultantMinimal(
                 consultant.getUserId(),
@@ -248,14 +264,14 @@ public class ConsultantService {
                 4.5,0,
                 consultantProfile.getYearsOfExperience(),
                 consultantProfile.getLocationOfInstitution(),
-                "",
+                availabilty,
                 new ConsultationFee(200,300),
                 consultantProfile.getProfilePicture().getPictureUrl(),
                 consultantEducations.stream()
                         .map(ConsultantEducation::getDegree)
                         .collect(Collectors.toList()),
                 Arrays.stream(consultantProfile.getLanguages() == null? new String[0]: consultantProfile.getLanguages()).toList(),
-                ""
+                nextSlot
         );
     }
     public ConsultantFull getFullConsultantDetails(String consultantId) {

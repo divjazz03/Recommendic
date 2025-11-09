@@ -27,11 +27,10 @@ public class UserLoginRetryHandler {
         if (failedAttempts >= MAX_ATTEMPTS) {
             lockAccount(email);
             throw new LockedException(
-                    "Your account has been locked due to too many failed attempts. Please try again in "
-                            + getRemainingLockTime(email) + " minutes");
+                    "Your account has been locked due to too many failed attempts. Please try again in %d minutes".formatted(getRemainingLockTime(email)));
         }
         throw new LoginFailedException(
-                "Invalid credentials: You have failed %s times, %s attempts left"
+                "Invalid credentials: You have failed %s time(s), %s attempts left"
                         .formatted(failedAttempts,
                         remainingAttempts));
     }
@@ -69,7 +68,7 @@ public class UserLoginRetryHandler {
 
     public boolean isAccountLocked(String email) {
         String lockKey = getLockKey(email);
-        return Boolean.TRUE.equals(cacheService.hasKey(lockKey));
+        return cacheService.hasKey(lockKey);
     }
 
     private void lockAccount(String email) {
@@ -78,10 +77,10 @@ public class UserLoginRetryHandler {
     }
 
     private String getAttemptKey(String email) {
-        return "auth:attempt:" + email;
+        return "auth:attempt:%s".formatted(email);
     }
 
     private String getLockKey(String email) {
-        return "auth:locked:" + email;
+        return "auth:locked:%s".formatted(email);
     }
 }
