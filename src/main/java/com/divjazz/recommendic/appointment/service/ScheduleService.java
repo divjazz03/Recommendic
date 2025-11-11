@@ -3,6 +3,7 @@ package com.divjazz.recommendic.appointment.service;
 import com.divjazz.recommendic.appointment.controller.payload.*;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
+import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -46,8 +47,8 @@ public class ScheduleService {
     private final ConsultantService consultantService;
     private final ConsultantStatRepository consultantStatRepository;
     private final AppointmentService appointmentService;
-    private final ObjectMapper mapper;
     private final ObjectMapper objectMapper;
+    private final AvailabilityService availabilityService;
 
     private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
         return Arrays.stream(consultationChannels)
@@ -172,21 +173,16 @@ public class ScheduleService {
         ConsultantProfile consultantProfile = consultantService.getConsultantProfileByConsultantId(consultantId);
         ConsultantStat consultantStat = consultantStatRepository
                 .findConsultantStatByConsultantId(consultantId).orElse(ConsultantStat.ofEmpty());
-        Set<ScheduleWithAppointmentDetail> schedules = new HashSet<>();
+        Set<Slot> slots = null;
         if (Objects.nonNull(date)) {
-            try {
-                var localDate = LocalDate.parse(date);
-                schedules.addAll(getSchedulesByConsultantIdAndDate(consultantId, localDate));
-            } catch (DateTimeParseException ex) {
-                throw new AppBadRequestException(ex.getMessage());
-            }
-        } else {
-            schedules.addAll(getSchedulesByConsultantId(consultantId));
+            slots = availabilityService.getAvailableSlotsByDateAndConsultantId(date, consultantId);
+        }
+        if (Objects.isNull(slots)) {
+            slots = Set.of();
         }
 
-
         return new ConsultantSchedulesResponse(
-                schedules,
+                slots,
                 new ConsultantSchedulesResponse.ScheduleConsultantProfile(
                         consultantProfile.getUserName().getFullName(),
                         consultantProfile.getTitle(),

@@ -4,7 +4,9 @@ import com.divjazz.recommendic.appointment.controller.payload.ConsultantSchedule
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleModificationRequest;
+import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
+import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
 import com.divjazz.recommendic.global.Response;
 import jakarta.validation.Valid;
@@ -12,12 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -26,6 +26,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 @RequestMapping("/api/v1/schedules")
 public class ScheduleController {
     private final ScheduleService scheduleService;
+    private final AvailabilityService availabilityService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
@@ -70,5 +71,12 @@ public class ScheduleController {
     public ResponseEntity<Response<Void>> deleteSchedule(@PathVariable String id) {
         scheduleService.deleteScheduleById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/consultants/{consultantId}/availability/{date}")
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
+    public ResponseEntity<Response<Set<Slot>>> getConsultantsAvailabilityForASelectedDay(@PathVariable("consultantId") String consultantId, @PathVariable("date") String date) {
+        var slots = availabilityService.getAvailableSlotsByDateAndConsultantId(date, consultantId);
+        return ResponseEntity.ok(getResponse(slots, HttpStatus.OK));
     }
 }

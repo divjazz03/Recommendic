@@ -3,6 +3,7 @@ package com.divjazz.recommendic.appointment.controller;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancellationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentRescheduleRequest;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.global.Response;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,23 +28,30 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
     public ResponseEntity<Response<AppointmentCreationResponse>> scheduleAppointment(
             @RequestBody @Valid AppointmentCreationRequest request, HttpServletRequest servletRequest) {
         AppointmentCreationResponse response = appointmentService.createAppointment(request);
         return ResponseEntity.created(URI.create(servletRequest.getRequestURI()))
                 .body(getResponse(response, HttpStatus.CREATED));
     }
-    @PostMapping("{id}/confirm")
+    @PatchMapping("{id}/confirm")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
     public ResponseEntity<Void> confirmAppointment(@PathVariable String id) {
         appointmentService.confirmAppointment(id);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/cancel")
-    public ResponseEntity<Response<String>> cancelAppointment(@PathVariable String id,
+    @PatchMapping("/reschedule")
+    public ResponseEntity<Response<String>> rescheduleAppointment(@RequestBody @Valid AppointmentRescheduleRequest rescheduleRequest) {
+        appointmentService.rescheduleRequest(rescheduleRequest);
+        return ResponseEntity.ok(getResponse("Appointment Rescheduled to %s".formatted(rescheduleRequest.newDate()), HttpStatus.OK));
+    }
+
+    @PatchMapping("/cancel")
+    public ResponseEntity<Response<String>> cancelAppointment(
                                                               @Valid @RequestBody AppointmentCancellationRequest appointmentCancellationRequest) {
-        appointmentService.cancelAppointment(id, appointmentCancellationRequest.reason());
+        appointmentService.cancelAppointment(appointmentCancellationRequest);
         return ResponseEntity.ok(getResponse("Appointment Cancelled", HttpStatus.OK));
     }
 

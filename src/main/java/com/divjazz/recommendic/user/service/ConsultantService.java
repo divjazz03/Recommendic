@@ -1,8 +1,10 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
+import com.divjazz.recommendic.appointment.domain.Availability;
 import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
+import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
@@ -64,6 +66,7 @@ public class ConsultantService {
     private final ConsultantStatRepository consultantStatRepository;
     private final ConsultantEducationRepository consultantEducationRepository;
     private final AppointmentService appointmentService;
+    private final AvailabilityService availabilityService;
     private final ConsultationService consultationService;
     private final ConsultantCustomRepository consultantCustomRepository;
     private final AppNotificationService appNotificationService;
@@ -241,7 +244,7 @@ public class ConsultantService {
     public ConsultantMinimal getConsultantRecommendationProfileMinimal(Consultant consultant) {
         ConsultantProfile consultantProfile = consultant.getProfile();
         Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
-        var availabilityResult = appointmentService.getConsultantAvailability(consultant.getUserId());
+        var availabilityResult = availabilityService.getConsultantAvailability(consultant.getUserId());
 
         String availabilty = null;
         Slot nextSlot = null;
@@ -282,7 +285,7 @@ public class ConsultantService {
                 .orElse(ConsultantStat.ofEmpty());
         Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
 
-        var availableSlots =  appointmentService.getTodayAvailableSlots(consultantId);
+        var availableSlots =  availabilityService.getTodayAvailableSlots(consultantId);
         return ConsultantFull.builder()
                 .bio(consultantProfile.getBio())
                 .experience(consultantProfile.getYearsOfExperience())

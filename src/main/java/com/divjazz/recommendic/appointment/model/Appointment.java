@@ -1,24 +1,19 @@
 package com.divjazz.recommendic.appointment.model;
 
-import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.Builder;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.time.LocalDateTime;
 
 @Table(name = "appointment")
 @Entity
@@ -52,13 +47,15 @@ public class Appointment extends Auditable {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "selected_channel")
     private ConsultationChannel consultationChannel;
+    @Column(name = "reason")
+    private String reason;
 
 
-    public OffsetDateTime getStartDateAndTime() {
-        return OffsetDateTime.of(appointmentDate, schedule.getStartTime(), schedule.getZoneOffset());
+    public LocalDateTime getStartDateAndTime() {
+        return LocalDateTime.of(appointmentDate, schedule.getStartTime());
     }
-    public OffsetDateTime getEndDateAndTime() {
-        return OffsetDateTime.of(appointmentDate, schedule.getEndTime(), schedule.getZoneOffset());
+    public LocalDateTime getEndDateAndTime() {
+        return LocalDateTime.of(appointmentDate, schedule.getEndTime());
     }
 
 }

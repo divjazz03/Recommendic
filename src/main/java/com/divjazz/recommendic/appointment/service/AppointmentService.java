@@ -1,10 +1,9 @@
 package com.divjazz.recommendic.appointment.service;
 
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancellationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
-import com.divjazz.recommendic.appointment.domain.Availability;
-import com.divjazz.recommendic.appointment.domain.Slot;
-import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
+import com.divjazz.recommendic.appointment.controller.payload.AppointmentRescheduleRequest;
 import com.divjazz.recommendic.appointment.enums.AppointmentEventType;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.event.AppointmentEvent;
@@ -21,22 +20,18 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.repository.PatientCustomRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
-import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -75,6 +70,9 @@ public class AppointmentService {
                 .consultationChannel(ConsultationChannel.valueOf(appointmentCreationRequest.channel().toUpperCase()))
                 .build();
 
+        appointment.setReason(appointmentCreationRequest.reason());
+
+
         appointment = appointmentRepository.save(appointment);
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_REQUESTED,
@@ -97,8 +95,7 @@ public class AppointmentService {
 
     @Transactional
     public void confirmAppointment(String appointmentId) {
-        AppointmentProjection appointment = appointmentRepository.findAppointmentByAppointmentId(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Appointment does not exist"));
+        AppointmentProjection appointment = getAppointmentProjection(appointmentId);
         if (!authUtils.getCurrentUser().userId().equals(appointment.getConsultantId())) {
             throw new AuthorizationException("You do not have authority to confirm this appointment");
         }
@@ -116,26 +113,43 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void cancelAppointment(String appointmentId, String reason) {
+    public void cancelAppointment(AppointmentCancellationRequest cancellationRequest) {
         var currentUser = authUtils.getCurrentUser();
-        AppointmentProjection appointment = appointmentRepository.findAppointmentByAppointmentId(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Appointment does not exist"));
+        AppointmentProjection appointment = getAppointmentProjection(cancellationRequest.appointmentId());
         var userIsAuthorizedToCancel = currentUser.userId().equals(appointment.getPatientId());
         if (!userIsAuthorizedToCancel) {
             throw new AuthorizationException("You do not have authority to cancel this appointment");
         }
-        appointmentRepository.updateAppointmentStatusByAppointmentId(appointmentId, AppointmentStatus.CANCELLED);
+        appointmentRepository.updateAppointmentStatusByAppointmentId(cancellationRequest.appointmentId(), AppointmentStatus.CANCELLED);
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_CANCELLED,
                 Map.of("targetId", appointment.getConsultantId(),
-                        "subjectId", appointmentId,
-                        "reason", reason,
+                        "subjectId", cancellationRequest.appointmentId(),
+                        "reason", cancellationRequest.reason(),
                         "name", appointment.getPatientFullName().getFullName(),
                         "startDateTime", OffsetDateTime.of(appointment.getStartDate(), appointment.getStartTime(), appointment.getOffset()).toString(),
                         "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString())
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
+
+    public void rescheduleRequest (AppointmentRescheduleRequest rescheduleRequest) {
+        var currentUser = authUtils.getCurrentUser();
+        var appointmentProjection = getAppointmentProjection(rescheduleRequest.appointmentId());
+        var userIsAuthorizedToReschedule = currentUser.userId().equals(appointmentProjection.getPatientId())
+                || currentUser.userId().equals(appointmentProjection.getConsultantId());
+        if (!userIsAuthorizedToReschedule) {
+            throw new AuthorizationException("You do not have the authority to reschedule this appointment");
+        }
+
+        appointmentRepository.updateAppointmentDate(rescheduleRequest.appointmentId(), LocalDate.parse(rescheduleRequest.newDate()));
+    }
+
+    private AppointmentProjection getAppointmentProjection(String appointmentId) {
+        return appointmentRepository.findAppointmentByAppointmentId(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment does not exist"));
+    }
+
 
     public Stream<Appointment> getAppointmentsByPatientId(String patientId) {
         return appointmentRepository.findAppointmentsByPatient_UserId(patientId);
@@ -157,119 +171,6 @@ public class AppointmentService {
                 .toList();
     }
 
-    /*
-     * Finds the Availability of a consultant within a month time
-     * */
 
-    public Set<Slot> getTodayAvailableSlots(String consultantId) {
-        var startDate = OffsetDateTime.now();
-        Set<Schedule> consultantSchedules = scheduleRepository.findAllByConsultant_UserId(consultantId);
-        Set<Slot> bookedSlots = appointmentRepository
-                .findAllByConsultant_UserIdAndAppointmentDate(consultantId,
-                        startDate.toLocalDate())
-                .stream()
-                .map(appointment -> new Slot(appointment.getSchedule().getScheduleId(), appointment.getStartDateAndTime().toString()))
-                .collect(Collectors.toSet());
-
-        Set<Slot> todaySlots = new TreeSet<>();
-        for (var schedule : consultantSchedules) {
-            generateTimeSlots(schedule, startDate, startDate.withHour(23).withMinute(59).withSecond(59))
-                    .filter(slot -> !bookedSlots.contains(slot))
-                    .forEach(todaySlots::add);
-        }
-        return todaySlots;
-
-    }
-
-    @Transactional(readOnly = true)
-    public Availability getConsultantAvailability(String consultantId) {
-        var startDate = OffsetDateTime.now();
-        var endOfThisWeek = startDate.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
-
-        Set<Schedule> consultantsSchedules = scheduleRepository.findAllByConsultant_UserId(consultantId);
-        Set<Slot> bookedSlots = appointmentRepository
-                .findAllByConsultant_UserIdAndAppointmentDateBetween(consultantId,
-                        startDate.toLocalDate(),
-                        endOfThisWeek.toLocalDate())
-                .stream()
-                .map(appointment -> new Slot(appointment.getSchedule().getScheduleId(), appointment.getStartDateAndTime().toString()))
-                .collect(Collectors.toSet());
-
-        Set<Slot> today = new TreeSet<>();
-        Set<Slot> tomorrow = new TreeSet<>();
-        Set<Slot> thisWeek = new TreeSet<>();
-        for (var schedule : consultantsSchedules) {
-            generateTimeSlots(schedule, startDate, endOfThisWeek)
-                    .filter(slot -> !bookedSlots.contains(slot))
-                    .forEach(slot -> {
-                        var parseSlot = OffsetDateTime.parse(slot.dateTime());
-                        if (parseSlot.isEqual(startDate)) {
-                            today.add(slot);
-                        } else if (parseSlot.toLocalDate().isEqual(startDate.toLocalDate().plusDays(1))) {
-                            tomorrow.add(slot);
-                        } else {
-                            thisWeek.add(slot);
-                        }
-                    });
-        }
-        return new Availability(
-                today,
-                tomorrow,
-                thisWeek,
-                bookedSlots
-
-        );
-
-
-    }
-
-    private Stream<Slot> generateTimeSlots(Schedule schedule, OffsetDateTime startDate, OffsetDateTime endOfThisWeek) {
-        Set<OffsetDateTime> offsetDateTimes = new TreeSet<>();
-        switch (schedule.getRecurrenceRule().frequency()) {
-            case ONE_OFF -> {
-                var currentDay = startDate.truncatedTo(ChronoUnit.DAYS);
-
-                while (!currentDay.isAfter(endOfThisWeek)) {
-                    var dateToCompare = LocalDate.parse(schedule.getRecurrenceRule().endDate());
-                    if (currentDay.toLocalDate().isEqual(dateToCompare)){
-                        var slot = currentDay
-                                .withHour(schedule.getStartTime().getHour())
-                                .withMinute(schedule.getStartTime().getMinute());
-                        offsetDateTimes.add(slot);
-                    }
-                    currentDay = currentDay.plusDays(1);
-                }
-            }
-            case DAILY -> {
-                var currentDay = startDate.truncatedTo(ChronoUnit.DAYS);
-
-                while (!currentDay.isAfter(endOfThisWeek)) {
-                    var slot = currentDay
-                            .withHour(schedule.getStartTime().getHour())
-                            .withMinute(schedule.getStartTime().getMinute());
-
-                    offsetDateTimes.add(slot);
-                    currentDay = currentDay.plusDays(1);
-                }
-            }
-            case MONTHLY -> {
-                log.warn("Monthly recurrence not yet implemented");
-            }
-
-            case WEEKLY -> {
-                var scheduleWeek = schedule.getRecurrenceRule().weekDays();
-                for (String weekDay : scheduleWeek) {
-                    var slot = startDate
-                            .with(TemporalAdjusters.next(DayOfWeek.valueOf(weekDay.toUpperCase())))
-                            .withHour(schedule.getStartTime().getHour())
-                            .withMinute(schedule.getStartTime().getMinute());
-                    offsetDateTimes.add(slot);
-
-                }
-            }
-            case null, default -> throw new IllegalStateException("schedule recurrence frequency should not be null");
-        }
-        return offsetDateTimes.stream().map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.toString()));
-    }
 
 }

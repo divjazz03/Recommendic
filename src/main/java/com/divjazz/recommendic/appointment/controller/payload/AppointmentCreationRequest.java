@@ -13,6 +13,8 @@ public record AppointmentCreationRequest(
         @NotNull(message = "channel is required")
         String channel,
         @NotNull(message = "Date cannot be null")
-        String date
+        String date,
+        @NotNull(message = "Reason is required")
+        String reason
 ) {
 }
