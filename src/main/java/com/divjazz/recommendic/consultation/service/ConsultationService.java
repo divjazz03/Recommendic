@@ -52,7 +52,7 @@ public class ConsultationService {
         // The Consultation should not be started 15 minutes before the actual appointed time
         if (appointment.getStartDateAndTime()
                 .minusMinutes(MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START)
-                .isAfter(OffsetDateTime.of(LocalDateTime.now(), appointment.getSchedule().getZoneOffset()))) {
+                .isAfter(LocalDateTime.now())) {
             throw new ConsultationStartedBeforeAppointmentException();
         }
         Consultation consultation = new Consultation(appointment,appointment.getConsultationChannel());
