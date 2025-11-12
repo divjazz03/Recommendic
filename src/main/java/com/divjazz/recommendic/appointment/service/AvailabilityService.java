@@ -160,6 +160,8 @@ public class AvailabilityService {
                 }
             }
         }
-        return localDateTimes.stream().map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        return localDateTimes
+                .stream()
+                .map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.format(DateTimeFormatter.ISO_DATE_TIME)));
     }
 }

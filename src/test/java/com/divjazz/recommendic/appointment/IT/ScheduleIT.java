@@ -542,6 +542,47 @@ public class ScheduleIT extends BaseIntegrationTest {
         log.error(response);
     }
 
+    @Test
+    void shouldGetConsultantsAvailability() throws Exception {
+        var schedule = Schedule.builder()
+                .name("Some schedule")
+                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
+                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
+                .zoneOffset(ZoneOffset.of("+01:00"))
+                .isActive(true)
+                .startTime(LocalTime.of(12,30))
+                .endTime(LocalTime.of(15,30))
+                .consultant(consultant)
+                .build();
+        scheduleRepository.save(schedule);
+
+        Patient patient = new Patient(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                patientRole
+        );
+        patient.getUserPrincipal().setEnabled(true);
+        patient.addMedicalCategory(medicalCategory);
+        patient.setUserStage(UserStage.ACTIVE_USER);
+
+        PatientProfile patientProfile = PatientProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .patient(patient)
+                .build();
+        patient.setPatientProfile(patientProfile);
+        patient = patientRepository.save(patient);
+        var result = mockMvc.perform(
+                get("/api/v1/appointments/timeslots/%s?date=2025-10-12".formatted(consultant.getUserId()))
+                        .with(user(patient.getUserPrincipal()))
+        ).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        log.info(result);
+    }
+
 
 
 
@@ -582,7 +623,7 @@ public class ScheduleIT extends BaseIntegrationTest {
 
         var schedule = Schedule.builder()
                 .name("Some schedule")
-                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
+                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
                 .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)

@@ -4,7 +4,9 @@ import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancell
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentRescheduleRequest;
+import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
+import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.global.Response;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Set;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
@@ -26,6 +29,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final AvailabilityService availabilityService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_PATIENT')")
@@ -47,6 +51,14 @@ public class AppointmentController {
         appointmentService.rescheduleRequest(rescheduleRequest);
         return ResponseEntity.ok(getResponse("Appointment Rescheduled to %s".formatted(rescheduleRequest.newDate()), HttpStatus.OK));
     }
+
+    @GetMapping("/timeslots/{consultant_id}")
+    public ResponseEntity<Response<Set<Slot>>> getConsultantsTimeSlots(@PathVariable("consultant_id") String consultantId,
+                                                                       @RequestParam(value = "date") String date) {
+        var timeSlots = availabilityService.getAvailableSlotsByDateAndConsultantId(date, consultantId);
+        return ResponseEntity.ok(getResponse(timeSlots, HttpStatus.OK));
+    }
+
 
     @PatchMapping("/cancel")
     public ResponseEntity<Response<String>> cancelAppointment(
