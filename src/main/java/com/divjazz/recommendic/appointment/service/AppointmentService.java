@@ -1,21 +1,20 @@
 package com.divjazz.recommendic.appointment.service;
 
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancellationRequest;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentRescheduleRequest;
+import com.divjazz.recommendic.appointment.controller.payload.*;
 import com.divjazz.recommendic.appointment.enums.AppointmentEventType;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.event.AppointmentEvent;
 import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
+import com.divjazz.recommendic.appointment.repository.AppointmentCustomRepository;
 import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.ResponseWithCount;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -24,6 +23,7 @@ import com.divjazz.recommendic.user.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +32,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -43,11 +44,72 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final AuthUtils authUtils;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final AppointmentCustomRepository appointmentCustomRepository;
 
     public Appointment getAppointmentByAppointmentId(String appointmentId) {
         return appointmentRepository.findByAppointmentId(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment with id: %s not found".formatted(appointmentId)));
     }
+
+    public ResponseWithCount<? extends AppointmentResponse> getAppointmentsForThisUser(Pageable pageable) {
+        var authUser = authUtils.getCurrentUser();
+
+        return switch (authUser.userType()) {
+            case ADMIN -> null;
+            case CONSULTANT -> getAppointmentForConsultantUser(authUser, pageable);
+            case PATIENT -> getAppointmentForPatientUser(authUser, pageable);
+        };
+
+    }
+
+    private ResponseWithCount<PatientAppointmentResponse> getAppointmentForPatientUser(UserDTO authUser, Pageable pageable) {
+
+        var result = appointmentCustomRepository.retrievePatientAppointments(authUser.id(), pageable);
+        var elements = result.elements().stream().map(dto ->
+                new PatientAppointmentResponse(
+                        dto.id(),
+                        dto.consultantId(),
+                        dto.doctorName(),
+                        dto.specialty(),
+                        dto.date(),
+                        dto.time(),
+                        dto.duration(),
+                        dto.type(),
+                        dto.location(),
+                        dto.phone(),
+                        dto.status(),
+                        dto.notes(),
+                        dto.preparation()
+                )).collect(Collectors.toSet());
+        return new ResponseWithCount<>(elements, result.total());
+    }
+
+    private ResponseWithCount<ConsultantAppointmentResponse> getAppointmentForConsultantUser(UserDTO authUser, Pageable pageable) {
+        var result = appointmentCustomRepository.retrieveConsultantAppointments(authUser.id(), pageable);
+        var elements = result.elements().stream().map(dto ->
+                new ConsultantAppointmentResponse(
+                        dto.id(),
+                        dto.patientName(),
+                        dto.patientAge(),
+                        dto.patientPhone(),
+                        dto.patientEmail(),
+                        dto.date(),
+                        dto.time(),
+                        dto.duration(),
+                        dto.type(),
+                        dto.location(),
+                        dto.reason(),
+                        dto.symptoms(),
+                        dto.medicalHistory(),
+                        dto.requestedDate(),
+                        dto.priority(),
+                        dto.notes(),
+                        dto.cancellationReason(),
+                        dto.status()
+                )).collect(Collectors.toSet());
+        return new ResponseWithCount<>(elements,result.total());
+    }
+
 
     @Transactional
     public AppointmentCreationResponse createAppointment(AppointmentCreationRequest appointmentCreationRequest) {
@@ -65,7 +127,7 @@ public class AppointmentService {
                 .consultant(consultant)
                 .patient(patient)
                 .schedule(schedule)
-                .status(AppointmentStatus.REQUESTED)
+                .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.parse(appointmentCreationRequest.date()))
                 .consultationChannel(ConsultationChannel.valueOf(appointmentCreationRequest.channel().toUpperCase()))
                 .build();
@@ -79,8 +141,8 @@ public class AppointmentService {
                 Map.of("name", patient.getPatientProfile().getUserName().getFullName(),
                         "subjectId", appointment.getAppointmentId(),
                         "targetId", consultant.getUserId(),
-                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME),
-                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME),
+                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME))
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
         return new AppointmentCreationResponse(
@@ -133,7 +195,7 @@ public class AppointmentService {
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
-    public void rescheduleRequest (AppointmentRescheduleRequest rescheduleRequest) {
+    public void rescheduleRequest(AppointmentRescheduleRequest rescheduleRequest) {
         var currentUser = authUtils.getCurrentUser();
         var appointmentProjection = getAppointmentProjection(rescheduleRequest.appointmentId());
         var userIsAuthorizedToReschedule = currentUser.userId().equals(appointmentProjection.getPatientId())
@@ -170,7 +232,6 @@ public class AppointmentService {
                 .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .toList();
     }
-
 
 
 }

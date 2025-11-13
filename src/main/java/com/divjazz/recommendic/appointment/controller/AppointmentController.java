@@ -1,17 +1,18 @@
 package com.divjazz.recommendic.appointment.controller;
 
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCancellationRequest;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationResponse;
-import com.divjazz.recommendic.appointment.controller.payload.AppointmentRescheduleRequest;
+import com.divjazz.recommendic.appointment.controller.payload.*;
 import com.divjazz.recommendic.appointment.domain.Slot;
+import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.general.PageResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +32,15 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
     private final AvailabilityService availabilityService;
 
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_PATIENT', 'ROLE_CONSULTANT')")
+    public ResponseEntity<Response<PageResponse<? extends AppointmentResponse>>> getAppointments(@PageableDefault(size = 20) Pageable pageable) {
+        var results = appointmentService.getAppointmentsForThisUser(pageable);
+        var pageResponse = PageResponse.fromSet(pageable, results.elements(), results.total());
+
+        return ResponseEntity.ok(getResponse(pageResponse, HttpStatus.OK));
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_PATIENT')")
     public ResponseEntity<Response<AppointmentCreationResponse>> scheduleAppointment(
@@ -47,6 +57,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/reschedule")
+    @PreAuthorize("hasAnyAuthority('ROLE_PATIENT', 'ROLE_CONSULTANT')")
     public ResponseEntity<Response<String>> rescheduleAppointment(@RequestBody @Valid AppointmentRescheduleRequest rescheduleRequest) {
         appointmentService.rescheduleRequest(rescheduleRequest);
         return ResponseEntity.ok(getResponse("Appointment Rescheduled to %s".formatted(rescheduleRequest.newDate()), HttpStatus.OK));

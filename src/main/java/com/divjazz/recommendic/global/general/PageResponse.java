@@ -40,10 +40,10 @@ public record PageResponse<T>(
             return PageResponse.from(Page.empty());
         }
         var isLast = result.size() < pageable.getPageSize();
-        var isFirst = pageable.getPageNumber() == 1;
+        var isFirst = pageable.getPageNumber() == 0;
         return new PageResponse<>(
                 result.stream().toList(),
-                (int) (total / pageable.getPageSize()),
+                (int)Math.ceil ((double) total / (pageable.getPageSize())),
                 total,
                 isLast,
                 result.size(),

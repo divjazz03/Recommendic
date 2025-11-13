@@ -2,6 +2,7 @@ package com.divjazz.recommendic.appointment.repository;
 
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleDisplay;
+import com.divjazz.recommendic.global.general.ResponseWithCount;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,19 @@ public class ScheduleCustomRepository {
     private final ObjectMapper objectMapper;
 
 
-    public Set<ScheduleDisplay> findAllScheduleDisplaysByConsultantId(long consultantId, Pageable pageable) {
+    public ResponseWithCount<ScheduleDisplay> findAllScheduleDisplaysByConsultantId(long consultantId, Pageable pageable) {
+        var countQuery = """
+                SELECT
+                    count(*)
+                FROM schedule_slot
+                WHERE consultant_id = :id
+                """;
+
+        var total = jdbcClient.sql(countQuery)
+                .param("id", consultantId)
+                .query((rs, rowNum) -> rs.getInt(1))
+                .single();
+
         var query = """
                 SELECT
                 schedule_id,
@@ -42,6 +55,7 @@ public class ScheduleCustomRepository {
                 FROM schedule_slot
                 WHERE consultant_id = :id
                 LIMIT :limit
+                OFFSET ((:page + 1) * :limit) - :limit
                 """;
         RowMapper<ScheduleDisplay> rowMapper = (rs, rowNum) -> {
 
@@ -67,10 +81,13 @@ public class ScheduleCustomRepository {
 
         };
 
-        return jdbcClient.sql(query)
+        var schedules =  jdbcClient.sql(query)
                 .param("id", consultantId)
                 .param("limit", pageable.getPageSize())
+                .param("page", pageable.getPageNumber())
                 .query(rowMapper)
                 .set();
+
+        return new ResponseWithCount<>(schedules, total);
     }
 }

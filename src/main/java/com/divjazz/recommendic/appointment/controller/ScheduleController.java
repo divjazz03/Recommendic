@@ -9,8 +9,12 @@ import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
 import com.divjazz.recommendic.global.Response;
+import com.divjazz.recommendic.global.general.PageResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +28,7 @@ import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/schedules")
+@Tag(name = "Schedule API")
 public class ScheduleController {
     private final ScheduleService scheduleService;
     private final AvailabilityService availabilityService;
@@ -39,9 +44,10 @@ public class ScheduleController {
 
     @GetMapping("/me")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
-    public ResponseEntity<Response<Set<ScheduleDisplay>>> getMySchedules() {
+    public ResponseEntity<Response<PageResponse<ScheduleDisplay>>> getMySchedules(@PageableDefault(size = 20) Pageable pageable) {
         var schedules = scheduleService.getMySchedules();
-        return ResponseEntity.ok(getResponse(schedules, HttpStatus.OK));
+        var pagedResponse = PageResponse.fromSet(pageable, schedules.elements(), schedules.total());
+        return ResponseEntity.ok(getResponse(pagedResponse, HttpStatus.OK));
     }
 
     @GetMapping("/{id}")

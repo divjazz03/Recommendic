@@ -162,6 +162,7 @@ public class AvailabilityService {
         }
         return localDateTimes
                 .stream()
-                .map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.format(DateTimeFormatter.ISO_DATE_TIME)));
+                .map(dateTime -> new Slot(schedule.getScheduleId(), dateTime.format(DateTimeFormatter.ISO_DATE_TIME)))
+                .distinct();
     }
 }

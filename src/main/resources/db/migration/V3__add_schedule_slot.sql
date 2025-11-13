@@ -4,7 +4,7 @@ DROP TYPE IF EXISTS session_channel,consultation_status, appointment_status;
 
 CREATE TYPE session_channel AS ENUM ('ONLINE','IN_PERSON');
 CREATE TYPE consultation_status AS ENUM ('ONGOING','COMPLETED', 'MISSED');
-CREATE TYPE appointment_status AS ENUM ('REQUESTED','CONFIRMED', 'CANCELLED');
+CREATE TYPE appointment_status AS ENUM ('PENDING','CONFIRMED', 'CANCELLED', 'RESCHEDULED');
 
 CREATE TABLE IF NOT EXISTS schedule_slot
 (
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS appointment
     consultant_id    BIGINT REFERENCES consultant (id) ON DELETE CASCADE  NOT NULL,
     schedule_slot_id BIGINT REFERENCES schedule_slot (id) ON DELETE CASCADE NOT NULL,
     note             TEXT,
-    status           appointment_status          DEFAULT 'REQUESTED',
+    status           appointment_status          DEFAULT 'PENDING',
     date             date                                                   NOT NULL,
     selected_channel session_channel,
     updated_at       TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,

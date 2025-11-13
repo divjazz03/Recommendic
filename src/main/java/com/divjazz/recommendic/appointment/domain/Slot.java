@@ -6,6 +6,7 @@ public record Slot(String scheduleId, String dateTime) implements Comparable<Slo
 
     @Override
     public int compareTo(Slot o) {
-        return LocalDateTime.parse(dateTime).compareTo(LocalDateTime.parse(o.dateTime));
+        return LocalDateTime.parse(dateTime)
+                .compareTo(LocalDateTime.parse(o.dateTime));
     }
 }

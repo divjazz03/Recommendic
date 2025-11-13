@@ -12,6 +12,7 @@ import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.ResponseWithCount;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -158,7 +159,7 @@ public class ScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public Set<ScheduleDisplay> getMySchedules() {
+    public ResponseWithCount<ScheduleDisplay> getMySchedules() {
         return scheduleCustomRepository.findAllScheduleDisplaysByConsultantId(authUtils.getCurrentUser().id(), Pageable.ofSize(10));
     }
 

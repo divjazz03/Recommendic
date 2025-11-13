@@ -188,7 +188,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .schedule(schedule)
-                .status(AppointmentStatus.REQUESTED)
+                .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
@@ -215,7 +215,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .schedule(schedule)
-                .status(AppointmentStatus.REQUESTED)
+                .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
@@ -239,7 +239,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .patient(patient)
                 .schedule(schedule)
-                .status(AppointmentStatus.REQUESTED)
+                .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 12, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
                 .build();
