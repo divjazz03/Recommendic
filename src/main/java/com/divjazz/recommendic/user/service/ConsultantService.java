@@ -277,6 +277,7 @@ public class ConsultantService {
                 nextSlot
         );
     }
+    @Transactional(readOnly = true)
     public ConsultantFull getFullConsultantDetails(String consultantId) {
         Consultant consultant = consultantRepository.findByUserId(consultantId)
                 .orElseThrow(() -> new EntityNotFoundException("No consultant of this id found"));
@@ -315,6 +316,7 @@ public class ConsultantService {
                 .availableSlots(
                        availableSlots
                 )
+                .profileImgUrl(consultantProfile.getProfilePicture().getPictureUrl())
                 .reviews(consultationService.retrieveReviewsByConsultantId(consultantId))
                 .build();
 
@@ -337,6 +339,7 @@ public class ConsultantService {
                     .specialty(consultantProfile.specialty().name())
                     .userName(consultantProfile.userName())
                     .phoneNumber(consultantProfile.phoneNumber())
+                    .profileImgUrl(consultantProfile.profilePicture().getPictureUrl())
                     .build();
 
             ConsultantEducationResponse educationResponse = consultantProfile.educations().stream()
@@ -410,6 +413,9 @@ public class ConsultantService {
                 }
                 consultant.getProfile().setUserName(usernameToChange);
             }
+            if (Objects.nonNull(profile.profileImgUrl())) {
+                consultant.getProfile().getProfilePicture().setPictureUrl(profile.profileImgUrl());
+            }
 
             consultant = consultantRepository.save(consultant);
         }
@@ -439,6 +445,7 @@ public class ConsultantService {
                 .specialty(consultant.getSpecialization().getName())
                 .userName(consultant.getProfile().getUserName())
                 .phoneNumber(consultant.getProfile().getPhoneNumber())
+                .profileImgUrl(consultant.getProfile().getProfilePicture().getPictureUrl())
                 .build();
 
 

@@ -40,7 +40,7 @@ public class AvailabilityService {
         } catch (DateTimeParseException e) {
             throw new AppBadRequestException("Illegal date string %s".formatted(startDate));
         }
-        return getSlots(consultantId, startDateTime);
+        return getSlots(consultantId, startDateTime).stream().filter(slot -> LocalDateTime.parse(slot.dateTime()).toLocalDate().isEqual(LocalDate.parse(startDate))).collect(Collectors.toSet());
     }
 
 

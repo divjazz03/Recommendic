@@ -23,6 +23,7 @@ public record ConsultantFull(
         Set<Slot> availableSlots,
         Set<ConsultantEducationDTO> educations,
         ConsultantStatDTO stats,
-        Set<ReviewDTO> reviews
+        Set<ReviewDTO> reviews,
+        String profileImgUrl
 ) {
 }

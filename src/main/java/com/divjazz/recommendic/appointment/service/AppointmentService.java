@@ -156,16 +156,16 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void confirmAppointment(String appointmentId) {
-        AppointmentProjection appointment = getAppointmentProjection(appointmentId);
+    public void confirmAppointment(AppointmentConfirmationRequest confirmationRequest) {
+        AppointmentProjection appointment = getAppointmentProjection(confirmationRequest.appointmentId());
         if (!authUtils.getCurrentUser().userId().equals(appointment.getConsultantId())) {
             throw new AuthorizationException("You do not have authority to confirm this appointment");
         }
-        appointmentRepository.updateAppointmentStatusByAppointmentId(appointmentId, AppointmentStatus.CONFIRMED);
+        appointmentRepository.confirmAppointmentStatusAndNotesByAppointmentId(confirmationRequest.appointmentId(), AppointmentStatus.CONFIRMED, confirmationRequest.note());
         AppointmentEvent appointmentEvent = new AppointmentEvent(
                 AppointmentEventType.APPOINTMENT_CONFIRMED,
                 Map.of("name", appointment.getConsultantFullName().getFullName(),
-                        "subjectId", appointmentId,
+                        "subjectId", confirmationRequest.appointmentId(),
                         "targetId", appointment.getPatientId(),
                         "startDateTime", OffsetDateTime.of(appointment.getStartDate(), appointment.getStartTime(), appointment.getOffset()).toString(),
                         "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString()

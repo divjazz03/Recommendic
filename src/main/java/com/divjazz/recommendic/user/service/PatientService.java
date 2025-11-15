@@ -177,7 +177,9 @@ public class PatientService {
                     Objects.nonNull(profileProjection.getDateOfBirth()) ? profileProjection.getDateOfBirth().toString(): null,
                     userDTO.gender().name().toLowerCase(),
                     profileProjection.getAddress(),
-                    profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet())
+                    profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet()),
+                    profileProjection.getProfilePicture().getPictureUrl()
+
             );
         }
 
@@ -204,6 +206,7 @@ public class PatientService {
                 .title(fullConsultantDetails.title())
                 .totalReviews(fullConsultantDetails.totalReviews())
                 .name(fullConsultantDetails.name())
+                .profileImgUrl(fullConsultantDetails.profileImgUrl())
                 .build();
     }
 
@@ -241,8 +244,11 @@ public class PatientService {
                 patient.getPatientProfile().setUserName(userNameToChange);
 
             }
+            if (Objects.nonNull(updateRequest.profileImgUrl())) {
+                patient.getPatientProfile().getProfilePicture().setPictureUrl(updateRequest.profileImgUrl());
+            }
 
-            patient = patientRepository.saveAndFlush(patient);
+            patient = patientRepository.save(patient);
         }
         return new PatientProfileDetails(
                 patient.getPatientProfile().getUserName(),
@@ -251,7 +257,8 @@ public class PatientService {
                 patient.getPatientProfile().getDateOfBirth().toString(),
                 patient.getGender().name().toLowerCase(),
                 patient.getPatientProfile().getAddress(),
-                patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet())
+                patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet()),
+                patient.getPatientProfile().getProfilePicture().getPictureUrl()
         );
     }
 

@@ -2,16 +2,16 @@ package com.divjazz.recommendic.user.controller.patient.payload;
 
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Set;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record PatientProfileUpdateRequest(
         UserName userName,
-        String email,
         String phoneNumber,
         String dateOfBirth,
-        String gender,
         Address address,
-        Set<String> interests
+        Set<String> interests,
+        String profileImgUrl
 ) {
 }

@@ -91,6 +91,7 @@ public class PatientIT extends BaseIntegrationTest {
                 .dateOfBirth(FAKER.timeAndDate().birthday())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
+                .profilePicture(new ProfilePicture("Initial Image", "Initial image URL"))
                 .build();
 
         unsavedPatient.setPatientProfile(patientProfile);
@@ -316,7 +317,8 @@ public class PatientIT extends BaseIntegrationTest {
                     "city": "Ibadan",
                     "country": "Nigeria"
                   },
-                  "interests": ["cardiology", "gynecology"]
+                  "interests": ["cardiology", "gynecology"],
+                  "profileImgUrl": "url for testing profile img"
                 }
                 """;
         String response = mockMvc.perform(

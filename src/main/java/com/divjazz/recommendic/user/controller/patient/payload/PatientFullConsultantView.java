@@ -24,6 +24,7 @@ public record PatientFullConsultantView(
         Set<ConsultantEducationDTO> educations,
         ConsultantStatDTO stats,
         Set<Slot> availableSlots,
-        Set<ReviewDTO> reviews
+        Set<ReviewDTO> reviews,
+        String profileImgUrl
 ) {
 }

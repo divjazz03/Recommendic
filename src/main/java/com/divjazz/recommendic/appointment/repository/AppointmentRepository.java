@@ -86,15 +86,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             """)
     void updateAppointmentStatusByAppointmentId(String appointmentId, AppointmentStatus appointmentStatus);
 
-    @Modifying
     @Query("""
             UPDATE Appointment a
-                SET a.appointmentDate = :newAppointmentDate
-                WHERE a.appointmentId = :appointmentId
-    """)
+                        SET a.status = :appointmentStatus,
+                            a.note = :note
+                        WHERE a.appointmentId = :appointmentId
+            """)
+    @Modifying
+    void confirmAppointmentStatusAndNotesByAppointmentId(String appointmentId, AppointmentStatus appointmentStatus, String note);
+
+    @Modifying
+    @Query("""
+                    UPDATE Appointment a
+                        SET a.appointmentDate = :newAppointmentDate
+                        WHERE a.appointmentId = :appointmentId
+            """)
     void updateAppointmentDate(String appointmentId, LocalDate newAppointmentDate);
-
-
 
 
 }

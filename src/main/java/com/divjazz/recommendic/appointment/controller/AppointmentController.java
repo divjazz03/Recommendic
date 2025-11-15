@@ -49,10 +49,10 @@ public class AppointmentController {
         return ResponseEntity.created(URI.create(servletRequest.getRequestURI()))
                 .body(getResponse(response, HttpStatus.CREATED));
     }
-    @PatchMapping("{id}/confirm")
+    @PostMapping("/confirm")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
-    public ResponseEntity<Void> confirmAppointment(@PathVariable String id) {
-        appointmentService.confirmAppointment(id);
+    public ResponseEntity<Void> confirmAppointment(@RequestBody AppointmentConfirmationRequest confirmationRequest) {
+        appointmentService.confirmAppointment(confirmationRequest);
         return ResponseEntity.ok().build();
     }
 

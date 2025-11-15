@@ -12,6 +12,7 @@ public record PatientProfileDetails(
         String dateOfBirth,
         String gender,
         Address address,
-        Set<String> interests
+        Set<String> interests,
+        String profileImgUrl
 ) {
 }
