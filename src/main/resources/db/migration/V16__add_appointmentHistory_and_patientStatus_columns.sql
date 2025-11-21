@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS chat_session ;
+DROP TABLE IF EXISTS chat_session CASCADE ;
 DROP INDEX IF EXISTS idx_chat_session_session_id;
 
 
@@ -16,11 +16,11 @@ CREATE TABLE IF NOT EXISTS chat_session(
 CREATE INDEX idx_chat_session_session_id on chat_session(chat_session_id);
 
 ALTER TABLE message
-    ADD COLUMN session TEXT REFERENCES chat_session(chat_session_id);
+    ADD COLUMN IF NOT EXISTS session TEXT REFERENCES chat_session(chat_session_id);
 
 ALTER TABLE appointment
- ADD COLUMN history TEXT NOT NULL DEFAULT 'NEW';
+ ADD COLUMN IF NOT EXISTS history TEXT NOT NULL DEFAULT 'NEW';
 
 ALTER TABLE consultation_session
- ADD COLUMN patient_status TEXT,
-    ADD COLUMN condition TEXT;
+ ADD COLUMN IF NOT EXISTS patient_status TEXT,
+    ADD COLUMN IF NOT EXISTS condition TEXT;

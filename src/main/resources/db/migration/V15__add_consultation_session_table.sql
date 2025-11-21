@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS consultation_session (
 CREATE INDEX IF NOT EXISTS idx_consultation_session_id ON consultation_session(session_id);
 
 ALTER TABLE consultation
-    ADD COLUMN session_id BIGINT REFERENCES consultation_session(id);
+    ADD COLUMN IF NOT EXISTS session_id BIGINT REFERENCES consultation_session(id);
