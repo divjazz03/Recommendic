@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.appointment.event.listener;
 
 import com.divjazz.recommendic.appointment.controller.payload.AppointmentCreationRequest;
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.event.ConsultantFollowUpAppointmentRequestedData;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.event.*;
@@ -34,7 +35,8 @@ public class ConsultationEventListenerForAppointment {
                             data.scheduleId(),
                             data.channel().name(),
                             data.rescheduleDate(),
-                            data.reason()
+                            data.reason(),
+                            AppointmentHistory.FOLLOW_UP
                     )
             );
             var appointmentEvent = new ConsultantFollowUpAppointmentRequestedData(

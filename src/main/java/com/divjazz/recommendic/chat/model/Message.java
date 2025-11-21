@@ -20,23 +20,22 @@ public class Message extends Auditable {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     @Setter
     private String content;
-    @JoinColumn(name = "consultation_id")
-    @ManyToOne
-    private Consultation consultation;
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timeStamp;
     @Column(name = "delivered", nullable = false)
     @Setter
     private boolean delivered;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "session")
+    private ChatSession chatSession;
 
     protected Message() {
     }
 
-    public Message(String senderId, String receiverId, Consultation consultation, String content, LocalDateTime timeStamp) {
+    public Message(String senderId, String receiverId, String content, LocalDateTime timeStamp, ChatSession session) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
-        this.consultation = consultation;
         this.timeStamp = Objects.isNull(timeStamp)? LocalDateTime.now() : timeStamp;
         delivered = false;
     }

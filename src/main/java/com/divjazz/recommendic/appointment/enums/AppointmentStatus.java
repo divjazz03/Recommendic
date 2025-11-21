@@ -17,7 +17,7 @@ public enum AppointmentStatus {
     @JsonCreator
     private static AppointmentStatus fromValue(String value) {
         if (Objects.isNull(value)) {
-            throw new IllegalArgumentException("value for Appointment status enum cannot be null");
+            throw new IllegalArgumentException("value for appointment status enum cannot be null");
         }
 
         for (AppointmentStatus status : AppointmentStatus.values()) {

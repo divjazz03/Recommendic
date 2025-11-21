@@ -1,5 +1,5 @@
-
-
+DROP TABLE IF EXISTS consultation_session CASCADE;
+DROP INDEX IF EXISTS idx_consultation_session_id;
 CREATE TABLE IF NOT EXISTS consultation_session (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     session_uuid UUID DEFAULT uuidv7(),
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS consultation_session (
     updated_by    TEXT                                          NOT NULL
 );
 
-CREATE INDEX idx_consultant_session_id ON consultation_session(session_id);
+CREATE INDEX IF NOT EXISTS idx_consultation_session_id ON consultation_session(session_id);
 
 ALTER TABLE consultation
     ADD COLUMN session_id BIGINT REFERENCES consultation_session(id);

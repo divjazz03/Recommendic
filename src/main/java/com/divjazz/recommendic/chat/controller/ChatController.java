@@ -17,10 +17,10 @@ public class ChatController {
         this.chatMessageService = chatMessageService;
     }
 
-    @MessageMapping("/chat/{consultationId}")
+    @MessageMapping("/chat/{sessionId}")
     @PreAuthorize("hasAuthority('ROLE_CONSULTANT') || hasAuthority('ROLE_PATIENT')")
-    public void sendMessage(@Payload ChatPayload payload, @DestinationVariable String consultationId) {
-        chatMessageService.sendMessage(payload,consultationId);
+    public void sendMessage(@Payload ChatPayload payload, @DestinationVariable String sessionId) {
+        chatMessageService.sendMessage(payload,sessionId);
     }
 
 }

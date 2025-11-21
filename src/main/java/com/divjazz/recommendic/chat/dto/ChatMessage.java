@@ -10,7 +10,6 @@ public record ChatMessage (
     String receiverId,
     String senderUsername,
     String content,
-    String consultationId,
     LocalDateTime timeStamp,
     MessageType messageType
     )
@@ -21,7 +20,6 @@ public record ChatMessage (
                 null,
                 "SYSTEM",
                 null,
-                null,
                 LocalDateTime.now(),
                 MessageType.LEAVE);
     }
@@ -30,19 +28,16 @@ public record ChatMessage (
                 null,
                 "SYSTEM",
                 null,
-                null,
                 LocalDateTime.now(),
                 MessageType.CONNECT);
     }
     public static ChatMessage ofChat(String senderId,String receiverId,
                                      String senderUsername,
-                                     String content,
-                                     String consultationId, LocalDateTime timeStamp) {
+                                     String content, LocalDateTime timeStamp) {
         return new ChatMessage(senderId,
                 receiverId,
                 senderUsername,
                 content,
-                consultationId,
                 timeStamp,
                 MessageType.CHAT);
     }

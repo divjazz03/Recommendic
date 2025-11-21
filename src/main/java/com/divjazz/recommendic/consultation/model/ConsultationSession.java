@@ -1,10 +1,12 @@
 package com.divjazz.recommendic.consultation.model;
 
+import com.divjazz.recommendic.consultation.enums.PatientStatus;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 import java.util.Set;
@@ -21,6 +23,13 @@ public class ConsultationSession extends Auditable {
     private Consultant consultant;
     @OneToMany
     private Set<Consultation> consultations;
+    @Column(name = "patient_status")
+    @Enumerated(value = EnumType.STRING)
+    @Setter
+    private PatientStatus patientStatus;
+    @Column(name = "condition")
+    @Setter
+    private String condition;
 
 
     protected ConsultationSession () {

@@ -5,6 +5,7 @@ import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
+import com.divjazz.recommendic.consultation.enums.PatientStatus;
 import com.divjazz.recommendic.consultation.event.ConsultationEndedWithRescheduleData;
 import com.divjazz.recommendic.consultation.event.ConsultationEndedWithoutFollowUpData;
 import com.divjazz.recommendic.consultation.exception.ConsultationAlreadyStartedException;
@@ -74,6 +75,10 @@ public class ConsultationService {
         consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
         consultation.setSummary(completeRequest.summary());
+
+        var session = consultation.getSession();
+        session.setPatientStatus(PatientStatus.fromValue(completeRequest.patientStatus()));
+        session.setCondition(completeRequest.summary());
 
         if (completeRequest.shouldReschedule()) {
             var event = new ConsultationEndedWithRescheduleData(

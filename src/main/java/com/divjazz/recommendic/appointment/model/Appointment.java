@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.appointment.model;
 
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.Auditable;
@@ -49,6 +50,8 @@ public class Appointment extends Auditable {
     private ConsultationChannel consultationChannel;
     @Column(name = "reason")
     private String reason;
+    @Column(name = "history")
+    private AppointmentHistory history;
 
 
     public LocalDateTime getStartDateAndTime() {

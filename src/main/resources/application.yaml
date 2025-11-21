@@ -121,3 +121,4 @@ logging:
     io.zonky.test: warn
     org.springframework.security: warn
     org.springframework.security.web.context.HttpSessionSecurityContextRepository: error
+    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: error

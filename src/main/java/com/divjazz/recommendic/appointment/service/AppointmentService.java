@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.appointment.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.*;
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.event.*;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -120,6 +122,11 @@ public class AppointmentService {
             throw new AppointmentBookedException("The schedule at this time for this day has already been booked");
         }
         Consultant consultant = schedule.getConsultant();
+        AppointmentHistory history = appointmentCreationRequest.history() == null
+                || appointmentCreationRequest.history() == AppointmentHistory.NEW
+                ? AppointmentHistory.NEW
+                : AppointmentHistory.FOLLOW_UP;
+
         Appointment appointment = Appointment.builder()
                 .consultant(consultant)
                 .patient(patient)
@@ -127,6 +134,7 @@ public class AppointmentService {
                 .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.parse(appointmentCreationRequest.date()))
                 .consultationChannel(ConsultationChannel.valueOf(appointmentCreationRequest.channel().toUpperCase()))
+                .history(history)
                 .build();
 
         appointment.setReason(appointmentCreationRequest.reason());
@@ -152,7 +160,8 @@ public class AppointmentService {
                 appointment.getStatus().toString(),
                 appointment.getStartDateAndTime().toString(),
                 appointment.getEndDateAndTime().toString(),
-                appointmentCreationRequest.channel()
+                appointmentCreationRequest.channel(),
+                appointment.getHistory()
         );
     }
 

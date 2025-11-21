@@ -76,9 +76,6 @@ CREATE TABLE consultation_review
     updated_by      TEXT
 );
 
-ALTER TABLE message
-    ADD COLUMN IF NOT EXISTS consultation_id BIGINT REFERENCES consultation (id);
-
 CREATE OR REPLACE FUNCTION update_consultation_search_vector()
     RETURNS TRIGGER AS
 $$

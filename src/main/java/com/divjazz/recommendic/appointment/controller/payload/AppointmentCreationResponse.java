@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.appointment.controller.payload;
 
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
+
 public record AppointmentCreationResponse(
         String appointmentId,
         String patientFullName,
@@ -9,6 +11,7 @@ public record AppointmentCreationResponse(
         String status,
         String startTime,
         String endTime,
-        String channel
+        String channel,
+        AppointmentHistory history
 ) {
 }

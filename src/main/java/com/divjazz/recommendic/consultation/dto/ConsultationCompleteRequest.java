@@ -14,6 +14,7 @@ public record ConsultationCompleteRequest(
         String scheduleId,
         @ScheduleDate
         String date,
-        String reason
+        String reason,
+        String patientStatus
         ) {
 }
