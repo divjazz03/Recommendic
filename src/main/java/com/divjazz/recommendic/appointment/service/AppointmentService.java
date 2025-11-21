@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.appointment.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.*;
-import com.divjazz.recommendic.appointment.enums.AppointmentEventType;
+import com.divjazz.recommendic.appointment.event.*;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
-import com.divjazz.recommendic.appointment.event.AppointmentEvent;
 import com.divjazz.recommendic.appointment.exception.AppointmentBookedException;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -28,10 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -113,7 +111,6 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentCreationResponse createAppointment(AppointmentCreationRequest appointmentCreationRequest) {
-
         Schedule schedule = scheduleRepository.findByScheduleId(appointmentCreationRequest.scheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("Schedule was not found or doesn't exist"));
         UserDTO userDTO = authUtils.getCurrentUser();
@@ -136,18 +133,22 @@ public class AppointmentService {
 
 
         appointment = appointmentRepository.save(appointment);
-        AppointmentEvent appointmentEvent = new AppointmentEvent(
-                AppointmentEventType.APPOINTMENT_REQUESTED,
-                Map.of("name", patient.getPatientProfile().getUserName().getFullName(),
-                        "subjectId", appointment.getAppointmentId(),
-                        "targetId", consultant.getUserId(),
-                        "startDateTime", appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME),
-                        "endDateTime", appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME))
+        var appointmentEvent = new AppointmentRequestedData(
+                appointment.getAppointmentId(),
+                patient.getUserId(),
+                patient.getPatientProfile().getUserName().getFullName(),
+                consultant.getProfile().getUserName().getFullName(),
+                appointment.getConsultant().getUserId(),
+                appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME),
+                appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME)
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
         return new AppointmentCreationResponse(
+                appointment.getAppointmentId(),
                 patient.getPatientProfile().getUserName().getFullName(),
+                patient.getUserId(),
                 consultant.getProfile().getUserName().getFullName(),
+                consultant.getUserId(),
                 appointment.getStatus().toString(),
                 appointment.getStartDateAndTime().toString(),
                 appointment.getEndDateAndTime().toString(),
@@ -162,15 +163,16 @@ public class AppointmentService {
             throw new AuthorizationException("You do not have authority to confirm this appointment");
         }
         appointmentRepository.confirmAppointmentStatusAndNotesByAppointmentId(confirmationRequest.appointmentId(), AppointmentStatus.CONFIRMED, confirmationRequest.note());
-        AppointmentEvent appointmentEvent = new AppointmentEvent(
-                AppointmentEventType.APPOINTMENT_CONFIRMED,
-                Map.of("name", appointment.getConsultantFullName().getFullName(),
-                        "subjectId", confirmationRequest.appointmentId(),
-                        "targetId", appointment.getPatientId(),
-                        "startDateTime", OffsetDateTime.of(appointment.getStartDate(), appointment.getStartTime(), appointment.getOffset()).toString(),
-                        "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString()
-                )
+        var appointmentEvent = new AppointmentConfirmedData(
+                confirmationRequest.appointmentId(),
+                appointment.getConsultantId(),
+                appointment.getConsultantFullName().getFullName(),
+                appointment.getPatientId(),
+                appointment.getPatientFullName().getFullName(),
+                LocalDateTime.of(appointment.getStartDate(),appointment.getStartTime()).format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(appointment.getEndDate(),appointment.getEndTime()).format(DateTimeFormatter.ISO_DATE_TIME)
         );
+
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
@@ -183,14 +185,15 @@ public class AppointmentService {
             throw new AuthorizationException("You do not have authority to cancel this appointment");
         }
         appointmentRepository.updateAppointmentStatusByAppointmentId(cancellationRequest.appointmentId(), AppointmentStatus.CANCELLED);
-        AppointmentEvent appointmentEvent = new AppointmentEvent(
-                AppointmentEventType.APPOINTMENT_CANCELLED,
-                Map.of("targetId", appointment.getConsultantId(),
-                        "subjectId", cancellationRequest.appointmentId(),
-                        "reason", cancellationRequest.reason(),
-                        "name", appointment.getPatientFullName().getFullName(),
-                        "startDateTime", OffsetDateTime.of(appointment.getStartDate(), appointment.getStartTime(), appointment.getOffset()).toString(),
-                        "endDateTime", OffsetDateTime.of(appointment.getEndDate(), appointment.getEndTime(), appointment.getOffset()).toString())
+        var appointmentEvent = new AppointmentCancelledData(
+                cancellationRequest.appointmentId(),
+                appointment.getPatientId(),
+                appointment.getConsultantId(),
+                appointment.getPatientFullName().getFullName(),
+                appointment.getConsultantFullName().getFullName(),
+                LocalDateTime.of(appointment.getStartDate(),appointment.getStartTime()).format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(appointment.getEndDate(),appointment.getEndTime()).format(DateTimeFormatter.ISO_DATE_TIME),
+                cancellationRequest.reason()
         );
         applicationEventPublisher.publishEvent(appointmentEvent);
     }

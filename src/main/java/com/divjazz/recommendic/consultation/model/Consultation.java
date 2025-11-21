@@ -46,6 +46,9 @@ public class Consultation extends Auditable {
     @OneToOne(mappedBy = "consultation")
     @JsonIgnore
     private ConsultationReview review;
+    @ManyToOne
+    @JoinColumn(name = "session_id")
+    private ConsultationSession session;
 
     public Consultation(Appointment appointment, ConsultationChannel channel) {
         this.appointment = appointment;

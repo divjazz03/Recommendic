@@ -6,6 +6,7 @@ import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,14 +29,16 @@ public class ConsultationController {
     @Operation(summary = "Starts a Consultation Session")
     public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable String id) {
         ConsultationResponse response = consultationService.startConsultation(id);
-        return ResponseEntity.created(URI.create("/start/"+ id))
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(getResponse(response, HttpStatus.CREATED));
     }
 
-    @PostMapping(value = "/{id}/complete")
+    @PostMapping(value = "/complete")
     @Operation(summary = "Finalizes a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> complete(@PathVariable String id, @RequestBody ConsultationCompleteRequest request) {
-        ConsultationResponse response = consultationService.completeConsultation(id, request.summary());
+    public ResponseEntity<Response<ConsultationResponse>> complete( @Valid @RequestBody ConsultationCompleteRequest request) {
+        ConsultationResponse response = consultationService.completeConsultation(
+                request
+        );
         return ResponseEntity.ok(getResponse(response, HttpStatus.OK
         ));
     }

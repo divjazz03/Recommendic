@@ -11,7 +11,7 @@ public class EmailUtils {
                         Your new account has been created. Please click on the link below to verify your account.\s
                         
                         %s
-                            
+                        
                         The Support Team""", name, getVerificationUrl(host, key));
     }
 
@@ -23,7 +23,7 @@ public class EmailUtils {
                         Your reset password token has been created. Please click on the link below to change your password.\s
                         
                         %s
-                            
+                        
                         The Support Team""", name, getResetPasswordUrl(host, key));
     }
 
