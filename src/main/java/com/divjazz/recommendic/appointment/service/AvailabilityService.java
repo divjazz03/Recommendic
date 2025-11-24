@@ -57,7 +57,7 @@ public class AvailabilityService {
                 .findAllByConsultant_UserIdAndAppointmentDate(consultantId,
                         startDate.toLocalDate())
                 .stream()
-                .map(appointment -> new Slot(appointment.getSchedule().getScheduleId(), appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)))
+                .map(appointment -> new Slot(appointment.getSchedule().getScheduleId(), appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME)))
                 .collect(Collectors.toSet());
 
         Set<Slot> todaySlots = new TreeSet<>();

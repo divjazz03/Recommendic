@@ -79,6 +79,7 @@ public class AppointmentService {
                         dto.phone(),
                         dto.status(),
                         dto.notes(),
+                        dto.reason(),
                         dto.preparation()
                 )).collect(Collectors.toSet());
         return new ResponseWithCount<>(elements, result.total());

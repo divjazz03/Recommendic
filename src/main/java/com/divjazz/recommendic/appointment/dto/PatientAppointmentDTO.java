@@ -17,6 +17,7 @@ public record PatientAppointmentDTO(
         String phone,
         AppointmentStatus status,
         String notes,
-        String preparation
+        String preparation,
+        String reason
 ) {
 }

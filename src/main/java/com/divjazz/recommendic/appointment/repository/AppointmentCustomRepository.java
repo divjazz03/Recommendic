@@ -37,6 +37,7 @@ public class AppointmentCustomRepository {
                     coalesce(cf.location, 'NOT PROVIDED') as location,
                     coalesce(cf.phone_number, 'NOT_PROVIDED') as phoneNumber,
                     a.status as status,
+                    a.reason as reason,
                     coalesce(a.note, 'NOT_PROVIDED') as notes
                 FROM appointment a
                 LEFT JOIN patient p on a.patient_id = p.id
@@ -81,6 +82,7 @@ public class AppointmentCustomRepository {
             var status = rs.getString("status");
             var notes = rs.getString("notes");
             var email = rs.getString("email");
+            var reason = rs.getString("reason");
             return new PatientAppointmentDTO(
                     id,
                     consultantId,
@@ -95,7 +97,8 @@ public class AppointmentCustomRepository {
                     phoneNumber,
                     AppointmentStatus.valueOf(status),
                     notes,
-                    null
+                    null,
+                    reason
             );
         };
         var patientAppointments = jdbcClient.sql(sql)

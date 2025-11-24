@@ -16,6 +16,7 @@ public record PatientAppointmentResponse (
         String phone,
         AppointmentStatus status,
         String notes,
+        String reason,
         String preparation
 ) implements AppointmentResponse {
 }
