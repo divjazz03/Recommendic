@@ -9,7 +9,7 @@ server:
       min-spare: 20
     max-swallow-size: 50MB
   shutdown: graceful
-  port: 8080
+  port: ${SERVER_PORT}
   servlet:
     session:
       cookie:

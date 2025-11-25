@@ -208,7 +208,9 @@
                             junit.jupiter.execution.parallel.config.fixed.parallelism = 4
                         </configurationParameters>
                     </properties>
+                    <skipTests>${skipUnitTests}</skipTests>
                 </configuration>
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
