@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.consultation.IT;
 
 import com.divjazz.recommendic.BaseIntegrationTest;
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -133,6 +134,8 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
                 .consultationChannel(ConsultationChannel.ONLINE)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
         appointment = appointmentRepository.save(unsavedAppointment);
     }
@@ -216,6 +219,8 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .patient(patient)
                 .status(AppointmentStatus.CONFIRMED)
                 .consultationChannel(ConsultationChannel.ONLINE)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
         var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(
@@ -259,16 +264,17 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .endedAt(LocalDateTime.now())
                 .startedAt(LocalDateTime.now())
                 .build();
-        String jsonSummary = """
+        String request = """
                 {
-                    "summary": "Summary of the consultation"
+                    "summary": "Summary of the consultation",
+                    "consultationId": "%s"
                 }
                 """;
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/complete".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getConsultationId()))
+                post("%s/complete".formatted(CONSULTATION_BASE_ENDPOINT))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonSummary)
+                        .content(request)
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"));

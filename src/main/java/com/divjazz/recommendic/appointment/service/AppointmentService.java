@@ -237,12 +237,12 @@ public class AppointmentService {
 
     public List<String> getAppointmentDatesAndTimeForSchedule(Schedule schedule) {
         return appointmentRepository.findAppointmentsBySchedule(schedule).stream()
-                .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).toList();
+                .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME)).toList();
     }
 
     public List<String> getAppointmentDatesAndTimeForScheduleAndDate(Schedule schedule, LocalDate date) {
         return appointmentRepository.findAppointmentByScheduleAndAppointmentDate(schedule, date).stream()
-                .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME))
                 .toList();
     }
 

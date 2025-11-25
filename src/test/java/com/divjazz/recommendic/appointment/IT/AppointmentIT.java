@@ -3,6 +3,7 @@ package com.divjazz.recommendic.appointment.IT;
 import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -128,7 +129,8 @@ public class AppointmentIT extends BaseIntegrationTest {
                             "consultantId": "%s",
                             "scheduleId": "%s",
                             "channel": "online",
-                            "date": "2025-12-10"
+                            "date": "2025-12-10",
+                            "reason": "Test reason"
                         }
                         """.formatted(consultant.getUserId(), schedule.getScheduleId());
         var result = mockMvc.perform(
@@ -167,7 +169,8 @@ public class AppointmentIT extends BaseIntegrationTest {
                             "consultantId": "%s",
                             "scheduleId": "%s",
                             "channel": "online",
-                            "date" : "2001-03-09"
+                            "date" : "2001-03-09",
+                            "reason" : "Test reason"
                         }
                         """.formatted(consultant.getUserId(), 2794879L);
         var result = mockMvc.perform(
@@ -182,7 +185,6 @@ public class AppointmentIT extends BaseIntegrationTest {
 
     @Test
     void shouldCancelAppointmentIfAppointmentExistsAndIsNotAlreadyCancelled() throws Exception {
-        var requestPayLoad = "{\"reason\": \"Just because\"}";
 
         Appointment appointment = Appointment.builder()
                 .consultant(consultant)
@@ -191,15 +193,18 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
 
         appointment = appointmentRepository.save(appointment);
+        var requestPayLoad = "{\"reason\": \"Just because\", \"appointmentId\": \"%s\"}".formatted(appointment.getAppointmentId());
 
 
 
 
         mockMvc.perform(
-                post(BASE_URL + "/"+ appointment.getAppointmentId() + "/cancel")
+                post(BASE_URL + "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayLoad)
                         .with(user(patient.getUserPrincipal()))
@@ -209,8 +214,6 @@ public class AppointmentIT extends BaseIntegrationTest {
 
     @Test
     void shouldNotCancelAppointmentIfAppointmentExistsButNotAuthorizedTo() throws Exception {
-        var requestPayLoad = "{\"reason\": \"Just because\"}";
-
         Appointment appointment = Appointment.builder()
                 .consultant(consultant)
                 .patient(patient)
@@ -218,15 +221,14 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
 
         appointment = appointmentRepository.save(appointment);
-
-
-
-
+        var requestPayLoad = "{\"reason\": \"Just because\", \"appointmentId\": \"%s\"}".formatted(appointment.getAppointmentId());
         mockMvc.perform(
-                post(BASE_URL + "/"+ appointment.getAppointmentId() + "/cancel")
+                post(BASE_URL + "/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayLoad)
                         .with(user(consultant.getUserPrincipal()))
@@ -242,12 +244,18 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 12, 21))
                 .consultationChannel(ConsultationChannel.ONLINE)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
 
         appointment = appointmentRepository.save(appointment);
 
+        var requestPayLoad = "{\"note\": \"Just because\", \"appointmentId\": \"%s\"}".formatted(appointment.getAppointmentId());
+
         mockMvc.perform(
-                post(BASE_URL + "/%s/confirm".formatted(appointment.getAppointmentId()))
+                post(BASE_URL + "/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestPayLoad)
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk());
     }

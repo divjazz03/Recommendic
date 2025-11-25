@@ -15,8 +15,8 @@ public class AppointmentMapper {
                 appointment.getPatient().getUserId(),
                 appointment.getConsultant().getProfile().getUserName().getFullName(),
                 appointment.getStatus().toString(),
-                appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                endDateIsNotNull? appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
+                appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME),
+                endDateIsNotNull? appointment.getEndDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME) : null,
                 appointment.getConsultationChannel().toString()
         );
     }

@@ -21,7 +21,7 @@ public class ConsultationSession extends Auditable {
     @ManyToOne
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
-    @OneToMany
+    @OneToMany(mappedBy = "session")
     private Set<Consultation> consultations;
     @Column(name = "patient_status")
     @Enumerated(value = EnumType.STRING)

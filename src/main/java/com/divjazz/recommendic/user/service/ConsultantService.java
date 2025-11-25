@@ -339,7 +339,8 @@ public class ConsultantService {
                     .specialty(consultantProfile.specialty().name())
                     .userName(consultantProfile.userName())
                     .phoneNumber(consultantProfile.phoneNumber())
-                    .profileImgUrl(consultantProfile.profilePicture().getPictureUrl())
+                    .profileImgUrl(Optional.ofNullable(consultantProfile.profilePicture())
+                            .map(ProfilePicture::getPictureUrl).orElse(null))
                     .build();
 
             ConsultantEducationResponse educationResponse = consultantProfile.educations().stream()

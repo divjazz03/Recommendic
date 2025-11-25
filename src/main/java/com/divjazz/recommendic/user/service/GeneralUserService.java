@@ -70,49 +70,52 @@ public class GeneralUserService {
         if (authentication.getPrincipal() == null || authentication.getPrincipal().equals("anonymousUser")) {
             throw new AuthenticationException("No authentication found in context please login");
         }
-        var sessionUser = (SessionUser) authentication.getPrincipal();
 
-        UserProjection user =  retrieveUserByEmail(sessionUser.getEmail());
-        Map<String, Object> response = new HashMap<>();
+        if (authentication.getPrincipal() instanceof SessionUser sessionUser) {
+            UserProjection user =  retrieveUserByEmail(sessionUser.getEmail());
+            Map<String, Object> response = new HashMap<>();
 
-        response.put("user", new UserController.CurrentUser(
-                user.getUserId(),
-                user.getUserPrincipal().getRole().getName(),
-                user.getUserType(),
-                user.getUserStage()
-        ));
-        switch (user.getUserType()) {
-            case CONSULTANT -> {
-                var consultantProfileProjectionOpt = consultantCustomRepository
-                        .findConsultantProjectionByUserId(user.getUserId());
-                consultantProfileProjectionOpt.ifPresent(profile -> response .put("profile",
-                        new ConsultantProfileResponse(
-                                profile.userName(),
-                                profile.phoneNumber(),
-                                profile.address(),
-                                profile.profilePicture()
-                        )));
+            response.put("user", new UserController.CurrentUser(
+                    user.getUserId(),
+                    user.getUserPrincipal().getRole().getName(),
+                    user.getUserType(),
+                    user.getUserStage()
+            ));
+            switch (user.getUserType()) {
+                case CONSULTANT -> {
+                    var consultantProfileProjectionOpt = consultantCustomRepository
+                            .findConsultantProjectionByUserId(user.getUserId());
+                    consultantProfileProjectionOpt.ifPresent(profile -> response .put("profile",
+                            new ConsultantProfileResponse(
+                                    profile.userName(),
+                                    profile.phoneNumber(),
+                                    profile.address(),
+                                    profile.profilePicture()
+                            )));
 
 
+                }
+                case PATIENT -> {
+                    var patientProfileProjectionOpt = patientCustomRepository
+                            .getFullPatientProfileByUserId(user.getUserId());
+                    patientProfileProjectionOpt.ifPresent(
+                            profile -> response.put("profile",
+                                    new PatientProfileResponse(
+                                            profile.getUserName(),
+                                            profile.getPhoneNumber(),
+                                            profile.getAddress(),
+                                            profile.getProfilePicture()
+                                    ))
+                    );
+                }
+                case ADMIN -> {}
             }
-            case PATIENT -> {
-                var patientProfileProjectionOpt = patientCustomRepository
-                        .getFullPatientProfileByUserId(user.getUserId());
-                patientProfileProjectionOpt.ifPresent(
-                        profile -> response.put("profile",
-                                new PatientProfileResponse(
-                                        profile.getUserName(),
-                                        profile.getPhoneNumber(),
-                                        profile.getAddress(),
-                                        profile.getProfilePicture()
-                                ))
-                );
-            }
-            case ADMIN -> {}
+
+
+            return response;
+        } else {
+            return Map.of("user", authentication);
         }
-
-
-        return response;
     }
 
     public User retrieveUserByUserId(String id) {

@@ -3,6 +3,7 @@ package com.divjazz.recommendic.appointment.IT;
 import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
@@ -136,8 +137,8 @@ public class ScheduleIT extends BaseIntegrationTest {
                 Arguments.of("""
                         [{
                             "name":"My schedule",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
+                            "startTime": "09:30",
+                            "endTime": "11:00",
                             "zoneOffset": "+01:00",
                             "channels": ["online","in_person"],
                             "recurrenceRule": {
@@ -150,7 +151,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                         },
                         {
                             "name":"My schedule",
-                            "startTime": "11:30",
+                            "startTime": "13:30",
                             "endTime": "14:00",
                             "zoneOffset": "+01:00",
                             "channels": ["online"],
@@ -167,8 +168,8 @@ public class ScheduleIT extends BaseIntegrationTest {
                 Arguments.of("""
                         [{
                             "name":"My schedule",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
+                            "startTime": "14:30",
+                            "endTime": "15:00",
                             "zoneOffset": "+01:00",
                             "channels": ["in_person"],
                             "recurrenceRule": {
@@ -183,8 +184,8 @@ public class ScheduleIT extends BaseIntegrationTest {
                 Arguments.of("""
                         [{
                             "name":"My schedule",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
+                            "startTime": "16:30",
+                            "endTime": "18:00",
                             "zoneOffset": "+01:00",
                             "channels": ["online","in_person"],
                             "recurrenceRule": {
@@ -289,7 +290,7 @@ public class ScheduleIT extends BaseIntegrationTest {
     @Test
     void shouldModifyTheScheduleAndReturn200() throws Exception {
         populateAppointmentForThisUser();
-        var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).get(0);
+        var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).getFirst();
         var modificationRequest = """
                         {
                             "name":"My schedule Modified",
@@ -337,7 +338,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .build();
         unSavedconsultant.setProfile(consultantProfile);
         var consultant = consultantRepository.save(unSavedconsultant);
-        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).get(0);
+        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).getFirst();
         var modificationRequest = """
                         {
                             "name":"My schedule Modified",
@@ -368,7 +369,7 @@ public class ScheduleIT extends BaseIntegrationTest {
     void shouldDeleteScheduleAndReturn200() throws Exception {
         populateAppointmentForThisUser();
 
-        var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).get(0);
+        var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).getFirst();
         mockMvc.perform(
                 delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
@@ -395,7 +396,7 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .build();
         unSavedconsultant.setProfile(consultantProfile);
         var consultant = consultantRepository.save(unSavedconsultant);
-        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).get(0);
+        var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).getFirst();
         mockMvc.perform(
                 delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
                         .with(user(this.consultant.getUserPrincipal()))
@@ -639,6 +640,8 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .status(AppointmentStatus.CONFIRMED)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.IN_PERSON)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
         var appointment2 = Appointment.builder()
                 .consultant(consultant)
@@ -647,6 +650,8 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .status(AppointmentStatus.PENDING)
                 .appointmentDate(LocalDate.of(2025, 4, 21))
                 .consultationChannel(ConsultationChannel.IN_PERSON)
+                .reason("Test reason")
+                .history(AppointmentHistory.NEW)
                 .build();
         List<Appointment> appointments = List.of(appointment1,appointment2);
         appointmentRepository.saveAll(appointments);
