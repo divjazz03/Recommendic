@@ -39,6 +39,7 @@ public class ArticleService {
     private final ArticleRepositoryCustom articleRepositoryCustom;
     private final ConsultantService consultantService;
 
+    @Transactional
     public ArticleDTO uploadArticle(ArticleUpload articleUpload) {
 
         var userDTO = authUtils.getCurrentUser();
@@ -54,7 +55,7 @@ public class ArticleService {
         return new ArticleDTO(
                 article.getTitle(),
                 article.getSubtitle(),
-                "",
+                article.getContent(),
                 article.getTags(),
                 article.getLikeUserIds().length,
                 consultant.getProfile().getUserName().getFirstName(),
@@ -67,7 +68,7 @@ public class ArticleService {
     @Cacheable(value = "article_search", keyGenerator = "customCacheKeyGenerator")
     @Transactional(readOnly = true)
     public Stream<ArticleSearchResponse> searchArticle(String query, Pageable pageable) {
-        if (query.isEmpty() || query.isBlank()) {
+        if (query.isBlank()) {
             Set<ArticleSearchDTO> result = articleRepository.queryTopArticle(pageable.getPageSize(), pageable.getPageNumber());
             return result.stream()
                     .map(this::convertFromSearchDTOtoSearchResponse);
@@ -79,7 +80,7 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public PageResponse<ArticleSearchResponse> searchPageArticle(String query, Pageable pageable) {
-        if (query.isEmpty() || query.isBlank()) {
+        if (query.isBlank()) {
             var result = articleRepository.queryTopArticle(pageable.getPageSize(), pageable.getPageNumber());
 
             return PageResponse.fromSet(pageable,

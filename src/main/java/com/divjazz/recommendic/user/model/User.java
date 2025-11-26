@@ -38,6 +38,7 @@ public class User extends Auditable {
 
     @Column(name = "user_id", updatable = false, insertable = false)
     @Generated(event = EventType.INSERT)
+    @Setter
     private String userId;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

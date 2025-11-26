@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -35,20 +36,24 @@ public class ConsultationSession extends Auditable {
     protected ConsultationSession () {
         this.patient = null;
         this.consultant = null;
-        this.consultations = Set.of();
+        this.consultations = new HashSet<>();
     }
     public ConsultationSession(Patient patient, Consultant consultant, Consultation consultation) {
         this.patient = patient;
         this.consultant = consultant;
         this.consultations = Set.of(consultation);
     }
+    public ConsultationSession(Patient patient, Consultant consultant) {
+        this.patient = patient;
+        this.consultant = consultant;
+        this.consultations = new HashSet<>();
+    }
 
 
     public void addConsultation(Consultation consultation) {
         if (Objects.isNull(consultations)) {
-            consultations = Set.of(consultation);
-        }else {
-            consultations.add(consultation);
+            consultations = new HashSet<>();
         }
+        consultations.add(consultation);
     }
 }

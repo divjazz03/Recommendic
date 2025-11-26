@@ -1,6 +1,8 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.notification.app.service.AppNotificationService;
+import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -15,6 +17,8 @@ import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import com.divjazz.recommendic.user.service.MedicalCategoryService;
+import com.divjazz.recommendic.user.service.RoleService;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class ConsultantServiceTest {
@@ -54,6 +59,14 @@ public class ConsultantServiceTest {
     @InjectMocks
     private ConsultantService consultantService;
     private Consultant consultant;
+    @Mock
+    private RoleService roleService;
+    @Mock
+    private AppNotificationService appNotificationService;
+    @Mock
+    private SecurityService securityService;
+    @Mock
+    private MedicalCategoryService medicalCategoryService;
     @BeforeEach
     void setup() {
         consultant = new Consultant(
@@ -73,6 +86,7 @@ public class ConsultantServiceTest {
                 .consultant(consultant)
                 .build();
         consultant.setProfile(consultantProfile);
+        consultant.setUserId("ConsultantId");
     }
 
     private static Stream<Arguments> getValidConsultantDTOParameters() {
@@ -99,12 +113,25 @@ public class ConsultantServiceTest {
                 new UserCredential(consultantRegistrationParams.password()),
                 new Role(1L,"ROLE_CONSULTANT", "")
         );
-        savedConsultant.setSpecialization(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
+        var medicalCategoryEntity = new MedicalCategoryEntity(1,"opthalmology", "some desc");
+        savedConsultant.setSpecialization(medicalCategoryEntity);
         savedConsultant.getUserPrincipal().setEnabled(true);
         savedConsultant.setUserStage(UserStage.ACTIVE_USER);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .dateOfBirth(faker.timeAndDate().birthday())
+                .userName(new UserName(consultantRegistrationParams.firstName(), consultantRegistrationParams.lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(consultant)
+                .build();
+        savedConsultant.setProfile(consultantProfile);
+
+
         given(passwordEncoder.encode(anyString())).willReturn("Encoded Password String");
-        given(userService.isUserExists(anyString())).willReturn(true);
+        given(userService.isUserExists(anyString())).willReturn(false);
         given(consultantRepository.save(any(Consultant.class))).willReturn(savedConsultant);
+        given(roleService.getRoleByName(anyString())).willReturn(new Role("TEST","ROLE_TEST"));
 
         var result = consultantService.createConsultant(consultantRegistrationParams);
 
@@ -138,6 +165,7 @@ public class ConsultantServiceTest {
     @MethodSource("getValidMedicalSpecialty")
     void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(String medicalSpecialization) {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(consultant));
+        given(medicalCategoryService.getMedicalCategoryByName(medicalSpecialization)).willReturn(new MedicalCategoryEntity(1l, medicalSpecialization, ""));
 
         boolean result = consultantService.handleOnboarding(consultant.getUserId(), medicalSpecialization);
         assertThat(result).isTrue();
@@ -145,6 +173,7 @@ public class ConsultantServiceTest {
     @ParameterizedTest
     @MethodSource("getInValidMedicalSpecialty")
     void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(String invalidMedicalSpecialty) {
+        given(medicalCategoryService.getMedicalCategoryByName(invalidMedicalSpecialty)).willThrow(new IllegalArgumentException());
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), invalidMedicalSpecialty));
     }

@@ -96,6 +96,7 @@ public class ConsultantProfile{
 
 
     public String getAge() {
+        if (Objects.isNull(dateOfBirth)) return "";
         return String.valueOf(LocalDate.now().getYear() - dateOfBirth.getYear());
     }
 

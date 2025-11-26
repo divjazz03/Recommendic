@@ -67,6 +67,8 @@ public class WebSecurityConfig {
     );
 
     @Bean
+    @Primary
+    @Profile("dev,prod")
     public SecurityFilterChain webSecurity(HttpSecurity http,
                                            BaseAuthFilter authFilter) throws Exception {
         return http
@@ -84,6 +86,26 @@ public class WebSecurityConfig {
                 .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
                 .build();
     }
+    @Bean
+    @Profile("test")
+    public SecurityFilterChain testSecurity(HttpSecurity http,
+                                           BaseAuthFilter authFilter) throws Exception {
+        return http
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(WHITELIST_PATHS.toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.POST, NoAuthPostPaths.toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/users").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
+                .build();
+    }
 
     @Bean
     CustomAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService,
@@ -93,7 +115,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @Profile("dev")
+    @Profile("dev,prod")
     BaseAuthFilter authFilter(ObjectMapper ob) {
         return new AuthFilter(ob);
     }

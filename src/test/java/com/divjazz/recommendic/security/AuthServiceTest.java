@@ -2,6 +2,7 @@ package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.service.AuthService;
+import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -14,6 +15,7 @@ import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
+import com.divjazz.recommendic.user.repository.projection.RoleProjection;
 import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -58,6 +60,8 @@ public class AuthServiceTest {
     private AuthService authService;
     @Mock
     private MockHttpServletRequest httpServletRequest;
+    @Mock
+    private SecurityService securityService;
 
     static Stream<Arguments> getValidLoginRequest() {
         return Stream.of(
@@ -138,7 +142,7 @@ public class AuthServiceTest {
                 .userPrincipal(UserPrincipal.builder()
                         .userCredential(new UserCredential("password"))
                         .enabled(true)
-                        .role(new Role(1L,"ROLE_TEST", ""))
+                        .role(new Role(1L,"TEST", "ROLE_TEST"))
                         .email("test@email.com")
                         .accountNonLocked(true)
                         .accountNonExpired(true)
@@ -148,11 +152,83 @@ public class AuthServiceTest {
                 .gender(Gender.FEMALE)
                 .build();
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
-        given(httpServletRequest.getSession()).willReturn(new MockHttpSession());
+        given(httpServletRequest.getSession(anyBoolean())).willReturn(new MockHttpSession());
+        given(generalUserService.retrieveUserByEmail(anyString())).willReturn(new UserProjection() {
+            @Override
+            public Long getId() {
+                return 0L;
+            }
+
+            @Override
+            public String getUserId() {
+                return "User Id";
+            }
+
+            @Override
+            public Gender getGender() {
+                return Gender.MALE;
+            }
+
+            @Override
+            public LocalDateTime getLastLogin() {
+                return LocalDateTime.now();
+            }
+
+            @Override
+            public UserType getUserType() {
+                return UserType.CONSULTANT;
+            }
+
+            @Override
+            public UserStage getUserStage() {
+                return UserStage.ONBOARDING;
+            }
+
+            @Override
+            public UserPrincipalProjection getUserPrincipal() {
+                return new UserPrincipalProjection() {
+                    @Override
+                    public boolean isEnabled() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getUsername() {
+                        return "username";
+                    }
+
+                    @Override
+                    public String getEmail() {
+                        return "email";
+                    }
+
+                    @Override
+                    public RoleProjection getRole() {
+                        return new RoleProjection() {
+                            @Override
+                            public String getName() {
+                                return "TEST";
+                            }
+
+                            @Override
+                            public String getPermissions() {
+                                return "ROLE_TEST";
+                            }
+                        };
+                    }
+
+                    @Override
+                    public UserCredential getUserCredential() {
+                        return new UserCredential("pdspdspdsp");
+                    }
+                };
+            }
+        });
         given(customAuthenticationProvider.authenticate(any(Authentication.class)))
                 .willReturn(UsernamePasswordAuthenticationToken
                         .authenticated(user, "[protected]",
                                 List.of(new SimpleGrantedAuthority(user.getUserPrincipal().getRole().getPermissions()))));
+        given(securityService.getUserSessionExpiryDurationInMinutes(any(UserType.class), anyString())).willReturn(30);
         var result = authService.handleUserLogin(loginRequest, httpServletRequest);
         assertThat(result.role()).isEqualTo(user.getUserPrincipal().getRole().getName());
         assertThat(result.userStage()).isEqualTo(user.getUserStage().toString());

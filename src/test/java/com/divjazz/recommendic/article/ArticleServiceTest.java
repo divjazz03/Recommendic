@@ -18,6 +18,7 @@ import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.service.ConsultantService;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,28 +39,15 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 public class ArticleServiceTest {
 
-    @Mock
-    private ArticleRepository articleRepository;
-    @Mock
-    private RecommendationService recommendationService;
-    @Mock
-    private AuthUtils authUtils;
-
-    private Consultant consultantUser;
-    private ConsultantProfile consultantProfile;
-    @InjectMocks
-    private ArticleService articleService;
-
     private static final Faker faker = new Faker(Locale.ENGLISH);
-
-    private final Set<ArticleSearchDTO> searchDTO =  Set.of(
+    private final Set<ArticleSearchDTO> searchDTO = Set.of(
             new ArticleSearchDTO(
                     1L,
                     faker.text().text(10),
                     faker.text().text(20),
                     faker.name().firstName(),
                     faker.name().lastName(),
-                    LocalDate.of(2024,12,1).toString(),
+                    LocalDate.of(2024, 12, 1).toString(),
                     new String[]{"tag", "tag"},
                     1.3F,
                     "",
@@ -74,7 +62,7 @@ public class ArticleServiceTest {
                     faker.text().text(20),
                     faker.name().firstName(),
                     faker.name().lastName(),
-                    LocalDate.of(2023,2,28).toString(),
+                    LocalDate.of(2023, 2, 28).toString(),
                     new String[]{"tag", "tag"},
                     1.6F,
                     "",
@@ -84,6 +72,18 @@ public class ArticleServiceTest {
                     1003232
             )
     );
+    @Mock
+    private ArticleRepository articleRepository;
+    @Mock
+    private RecommendationService recommendationService;
+    @Mock
+    private AuthUtils authUtils;
+    @Mock
+    private ConsultantService consultantService;
+    private Consultant consultantUser;
+    private ConsultantProfile consultantProfile;
+    @InjectMocks
+    private ArticleService articleService;
 
     @BeforeEach
     void setup() {
@@ -91,7 +91,7 @@ public class ArticleServiceTest {
                 "Email",
                 Gender.MALE,
                 new UserCredential("password"),
-                new Role("CONSULTANT","")
+                new Role("CONSULTANT", "")
         );
         consultantProfile = ConsultantProfile.builder()
                 .consultant(consultantUser)
@@ -100,12 +100,23 @@ public class ArticleServiceTest {
                 .address(new Address("test_user2_city", "test_user2_state", "test_user2_country"))
                 .build();
     }
+
     @Test
     void givenValidArticleUploadRequestShouldUploadAndReturnArticle() {
+        var consultant = new Consultant("email",
+                Gender.MALE,
+                new UserCredential("password"),
+                new Role("ADMIN", "ROLE_ADMIN"));
+        consultant.setProfile(ConsultantProfile.builder()
+                .userName(new UserName("Test firstname", "Test lastname"))
+                .build());
+
+        given(consultantService.getReference(anyLong())).willReturn(consultant);
+
         ArticleUpload articleUpload = new ArticleUpload(
                 "article title",
                 "Subtitle for the article",
-                new String[]{"child health"},"lots of stuff"
+                new String[]{"child health"}, "lots of stuff"
         );
         var userDTO = new UserDTO(1,
                 "",
@@ -115,7 +126,7 @@ public class ArticleServiceTest {
                 UserStage.ONBOARDING,
                 new UserPrincipal("",
                         new UserCredential("password"),
-                        new Role("Admin","")));
+                        new Role("Admin", "")));
         given(authUtils.getCurrentUser()).willReturn(userDTO);
 
         var article = articleService.uploadArticle(articleUpload);
@@ -127,15 +138,16 @@ public class ArticleServiceTest {
 
     @Test
     void givenAQueryShouldReturnSearchResponseIfAnyArticleExistMatchingQuery() {
-        given(articleRepository.queryArticle(anyString(),anyInt(),anyInt())).willReturn(searchDTO);
+        given(articleRepository.queryArticle(anyString(), anyInt(), anyInt())).willReturn(searchDTO);
 
         var result = articleService.searchArticle("some query", Pageable.ofSize(10));
 
         assertThat(result.toList()).isNotEmpty();
     }
+
     @Test
     void givenEmptyOrBlankQueryShouldReturnTopArticles() {
-        given(articleRepository.queryTopArticle(anyInt(),anyInt())).willReturn(searchDTO);
+        given(articleRepository.queryTopArticle(anyInt(), anyInt())).willReturn(searchDTO);
 
         var result = articleService.searchArticle("", Pageable.ofSize(10));
 
@@ -145,7 +157,7 @@ public class ArticleServiceTest {
 
     @Test
     void givenAQueryShouldReturnAPageResponseIfArticlesExistMatchingQuery() {
-        given(articleRepository.queryArticle(anyString(),anyInt(),anyInt())).willReturn(searchDTO);
+        given(articleRepository.queryArticle(anyString(), anyInt(), anyInt())).willReturn(searchDTO);
         var result = articleService.searchPageArticle("some query", Pageable.ofSize(10));
         assertThat(result.getClass()).isAssignableTo(PageResponse.class);
     }

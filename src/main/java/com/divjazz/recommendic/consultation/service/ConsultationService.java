@@ -27,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -44,7 +46,14 @@ public class ConsultationService {
 
 
     @Transactional
-    public ConsultationResponse startConsultation(String appointmentId) {
+    public ConsultationResponse startConsultation(String appointmentId, String dateTime) {
+        LocalDateTime dateTimeOfRequest;
+
+        try{
+            dateTimeOfRequest = LocalDateTime.parse(dateTime);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(ex.getMessage());
+        }
         Appointment appointment = appointmentService.getAppointmentByAppointmentId(appointmentId);
         var currentUser = authUtils.getCurrentUser();
         if (!(currentUser.userId().equals(appointment.getPatient().getUserId()) ||
@@ -58,7 +67,7 @@ public class ConsultationService {
         // The Consultation should not be started 15 minutes before the actual appointed time
         if (appointment.getStartDateAndTime()
                 .minusMinutes(MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START)
-                .isAfter(LocalDateTime.now())) {
+                .isAfter(dateTimeOfRequest)) {
             throw new ConsultationStartedBeforeAppointmentException();
         }
         Consultation consultation = new Consultation(appointment,appointment.getConsultationChannel());
@@ -75,6 +84,11 @@ public class ConsultationService {
         consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
         consultation.setSummary(completeRequest.summary());
+
+        if (Objects.isNull(consultation.getSession())) {
+            throw new EntityNotFoundException(
+                    "No session found for consultation %s".formatted(consultation.getConsultationId()));
+        }
 
         var session = consultation.getSession();
         session.setPatientStatus(PatientStatus.fromValue(completeRequest.patientStatus()));

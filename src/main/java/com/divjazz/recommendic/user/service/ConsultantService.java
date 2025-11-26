@@ -1,20 +1,21 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
-import com.divjazz.recommendic.appointment.domain.Availability;
 import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.notification.app.model.AppNotification;
 import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
-import com.divjazz.recommendic.user.dto.*;
+import com.divjazz.recommendic.user.dto.ConsultantEducationDTO;
+import com.divjazz.recommendic.user.dto.ConsultantFull;
+import com.divjazz.recommendic.user.dto.ConsultantMinimal;
+import com.divjazz.recommendic.user.dto.ConsultantStatDTO;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -22,9 +23,9 @@ import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
-import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantCustomRepository;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
@@ -43,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -72,6 +72,22 @@ public class ConsultantService {
     private final AppNotificationService appNotificationService;
     private final SecurityService securityService;
 
+    private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
+        Address addressToChange = consultant.getProfile().getAddress();
+        if (Objects.isNull(addressToChange)) {
+            addressToChange = new Address();
+        }
+        if (Objects.nonNull(profile.address().getState())) {
+            addressToChange.setState(profile.address().getState());
+        }
+        if (Objects.nonNull(profile.address().getCountry())) {
+            addressToChange.setCountry(profile.address().getCountry());
+        }
+        if (Objects.nonNull(profile.address().getCity())) {
+            addressToChange.setCity(profile.address().getCity());
+        }
+        return addressToChange;
+    }
 
     @Transactional
     public ConsultantInfoResponse createConsultant(ConsultantRegistrationParams consultantRegistrationParams) {
@@ -89,7 +105,6 @@ public class ConsultantService {
 
             profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
             profilePicture.setName("149071.png");
-
 
 
             ConsultantProfile consultantProfile = ConsultantProfile
@@ -120,7 +135,7 @@ public class ConsultantService {
                     savedConsultant.getProfile().getUserName().getFirstName(),
                     savedConsultant.getGender().toString(),
                     savedConsultant.getProfile().getAge(),
-                   savedConsultant.getProfile().getAddress(),
+                    savedConsultant.getProfile().getAddress(),
                     null
             );
         } else {
@@ -186,10 +201,12 @@ public class ConsultantService {
         return consultantProfileRepository.findById(consultant.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
     }
+
     public ConsultantProfile getConsultantProfileByConsultantId(String id) {
         return consultantProfileRepository.findByConsultantId(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant this consultant has no profile"));
     }
+
     public ConsultantProfileResponse getConsultantProfileResponse() {
         var currentUser = authUtils.getCurrentUser();
         var consultantProfileOpt = consultantProfileRepository.findByConsultantId(currentUser.userId());
@@ -217,7 +234,6 @@ public class ConsultantService {
         }
         consultantRepository.deleteByUserId(userId);
     }
-
 
     public Set<Consultant> getAllUnCertifiedConsultants() {
         return consultantRepository.findUnCertifiedConsultant();
@@ -264,19 +280,20 @@ public class ConsultantService {
                 consultant.getUserId(),
                 consultantProfile.getUserName().getFullName(),
                 consultant.getSpecialization().getName(),
-                4.5,0,
+                4.5, 0,
                 consultantProfile.getYearsOfExperience(),
                 consultantProfile.getLocationOfInstitution(),
                 availabilty,
-                new ConsultationFee(200,300),
+                new ConsultationFee(200, 300),
                 consultantProfile.getProfilePicture().getPictureUrl(),
                 consultantEducations.stream()
                         .map(ConsultantEducation::getDegree)
                         .collect(Collectors.toList()),
-                Arrays.stream(consultantProfile.getLanguages() == null? new String[0]: consultantProfile.getLanguages()).toList(),
+                Arrays.stream(consultantProfile.getLanguages() == null ? new String[0] : consultantProfile.getLanguages()).toList(),
                 nextSlot
         );
     }
+
     @Transactional(readOnly = true)
     public ConsultantFull getFullConsultantDetails(String consultantId) {
         Consultant consultant = consultantRepository.findByUserId(consultantId)
@@ -286,11 +303,11 @@ public class ConsultantService {
                 .orElse(ConsultantStat.ofEmpty());
         Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
 
-        var availableSlots =  availabilityService.getTodayAvailableSlots(consultantId);
+        var availableSlots = availabilityService.getTodayAvailableSlots(consultantId);
         return ConsultantFull.builder()
                 .bio(consultantProfile.getBio())
                 .experience(consultantProfile.getYearsOfExperience())
-                .fee(new ConsultationFee(20,50))
+                .fee(new ConsultationFee(20, 50))
                 .id(consultant.getUserId())
                 .image(consultantProfile.getProfilePicture().getPictureUrl())
                 .location(consultantProfile.getLocationOfInstitution())
@@ -314,13 +331,14 @@ public class ConsultantService {
                         consultantStat.getSuccessRate()
                 ))
                 .availableSlots(
-                       availableSlots
+                        availableSlots
                 )
                 .profileImgUrl(consultantProfile.getProfilePicture().getPictureUrl())
                 .reviews(consultationService.retrieveReviewsByConsultantId(consultantId))
                 .build();
 
     }
+
     @Transactional(readOnly = true)
     public ConsultantProfileDetails getConsultantProfileDetails() {
         var userProjection = authUtils.getCurrentUser();
@@ -344,10 +362,10 @@ public class ConsultantService {
                     .build();
 
             ConsultantEducationResponse educationResponse = consultantProfile.educations().stream()
-                .map(consultantEducation -> new ConsultantEducationResponse(
-                    String.valueOf(consultantEducation.year()),
-                    consultantEducation.institution(),
-                    consultantEducation.degree())).findAny().orElse(null);
+                    .map(consultantEducation -> new ConsultantEducationResponse(
+                            String.valueOf(consultantEducation.year()),
+                            consultantEducation.institution(),
+                            consultantEducation.degree())).findAny().orElse(null);
 
             return new ConsultantProfileDetails(
                     consultantProfileDetails,
@@ -359,7 +377,7 @@ public class ConsultantService {
     }
 
     public ConsultantProfileDetails updateConsultantProfileDetails(ConsultantProfileUpdateRequest consultantProfileUpdateRequest) {
-        String consultantId =  authUtils.getCurrentUser().userId();
+        String consultantId = authUtils.getCurrentUser().userId();
         ConsultantEducation consultantEducation;
         Consultant consultant = consultantRepository.findByUserId(consultantId)
                 .orElseThrow(() -> new EntityNotFoundException("No consultant of id %s exists".formatted(consultantId)));
@@ -376,7 +394,7 @@ public class ConsultantService {
         ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
         if (Objects.nonNull(profile)) {
             if (Objects.nonNull(profile.specialty())) {
-                    consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
+                consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
             }
 
             if (Objects.nonNull(profile.address())) {
@@ -415,7 +433,12 @@ public class ConsultantService {
                 consultant.getProfile().setUserName(usernameToChange);
             }
             if (Objects.nonNull(profile.profileImgUrl())) {
-                consultant.getProfile().getProfilePicture().setPictureUrl(profile.profileImgUrl());
+                if (Objects.nonNull(consultant.getProfile())) {
+                    consultant.getProfile().getProfilePicture().setPictureUrl(profile.profileImgUrl());
+                } else {
+                    var profilePicture = new ProfilePicture("%s.png".formatted(consultant.getUserId()), profile.profileImgUrl());
+                    consultant.getProfile().setProfilePicture(profilePicture);
+                }
             }
 
             consultant = consultantRepository.save(consultant);
@@ -446,7 +469,8 @@ public class ConsultantService {
                 .specialty(consultant.getSpecialization().getName())
                 .userName(consultant.getProfile().getUserName())
                 .phoneNumber(consultant.getProfile().getPhoneNumber())
-                .profileImgUrl(consultant.getProfile().getProfilePicture().getPictureUrl())
+                .profileImgUrl(Optional.ofNullable(
+                        consultant.getProfile().getProfilePicture()).map(ProfilePicture::getPictureUrl).orElse(null))
                 .build();
 
 
@@ -459,23 +483,6 @@ public class ConsultantService {
                 )
         );
 
-    }
-
-    private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
-        Address addressToChange = consultant.getProfile().getAddress();
-        if (Objects.isNull(addressToChange)) {
-            addressToChange = new Address();
-        }
-        if (Objects.nonNull(profile.address().getState())){
-            addressToChange.setState(profile.address().getState());
-        }
-        if (Objects.nonNull(profile.address().getCountry())){
-            addressToChange.setCountry(profile.address().getCountry());
-        }
-        if (Objects.nonNull(profile.address().getCity())){
-            addressToChange.setCity(profile.address().getCity());
-        }
-        return addressToChange;
     }
 
     public Consultant getReference(long id) {

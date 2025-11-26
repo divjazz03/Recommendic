@@ -10,7 +10,9 @@ import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.model.ConsultationSession;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
+import com.divjazz.recommendic.consultation.repository.ConsultationSessionRepository;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -34,6 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -72,6 +75,8 @@ public class ConsultationIT extends BaseIntegrationTest {
     private Role consultantRole;
     private Role patientRole;
     private MedicalCategoryEntity medicalCategory;
+    @Autowired
+    private ConsultationSessionRepository consultationSessionRepository;
 
     @BeforeEach
     void setup() {
@@ -144,7 +149,7 @@ public class ConsultationIT extends BaseIntegrationTest {
     @Test
     void shouldNotStartConsultationIfAppointmentNotFound() throws Exception {
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, 400000L))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, 400000L,LocalDateTime.now().toString()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
@@ -176,7 +181,7 @@ public class ConsultationIT extends BaseIntegrationTest {
         unsavedConsultant.setSpecialization(medicalCategory);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
                         .with(user(patient.getUserPrincipal()))
         ).andExpect(status().isForbidden());
     }
@@ -192,19 +197,19 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
     }
     @Test
     void shouldNotStartLessThan15MinutesToAppointedTime() throws Exception {
-        LocalTime startTime = LocalTime.now().plusMinutes(15).plusSeconds(30);
+        LocalDateTime startTime = LocalDateTime.now();
         Schedule unsavedSchedule = Schedule.builder()
                 .zoneOffset(ZoneOffset.ofHours(1))
                 .isActive(true)
-                .endTime(startTime.plusHours(2).plusMinutes(30))
-                .startTime(startTime)
+                .endTime(startTime.toLocalTime().plusHours(2).plusMinutes(30))
+                .startTime(startTime.toLocalTime().plusMinutes(20))
                 .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
@@ -213,7 +218,7 @@ public class ConsultationIT extends BaseIntegrationTest {
         var savedSchedule = scheduleRepository.save(unsavedSchedule);
 
         Appointment unsavedAppointment = Appointment.builder()
-                .appointmentDate(LocalDate.of(2025, Month.OCTOBER, 23))
+                .appointmentDate(startTime.toLocalDate())
                 .schedule(savedSchedule)
                 .consultant(consultant)
                 .patient(patient)
@@ -224,16 +229,16 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .build();
         var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),startTime.format(DateTimeFormatter.ISO_DATE_TIME)))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isBadRequest());
     }
     @Test
     void shouldStartConsultationIfAppointmentExistsAndNotStarted() throws Exception {
         var result = mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
                         .with(user(consultant.getUserPrincipal()))
-        ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         log.info("result: {}", result);
 
     }
@@ -249,7 +254,7 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId()))
+                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(), appointment.getStartDateAndTime().toString()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
@@ -257,24 +262,36 @@ public class ConsultationIT extends BaseIntegrationTest {
 
     @Test
     void shouldCompleteConsultationSessionWhenExists() throws Exception {
-        Consultation startedConsultation = Consultation.builder()
+        ConsultationSession session = new ConsultationSession(
+                patient,
+                consultant
+        );
+        var consultationSession = consultationSessionRepository.save(session);
+
+        Consultation consultationToStart = Consultation.builder()
                 .appointment(appointment)
                 .consultationStatus(ConsultationStatus.ONGOING)
                 .channel(appointment.getConsultationChannel())
                 .endedAt(LocalDateTime.now())
                 .startedAt(LocalDateTime.now())
+                .session(consultationSession)
                 .build();
+
         String request = """
                 {
                     "summary": "Summary of the consultation",
-                    "consultationId": "%s"
+                    "consultationId": "%s",
+                    "patientStatus": "stable"
                 }
                 """;
-        consultationRepository.save(startedConsultation);
+        consultationToStart = consultationRepository.save(consultationToStart);
+        consultationSession.addConsultation(consultationToStart);
+        consultationSessionRepository.save(consultationSession);
+
         mockMvc.perform(
                 post("%s/complete".formatted(CONSULTATION_BASE_ENDPOINT))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request)
+                        .content(request.formatted(consultationToStart.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"));

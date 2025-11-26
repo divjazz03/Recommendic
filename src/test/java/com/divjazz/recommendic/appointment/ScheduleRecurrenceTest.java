@@ -17,9 +17,15 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.userAttributes.Address;
+import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
+import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.service.ConsultantService;
 import net.datafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +37,9 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.mockito.BDDMockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -48,6 +56,9 @@ public class ScheduleRecurrenceTest {
     private AuthUtils authUtils;
     @InjectMocks
     private ScheduleService scheduleService;
+    @Mock
+    private ConsultantService consultantService;
+    private Consultant consultant;
 
     private final UserDTO currentUser = new UserDTO(1,
             "",
@@ -58,6 +69,29 @@ public class ScheduleRecurrenceTest {
             new UserPrincipal("",
                     new UserCredential("password"),
                     new Role("Admin","")));
+
+    @BeforeEach
+    void setup() {
+        consultant = new Consultant(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
+        );
+        consultant.getUserPrincipal().setEnabled(true);
+        consultant.setSpecialization(new MedicalCategoryEntity());
+        consultant.setUserStage(UserStage.ACTIVE_USER);
+        ConsultantProfile consultantProfile = ConsultantProfile.builder()
+                .address(new Address(faker.address().city(), faker.address().state(), faker.address().country()))
+                .phoneNumber(faker.phoneNumber().phoneNumber())
+                .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
+                .locationOfInstitution(faker.location().work())
+                .title(faker.job().title())
+                .consultant(consultant)
+                .build();
+        consultant.setProfile(consultantProfile);
+        consultant.setUserId(UUID.randomUUID().toString());
+    }
     @Test
     void shouldCreateScheduleWithoutRecurrenceRule() {
         var creationRequest = new ScheduleCreationRequest(
@@ -65,10 +99,11 @@ public class ScheduleRecurrenceTest {
                 "13:30:00",
                 "15:30:00",
                 "+01:00",
-                Set.of("voice"),
+                Set.of("online"),
                 null,
                 true
         );
+
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
@@ -80,7 +115,8 @@ public class ScheduleRecurrenceTest {
                 .build();
 
         given(authUtils.getCurrentUser()).willReturn(currentUser);
-        given(scheduleRepository.save(any(Schedule.class))).willReturn(schedule);
+        given(scheduleRepository.saveAll(anyList())).willReturn(List.of(schedule));
+        given(consultantService.getReference(anyLong())).willReturn(consultant);
 
         var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());
@@ -95,7 +131,7 @@ public class ScheduleRecurrenceTest {
                 "13:30:00",
                 "15:30:00",
                 "+01:00",
-                Set.of("voice"),
+                Set.of("online"),
                 new RecurrenceRuleRequest(RecurrenceFrequency.DAILY, Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
                 true
         );
@@ -117,7 +153,8 @@ public class ScheduleRecurrenceTest {
                 .build();
 
         given(authUtils.getCurrentUser()).willReturn(currentUser);
-        given(scheduleRepository.save(any(Schedule.class))).willReturn(schedule);
+        given(scheduleRepository.saveAll(anyList())).willReturn(List.of(schedule));
+        given(consultantService.getReference(anyLong())).willReturn(consultant);
 
         var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());

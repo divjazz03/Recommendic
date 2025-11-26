@@ -56,7 +56,7 @@ public class AppointmentController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/reschedule")
+    @PostMapping("/reschedule")
     @PreAuthorize("hasAnyAuthority('ROLE_PATIENT', 'ROLE_CONSULTANT')")
     public ResponseEntity<Response<String>> rescheduleAppointment(@RequestBody @Valid AppointmentRescheduleRequest rescheduleRequest) {
         appointmentService.rescheduleRequest(rescheduleRequest);
@@ -71,7 +71,7 @@ public class AppointmentController {
     }
 
 
-    @PatchMapping("/cancel")
+    @PostMapping("/cancel")
     public ResponseEntity<Response<String>> cancelAppointment(
                                                               @Valid @RequestBody AppointmentCancellationRequest appointmentCancellationRequest) {
         appointmentService.cancelAppointment(appointmentCancellationRequest);

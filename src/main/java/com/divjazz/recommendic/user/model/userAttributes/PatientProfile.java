@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -68,6 +69,7 @@ public class PatientProfile{
     private LocalDate dateOfBirth;
 
     public String getAge() {
+        if (Objects.isNull(dateOfBirth)) return "";
         return getAge(this.dateOfBirth);
     }
     public static String getAge(LocalDate dateOfBirth) {

@@ -147,9 +147,9 @@ public class PatientService {
 
     @Transactional
     public void handleOnboarding(String userId, Set<String> medicalCategoryNames) {
+        Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByNames(medicalCategoryNames);
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
-        Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByNames(medicalCategoryNames);
         if (patient.getUserStage() == UserStage.ONBOARDING) {
             patient.setMedicalCategories(medicalCategoryEntities);
             patient.setUserStage(UserStage.ACTIVE_USER);

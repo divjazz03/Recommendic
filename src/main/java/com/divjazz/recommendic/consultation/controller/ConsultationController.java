@@ -25,12 +25,12 @@ public class ConsultationController {
 
     private final ConsultationService consultationService;
 
-    @PostMapping(value = "/{id}/start")
+    @PostMapping(value = "/{id}/start/{time}")
     @Operation(summary = "Starts a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable String id) {
-        ConsultationResponse response = consultationService.startConsultation(id);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(getResponse(response, HttpStatus.CREATED));
+    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable String id, @PathVariable String time) {
+        ConsultationResponse response = consultationService.startConsultation(id, time);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(getResponse(response, HttpStatus.OK));
     }
 
     @PostMapping(value = "/complete")

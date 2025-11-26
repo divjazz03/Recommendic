@@ -16,6 +16,7 @@ import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.UserRepository;
+import com.divjazz.recommendic.user.repository.projection.RoleProjection;
 import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -55,7 +56,115 @@ public class UserServiceTest {
     @InjectMocks
     private GeneralUserService generalUserService;
 
-    UserProjection user = new UserProjection() {
+
+    @Test
+    void givenValidEmailShouldReturnConsultant() {
+        given(consultantRepository.findByEmailReturningProjection(anyString())).willReturn(userProjection);
+
+        var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
+
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userProjection.getUserPrincipal().getUsername());
+    }
+    @Test
+    void givenValidEmailShouldReturnPatient() {
+        given(patientRepository.findByEmailReturningProjection(anyString())).willReturn(userProjection);
+
+        var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
+
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userProjection.getUserPrincipal().getUsername());
+
+    }
+    @Test
+    void givenInvalidEmailShouldThrowNotFound() {
+        given(patientRepository.findByEmailReturningProjection(anyString())).willReturn(null);
+        given(adminRepository.findByEmailReturningProjection(anyString())).willReturn(null);
+        given(consultantRepository.findByEmailReturningProjection(anyString())).willReturn(null);
+
+        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> generalUserService.retrieveUserByEmail("test_user@test.com"));
+
+    }
+
+    @Test
+    void givenValidUserIdShouldReturnConsultant() {
+        var userId = UUID.randomUUID().toString();
+        var userToReturn = new Consultant(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
+        );
+        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
+
+        var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
+
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
+                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
+    }
+    @Test
+    void givenValidUserIdShouldReturnPatient() {
+        var userId = UUID.randomUUID().toString();
+        var userToReturn = new Patient(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
+        );
+
+        given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
+
+        var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
+
+        assertThat(actualReturnedUser.getUserPrincipal().getUsername()).isEqualTo(userToReturn.getUserPrincipal().getUsername());
+    }
+
+    @Test
+    void shouldCallHandleFailedAttemptWhenLoginFailed() {
+
+        generalUserService.updateLoginAttempt(userProjection, LoginType.LOGIN_FAILED);
+
+        then(userLoginRetryHandler).should(times(1)).handleFailedAttempts(eq(userProjection.getUserPrincipal().getUsername()));
+        then(userLoginRetryHandler).should(never()).handleSuccessFulAttempt(anyString());
+        then(consultantRepository).shouldHaveNoInteractions();
+        then(patientRepository).shouldHaveNoInteractions();
+        then(adminRepository).shouldHaveNoInteractions();
+    }
+
+
+    @Test
+    void shouldEnablePatientUserWithValidUserId() {
+        var userToReturn = new Patient(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                new Role(1L,"ROLE_TEST", "")
+        );
+        userToReturn.setUserId("Dskdnmlsdkncls");
+        given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
+
+        generalUserService.enableUser(userToReturn.getUserId());
+        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
+    }
+
+    @Test
+    void shouldEnableConsultantUserWithValidUserId() {
+        var userToReturn = new Consultant(
+                faker.internet().emailAddress(),
+                Gender.MALE,
+                new UserCredential(faker.text().text(20)),
+                new Role(1L, "ROLE_TEST","")
+        );
+        userToReturn.setUserId("djsdnsldksldk");
+
+        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
+
+        generalUserService.enableUser(userToReturn.getUserId());
+        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
+    }
+
+    UserProjection userProjection = new UserProjection(){
+
         @Override
         public Long getId() {
             return 0L;
@@ -78,179 +187,59 @@ public class UserServiceTest {
 
         @Override
         public UserType getUserType() {
-            return null;
+            return UserType.PATIENT;
         }
 
         @Override
         public UserStage getUserStage() {
-            return null;
+            return UserStage.ACTIVE_USER;
         }
 
         @Override
         public UserPrincipalProjection getUserPrincipal() {
-            return null;
-        }
+            return new UserPrincipalProjection() {
+                @Override
+                public UserPrincipal toUserPrincipal() {
+                    return UserPrincipalProjection.super.toUserPrincipal();
+                }
 
-        @Override
-        public UserDTO toUserDTO() {
-            return UserProjection.super.toUserDTO();
+                @Override
+                public boolean isEnabled() {
+                    return false;
+                }
+
+                @Override
+                public String getUsername() {
+                    return "email";
+                }
+
+                @Override
+                public String getEmail() {
+                    return "email";
+                }
+
+                @Override
+                public RoleProjection getRole() {
+                    return new RoleProjection() {
+                        @Override
+                        public String getName() {
+                            return "TEST";
+                        }
+
+                        @Override
+                        public String getPermissions() {
+                            return "ROLE_TEST";
+                        }
+                    };
+                }
+
+                @Override
+                public UserCredential getUserCredential() {
+                    return new UserCredential("djfbiksbvksuub");
+                }
+            };
         }
     };
-
-    @Test
-    void givenValidEmailShouldReturnConsultant() {
-        var userToReturn = new Consultant(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
-        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.of(userToReturn));
-
-        var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
-
-        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
-                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
-    }
-    @Test
-    void givenValidEmailShouldReturnPatient() {
-        var userToReturn = new Patient(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
-        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.of(userToReturn));
-        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-
-        var actualReturnedUser = generalUserService.retrieveUserByEmail("test_user@test.com");
-
-        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
-                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
-
-    }
-    @Test
-    void givenInvalidEmailShouldThrowNotFound() {
-        given(patientRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserPrincipal_Email(anyString())).willReturn(Optional.empty());
-
-        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> generalUserService.retrieveUserByEmail("test_user@test.com"));
-
-    }
-
-    @Test
-    void givenValidUserIdShouldReturnConsultant() {
-        var userId = UUID.randomUUID().toString();
-        var userToReturn = new Consultant(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
-        given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
-
-        var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
-
-        assertThat(actualReturnedUser.getUserPrincipal().getUsername())
-                .isEqualTo(userToReturn.getUserPrincipal().getUsername());
-    }
-    @Test
-    void givenValidUserIdShouldReturnPatient() {
-        var userId = UUID.randomUUID().toString();
-        var userToReturn = new Patient(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
-
-        given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
-        given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.empty());
-
-        var actualReturnedUser = generalUserService.retrieveUserByUserId(userId);
-
-        assertThat(actualReturnedUser.getUserPrincipal().getUsername()).isEqualTo(userToReturn.getUserPrincipal().getUsername());
-    }
-
-    @Test
-    void shouldCallHandleFailedAttemptWhenLoginFailed() {
-
-        generalUserService.updateLoginAttempt(user, LoginType.LOGIN_FAILED);
-
-        then(userLoginRetryHandler).should(times(1)).handleFailedAttempts(eq(user.getUserPrincipal().getUsername()));
-        then(userLoginRetryHandler).should(never()).handleSuccessFulAttempt(anyString());
-        then(consultantRepository).shouldHaveNoInteractions();
-        then(patientRepository).shouldHaveNoInteractions();
-        then(adminRepository).shouldHaveNoInteractions();
-    }
-
-    @Test
-    void shouldCallHandleSuccessAttemptForPatientWhenLoginSuccess() {
-
-        generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
-
-        then(userLoginRetryHandler).should(never()).handleFailedAttempts(anyString());
-        then(userLoginRetryHandler).should(times(1)).handleSuccessFulAttempt(anyString());
-        then(consultantRepository).should(never()).save(any());
-        then(patientRepository).should(times(1)).save(any());
-        then(adminRepository).should(never()).save(any());
-
-
-    }
-    @Test
-    void shouldCallHandleSuccessAttemptForConsultantWhenLoginSuccess() {
-
-        generalUserService.updateLoginAttempt(user, LoginType.LOGIN_SUCCESS);
-
-        then(userLoginRetryHandler).should(never()).handleFailedAttempts(anyString());
-        then(userLoginRetryHandler).should(times(1)).handleSuccessFulAttempt(anyString());
-        then(consultantRepository).should(times(1)).save(any());
-        then(patientRepository).should(never()).save(any());
-        then(adminRepository).should(never()).save(any());
-
-
-    }
-
-    @Test
-    void shouldEnablePatientUserWithValidUserId() {
-        var userToReturn = new Patient(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
-        );
-
-        given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
-        given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.empty());
-
-        generalUserService.enableUser(userToReturn.getUserId());
-        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
-    }
-
-    @Test
-    void shouldEnableConsultantUserWithValidUserId() {
-        var userToReturn = new Consultant(
-                faker.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential(faker.text().text(20)),
-                new Role(1L, "ROLE_TEST","")
-        );
-
-        given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(adminRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(userToReturn));
-
-        generalUserService.enableUser(userToReturn.getUserId());
-        assertThat(userToReturn.getUserPrincipal().isEnabled()).isTrue();
-    }
 
 
 }
