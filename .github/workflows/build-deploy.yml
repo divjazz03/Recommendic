@@ -18,12 +18,12 @@ jobs:
           cache: maven
       - name: Rename env file
         run: |
-          mv ./.env.example ./.env
-          cat ./.env
+          mv .env.example .env
+          cat .env
       - name: Setup env from env file
         run: |
           set -a
-          source ./.env
+          source .env
           set +a
           echo $DATABASE_USER
       - name: Run unit tests
