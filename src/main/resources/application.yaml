@@ -32,7 +32,6 @@ spring:
     timeout: 30M
   data:
     redis:
-      url: ${REDIS_DATABASE_URL}
       connect-timeout: 60000
       repositories:
         enabled: false

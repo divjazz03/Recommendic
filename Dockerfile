@@ -59,4 +59,4 @@ ENV CLOUDINARY_API_KEY='dsdspodsodspdos'
 ENV CLOUDINARY_API_SECRET='dslkdlskdsldksdl'
 EXPOSE ${SERVER_PORT}
 
-ENTRYPOINT ["java", "$JAVA_OPTS", "--enable-preview","-jar" ,"./app.jar"]
+ENTRYPOINT ["java", "$JAVA_OPTS", "--enable-preview","-jar","--spring.data.redis.url=${REDIS_DATABASE_URL}" ,"./app.jar"]
