@@ -18,26 +18,12 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 #---------------------------------------- JRE Slim generator ------------------------------------------------------------
-FROM eclipse-temurin:21.0.1_12-jdk as jre-builder
-
-# Generate a minimal JRE
-RUN $JAVA_HOME/bin/jlink \
-    --add-modules java.base,java.logging,java.sql,java.naming,java.management,java.xml,jdk.unsupported,java.security.jgss \
-    --strip-debug \
-    --no-header-files \
-    --no-man-pages \
-    --compress=2 \
-    --output /jre
-
-
-### ------------------------------------------ Run Stage -----------------------------------------------------------------
-FROM gcr.io/distroless/java-base AS run
+FROM eclipse-temurin:21.0.1_12-jre as run
 
 WORKDIR /opt/recommendic
-COPY --from=jre-builder /jre /opt/jre
-COPY --from=build /opt/recommendic/target/*.jar /opt/recommendic/app.jar
+COPY --from=build /opt/recommendic/target/*.jar app.jar
 
-ENV PATH="/opt/jre/bin:${PATH}"
+# Generate a minimal JRE
 ENV JAVA_HOME="/opt/jre"
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8080
