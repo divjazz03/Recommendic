@@ -16,18 +16,22 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: maven
+
       - name: Rename env file
         run: |
           mv .env.example .env
           cat .env
-      - name: Setup env from env file
+
+      - name: Export .env to Github Environment
         run: |
-          set -a
-          source .env
-          set +a
-          echo $DATABASE_USER
+          grep -v '^#' .env | grep -v '^$' >> $GITHUB_ENV
+      - name: Confirm .env loaded
+        run: |
+          echo "User = POSTGRES_USER"
+         
       - name: Run unit tests
         run: ./mvnw test
+
       - name: Run integration tests
         run: ./mvnw verify -DskipUnitTests
 
