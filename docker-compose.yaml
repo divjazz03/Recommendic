@@ -1,15 +1,15 @@
 
 services:
 
-  backend:
-    build: .
-    image: docker.io/divjazz/recommendic
-    ports:
-      - '8080:8080'
-    env_file: .env
-    depends_on:
-      - postgres
-      - redis
+#  backend:
+#    image: docker.io/divjazz/recommendic
+#    ports:
+#      - '8080:8080'
+#    env_file: .env
+#    depends_on:
+#      - postgres
+#      - redis
+#    mem_limit: '256m'
   postgres:
     container_name: recommendic_db
     image: postgres:18-alpine3.22
@@ -22,6 +22,7 @@ services:
   redis:
     container_name: redis
     image: redis:8.0-M03-alpine
+    restart: no
     ports:
       - "6379:6379"
 

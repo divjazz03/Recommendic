@@ -24,7 +24,7 @@ WORKDIR /opt/recommendic
 COPY --from=build /opt/recommendic/target/*.jar app.jar
 
 # Generate a minimal JRE
-ENV JAVA_HOME="/opt/jre"
+
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8080
 ENV POSTGRES_DB=recommendic

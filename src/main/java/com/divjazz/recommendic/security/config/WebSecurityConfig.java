@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -31,6 +32,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -67,8 +69,8 @@ public class WebSecurityConfig {
     );
 
     @Bean
-    @Primary
-    @Profile("dev,prod")
+    @Profile({"dev","prod"})
+    @Order(1)
     public SecurityFilterChain webSecurity(HttpSecurity http,
                                            BaseAuthFilter authFilter) throws Exception {
         return http
@@ -115,7 +117,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @Profile("dev,prod")
+    @Profile({"dev","prod"})
     BaseAuthFilter authFilter(ObjectMapper ob) {
         return new AuthFilter(ob);
     }
