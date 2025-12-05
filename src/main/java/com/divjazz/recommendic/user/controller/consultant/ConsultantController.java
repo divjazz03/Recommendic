@@ -21,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
@@ -117,13 +118,12 @@ public class ConsultantController {
     }
 
     @PostMapping("/{userId}/onboard")
-    @Operation(summary = "Set Consultant Area of Specialization")
+    @Operation(summary = "Set Consultant profile details")
     public ResponseEntity<Boolean> onboardingSetListOfMedicalInterests(
-            @PathVariable("userId") String userId, @RequestBody ConsultantOnboardingRequest request
+            @PathVariable("userId") String userId, @RequestBody @Validated ConsultantOnboardingRequest request
     ) {
-        boolean value = consultantService.handleOnboarding(userId, request.medicalSpecialization());
+        boolean value = consultantService.handleOnboarding(userId, request);
         return ResponseEntity.ok(value);
     }
 
-    public record ConsultantOnboardingRequest(String medicalSpecialization) {}
 }

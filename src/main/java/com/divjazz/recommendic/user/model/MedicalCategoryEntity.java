@@ -23,9 +23,12 @@ public class MedicalCategoryEntity {
     private long id;
     @Column(name = "name")
     private String name;
+    @Column(name = "medical_category_Id")
+    private String medicalCategoryId;
     @Column(name = "description")
     private String description;
-
+    @Column(name = "icon")
+    private String icon;
 
     @Override
     public boolean equals(Object o) {

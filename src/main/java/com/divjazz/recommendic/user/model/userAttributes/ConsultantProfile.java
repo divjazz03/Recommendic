@@ -85,6 +85,26 @@ public class ConsultantProfile{
 
     @Column(columnDefinition = "text")
     private String bio;
+    @Column(name = "license_number")
+    private String licenseNumber;
+    @Column(name = "certifications")
+    private String certifications;
+
+    @Column(name = "online_consultation_fee")
+    private Integer onlineConsultationFee;
+
+    @Column(name = "consultation_duration")
+    private Integer consultationDuration;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "sub_specialties", columnDefinition = "text[]")
+    private String[] subSpecialties ;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "preferred_timeslots", columnDefinition = "text[]")
+    private String[] preferredTimeSlots ;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "available_days_of_week", columnDefinition = "text[]")
+    private String[] availableDaysOfWeek ;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId

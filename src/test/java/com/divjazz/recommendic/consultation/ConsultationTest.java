@@ -90,7 +90,7 @@ public class ConsultationTest {
         consultant.setUserId(UUID.randomUUID().toString());
 
         patient.getUserPrincipal().setEnabled(true);
-        patient.addMedicalCategory(new MedicalCategoryEntity(1L, "cardiology", "sdecss"));
+        patient.addMedicalCategory(new MedicalCategoryEntity(1L, "Cardiology","cardiology", "sdecss", "dsdsds"));
         patient.setUserStage(UserStage.ACTIVE_USER);
 
         PatientProfile patientProfile = PatientProfile.builder()

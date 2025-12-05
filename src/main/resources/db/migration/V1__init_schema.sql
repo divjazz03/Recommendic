@@ -27,7 +27,7 @@ DROP INDEX IF EXISTS
     idx_search_owner_id,
     idx_patient_email,
     idx_patient_user_id,
-    message_search_idx CASCADE;
+    message_search_idx, idx_medical_category_id, idx_medical_category_name CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -49,24 +49,30 @@ VALUES ('ROLE_ADMIN'),
 CREATE TABLE IF NOT EXISTS medical_category
 (
     id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    icon        VARCHAR(4),
+    medical_category_id TEXT UNIQUE NOT NULL ,
     name        TEXT UNIQUE NOT NULL,
     description TEXT NOT NULL
 );
 
-CREATE INDEX idx_medical_category_name ON medical_category(name);
-INSERT INTO medical_category (name, description)
-VALUES ('pediatrician', 'Dealing with care and basic treatment of children'),
-       ('cardiology','Dealing with treatment of the heart'),
-       ('oncology','Dealing with treatment of Cancer'),
-       ('dermatology','Dealing with treatment of the skin'),
-       ('orthopedic surgery','Dealing with surgery relating to the bones'),
-       ('neurosurgery','Dealing with surgery relating to the brain'),
-       ('cardiovascular surgery','Dealing with surgery relating to the heart'),
-       ('gynecology','Dealing with women''s reproductive health'),
-       ('psychiatry','Dealing with mental health disorders'),
-       ('dentistry','Dealing with oral health'),
-       ('ophthalmology','Dealing with eye care'),
-       ('physical therapy','Dealing with recovery of patients rom injuries or surgeries');
+CREATE INDEX idx_medical_category_id ON medical_category(medical_category_id);
+INSERT INTO medical_category (icon, medical_category_id, name, description)
+VALUES ('👶','pediatrics','Pediatrics', 'Children''s health'),
+       ('❤️','cardiology','Cardiology','Heart and cardiovascular system'),
+       ('🎗️','oncology','Oncology','Cancer treatment'),
+       ('🧴','dermatology','Dermatology','Skin, hair, and nails'),
+       ('🦴','orthopedics','Orthopedics','Bones, joints, and muscles'),
+       ('🧠','neurology','Neurology','Brain and nervous system'),
+       ('🤰','gynecology','Gynecology','Women''s reproductive health'),
+       ('🧘','psychiatry','Psychiatry','Mental health'),
+       ('🦷','dentistry','Dentistry','Dealing with oral health'),
+       ('👁️','ophthalmology','Ophthalmology','Eye care and vision'),
+       ('🩺','endocrinology','Endocrinology','Hormones and metabolism'),
+       ('🫃','gastroenterology','Gastroenterology','Digestive system'),
+       ('🫁','pulmonology','Pulmonology','Lungs and respiratory system'),
+       ('💧','urology','Urology','Urinary tract and male reproduction'),
+       ('👂','ent','ENT','Ear, nose, and throat'),
+       ('🏥','general','General Practice','Primary care and wellness');
 
 /*                                              USER TABLE                                                             */
 CREATE TABLE IF NOT EXISTS admin

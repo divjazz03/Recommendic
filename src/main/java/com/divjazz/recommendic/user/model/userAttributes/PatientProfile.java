@@ -1,12 +1,15 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
+import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.model.Patient;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -49,16 +52,30 @@ public class PatientProfile{
     @Column(name = "username", nullable = false, columnDefinition = "jsonb")
     private UserName userName;
 
-    @Column(nullable = false)
+    @Column
     private String phoneNumber;
+    @Column(name = "emergency_contact_name")
+    private String emergencyContactName;
+    @Column(name = "emergency_contact_phone_number")
+    private String emergencyContactNumber;
+
+    @Column(name = "medical_history", columnDefinition = "jsonb")
+    @Type(JsonBinaryType.class)
+    private MedicalHistory medicalHistory;
+
+    @Column(name = "lifestyle_info", columnDefinition = "jsonb")
+    @Type(JsonBinaryType.class)
+    private LifeStyleInfo lifeStyleInfo;
 
     @Type(JsonBinaryType.class)
-    @Column(name = "address", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "address",  columnDefinition = "jsonb")
     private Address address;
 
     @Type(JsonBinaryType.class)
-    @Column(name = "profile_picture", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "profile_picture",  columnDefinition = "jsonb")
     private ProfilePicture profilePicture;
+
+
 
     @OneToOne
     @MapsId

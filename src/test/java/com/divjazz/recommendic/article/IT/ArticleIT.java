@@ -1,9 +1,9 @@
 package com.divjazz.recommendic.article.IT;
 
 import com.divjazz.recommendic.BaseIntegrationTest;
-import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.article.domain.ArticleTag;
 import com.divjazz.recommendic.article.dto.ArticleDTO;
+import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.article.model.Article;
 import com.divjazz.recommendic.article.repository.ArticleRepository;
 import com.divjazz.recommendic.global.Response;
@@ -42,10 +42,11 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @Slf4j
@@ -138,7 +139,7 @@ public class ArticleIT extends BaseIntegrationTest {
     void setup() {
         consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
         patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
 
         Patient unSavedPatient = new Patient(
                 faker.internet().emailAddress(),

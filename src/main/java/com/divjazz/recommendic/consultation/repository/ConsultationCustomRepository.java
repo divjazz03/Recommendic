@@ -226,7 +226,9 @@ public class ConsultationCustomRepository {
         consultant.setSpecialization(new MedicalCategoryEntity(
                 resultSet.getLong("category_id"),
                 resultSet.getString("category_name"),
-                resultSet.getString("category_desc")
+                resultSet.getString("medical_category_id"),
+                resultSet.getString("category_desc"),
+                resultSet.getString("icon")
         ));
         consultant.setCertified(resultSet.getBoolean("consultant_certified"));
 

@@ -1,7 +1,9 @@
 package com.divjazz.recommendic.user;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.user.controller.patient.payload.PatientOnboardingRequest;
 import com.divjazz.recommendic.user.controller.patient.payload.PatientRegistrationParams;
+import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
@@ -64,6 +66,23 @@ public class PatientServiceTest {
 
     private  Patient patient ;
 
+    PatientOnboardingRequest mockRequest = new PatientOnboardingRequest("",
+            "",
+            "",
+            "",
+            BloodType.A_MINUS,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            Set.of(""));
+
+
 
     @BeforeEach
     void setup() {
@@ -74,7 +93,7 @@ public class PatientServiceTest {
                 new Role(1L, "TEST_ROLE", "")
         );
         patient.getUserPrincipal().setEnabled(true);
-        patient.addMedicalCategory(new MedicalCategoryEntity(1L, "cardiology", "desc"));
+        patient.addMedicalCategory(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc",""));
         patient.setUserStage(UserStage.ACTIVE_USER);
         patient.setUserId("User Id");
 
@@ -138,22 +157,21 @@ public class PatientServiceTest {
     @MethodSource("getValidMedicalCategories")
     void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(Set<String> medicalCategories) {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(patient));
-        given(medicalCategoryService.getAllByNames(anySet())).willReturn(Set.of(new MedicalCategoryEntity(1L, "medsdsds", "dsdsdsds")));
-
-        patientService.handleOnboarding(patient.getUserId(), medicalCategories);
+        given(medicalCategoryService.getAllByNames(anySet())).willReturn(Set.of(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc","")));
+        patientService.handleOnboarding(patient.getUserId(), mockRequest);
     }
     @ParameterizedTest
     @MethodSource("getInValidMedicalCategories")
     void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(Set<String> invalidMedicalCategories) {
         given(medicalCategoryService.getAllByNames(anySet())).willThrow(new IllegalArgumentException());
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), invalidMedicalCategories));
+                .isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), mockRequest));
     }
     @ParameterizedTest
     @MethodSource("getValidMedicalCategories")
     void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(Set<String> medicalCategories) {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), medicalCategories));
+        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), mockRequest));
     }
 
 }

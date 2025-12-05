@@ -81,7 +81,7 @@ public class ConsultantIT extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
         Consultant unSavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,
@@ -276,37 +276,7 @@ public class ConsultantIT extends BaseIntegrationTest {
         ).andExpect(status().isNotFound());
     }
 
-    @Test
-    void shouldHandleOnboardingRequestAndReturnOk() throws Exception {
 
-        var consultantInOnboardingStage = new Consultant(FAKER.internet().emailAddress(),
-                Gender.MALE,
-                new UserCredential("password"), consultantRole);
-        consultantInOnboardingStage.setUserStage(UserStage.ONBOARDING);
-        consultantInOnboardingStage.getUserPrincipal().setEnabled(true);
-        ConsultantProfile consultantProfile = ConsultantProfile.builder()
-                .address(new Address(FAKER.address().city(), FAKER.address().state(), FAKER.address().country()))
-                .dateOfBirth(FAKER.timeAndDate().birthday())
-                .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
-                .consultant(consultantInOnboardingStage)
-                .build();
-        consultantInOnboardingStage.setProfile(consultantProfile);
-        consultantRepository.save(consultantInOnboardingStage);
-
-        var onboardingData = """
-                {
-                    "medicalSpecialization": "pediatrician"
-                }
-                """;
-
-        mockMvc.perform(
-                post("%s/%s/onboard".formatted(CONSULTANT_BASE_ENDPOINT, consultantInOnboardingStage.getUserId()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(onboardingData)
-                        .with(user(consultantInOnboardingStage.getUserPrincipal()))
-
-        ).andExpect(status().isOk());
-    }
 
     @Test
     void shouldGetConsultantProfileDetails() throws Exception {

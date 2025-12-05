@@ -38,11 +38,12 @@ public class Certification extends Auditable{
     protected Certification() {
     }
 
-    public Certification(Consultant ownerOfCertification, String fileName, String fileUrl) {
+    public Certification(Consultant ownerOfCertification, String fileName, String fileUrl, CertificateType type) {
         super();
         this.ownerOfCertification = ownerOfCertification;
         this.fileName = fileName;
         this.fileUrl = fileUrl;
+        this.certificateType = type;
     }
     @Override
     public boolean equals(Object o) {

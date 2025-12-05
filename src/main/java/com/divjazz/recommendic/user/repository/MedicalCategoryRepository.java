@@ -11,5 +11,8 @@ import java.util.Set;
 public interface MedicalCategoryRepository extends JpaRepository<MedicalCategoryEntity, Long> {
 
     Optional<MedicalCategoryEntity> findByName(String name);
+
+    Optional<MedicalCategoryEntity> findByMedicalCategoryId(String medicalCategoryId);
     Set<MedicalCategoryEntity> findAllByNameIn(Set<String> name);
+    Set<MedicalCategoryEntity> findAllByMedicalCategoryIdIn(Set<String> medicalCategoryId);
 }

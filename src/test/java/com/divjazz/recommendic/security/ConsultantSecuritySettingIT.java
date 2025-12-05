@@ -60,7 +60,7 @@ public class ConsultantSecuritySettingIT extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
         Consultant unSavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,

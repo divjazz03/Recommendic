@@ -3,12 +3,10 @@ package com.divjazz.recommendic.notification.setting.IT;
 import com.divjazz.recommendic.BaseIntegrationTest;
 import com.divjazz.recommendic.notification.app.model.ConsultantNotificationSetting;
 import com.divjazz.recommendic.notification.app.repository.ConsultantNotificationSettingRepository;
-import com.divjazz.recommendic.notification.app.repository.PatientNotificationSettingRepository;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
-import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
@@ -16,8 +14,6 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
-import com.divjazz.recommendic.user.repository.MedicalCategoryRepository;
-import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.MedicalCategoryService;
@@ -30,8 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Set;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -64,7 +58,7 @@ public class ConsultantNotificationSettingIT extends BaseIntegrationTest {
     @BeforeEach
     void setup() {
         consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
         Consultant unSavedConsultant = new Consultant(
                 FAKER.internet().emailAddress(),
                 Gender.FEMALE,

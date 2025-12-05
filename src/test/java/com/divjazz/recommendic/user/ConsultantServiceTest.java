@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.security.service.SecurityService;
+import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantOnboardingRequest;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantRegistrationParams;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -74,7 +75,7 @@ public class ConsultantServiceTest {
                 Gender.MALE,
                 new UserCredential(faker.text().text(20)), new Role(1L,"ROLE_CONSULTANT", "")
         );
-        consultant.setSpecialization(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
+        consultant.setSpecialization(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon"));
         consultant.getUserPrincipal().setEnabled(true);
         consultant.setUserStage(UserStage.ACTIVE_USER);
         ConsultantProfile consultantProfile = ConsultantProfile.builder()
@@ -113,7 +114,7 @@ public class ConsultantServiceTest {
                 new UserCredential(consultantRegistrationParams.password()),
                 new Role(1L,"ROLE_CONSULTANT", "")
         );
-        var medicalCategoryEntity = new MedicalCategoryEntity(1,"opthalmology", "some desc");
+        var medicalCategoryEntity = new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon");
         savedConsultant.setSpecialization(medicalCategoryEntity);
         savedConsultant.getUserPrincipal().setEnabled(true);
         savedConsultant.setUserStage(UserStage.ACTIVE_USER);
@@ -161,13 +162,15 @@ public class ConsultantServiceTest {
         );
     }
 
+    private final ConsultantOnboardingRequest onboardingRequest = ConsultantOnboardingRequest.builder().build();
+
     @ParameterizedTest
     @MethodSource("getValidMedicalSpecialty")
     void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(String medicalSpecialization) {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(consultant));
-        given(medicalCategoryService.getMedicalCategoryByName(medicalSpecialization)).willReturn(new MedicalCategoryEntity(1l, medicalSpecialization, ""));
+        given(medicalCategoryService.getMedicalCategoryByName(medicalSpecialization)).willReturn(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon"));
 
-        boolean result = consultantService.handleOnboarding(consultant.getUserId(), medicalSpecialization);
+        boolean result = consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest);
         assertThat(result).isTrue();
     }
     @ParameterizedTest
@@ -175,13 +178,13 @@ public class ConsultantServiceTest {
     void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(String invalidMedicalSpecialty) {
         given(medicalCategoryService.getMedicalCategoryByName(invalidMedicalSpecialty)).willThrow(new IllegalArgumentException());
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), invalidMedicalSpecialty));
+                .isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest));
     }
     @ParameterizedTest
     @MethodSource("getValidMedicalSpecialty")
     void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(String medicalCategories) {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.empty());
-        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), medicalCategories));
+        assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest));
     }
 
 
@@ -191,7 +194,7 @@ public class ConsultantServiceTest {
                Set.of(consultant)
         );
 
-        var result = consultantService.getConsultantsByCategory(new MedicalCategoryEntity(1,"opthalmology", "some desc"));
+        var result = consultantService.getConsultantsByCategory(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon"));
         assertThat(result).hasSize(1);
         assertThat(result).isUnmodifiable();
     }

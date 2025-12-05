@@ -2,7 +2,6 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
 import com.divjazz.recommendic.appointment.domain.Slot;
-import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
@@ -16,6 +15,7 @@ import com.divjazz.recommendic.user.dto.ConsultantEducationDTO;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
 import com.divjazz.recommendic.user.dto.ConsultantMinimal;
 import com.divjazz.recommendic.user.dto.ConsultantStatDTO;
+import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
@@ -24,6 +24,7 @@ import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.UserConfirmation;
+import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
@@ -31,6 +32,7 @@ import com.divjazz.recommendic.user.repository.ConsultantCustomRepository;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.ConsultantStatRepository;
+import com.divjazz.recommendic.user.repository.certificationRepo.CertificationRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjection;
@@ -65,12 +67,12 @@ public class ConsultantService {
     private final MedicalCategoryService medicalCategoryService;
     private final ConsultantStatRepository consultantStatRepository;
     private final ConsultantEducationRepository consultantEducationRepository;
-    private final AppointmentService appointmentService;
     private final AvailabilityService availabilityService;
     private final ConsultationService consultationService;
     private final ConsultantCustomRepository consultantCustomRepository;
     private final AppNotificationService appNotificationService;
     private final SecurityService securityService;
+    private final CertificationRepository certificationRepository;
 
     private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
         Address addressToChange = consultant.getProfile().getAddress();
@@ -223,10 +225,6 @@ public class ConsultantService {
 
     }
 
-    public Set<Consultant> getConsultantsByMedicalSpecialization(MedicalCategoryEntity medicalCategory) {
-        return consultantRepository.findBySpecialization(medicalCategory);
-    }
-
     @Transactional
     public void deleteConsultantById(String userId) {
         if (!userService.isUserExistsByUserId(userId)) {
@@ -239,14 +237,65 @@ public class ConsultantService {
         return consultantRepository.findUnCertifiedConsultant();
     }
 
-    public boolean handleOnboarding(String userId, String medicalSpecialization) {
-
-        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryByName(medicalSpecialization);
+    @Transactional
+    public boolean handleOnboarding(String userId, ConsultantOnboardingRequest request) {
         Consultant consultant = consultantRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
+        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryById(request.specialization());
         consultant.setSpecialization(medicalCategory);
+
+        if (Objects.nonNull(request.subSpecialties()) && !request.subSpecialties().isEmpty()) {
+            consultant.getProfile().setSubSpecialties(request.subSpecialties().toArray(new String[0]));
+        }
+        if (Objects.nonNull(request.availableDays()) && !request.availableDays().isEmpty()) {
+            consultant.getProfile().setAvailableDaysOfWeek(request.availableDays().toArray(new String[0]));
+        }if (Objects.nonNull(request.preferredTimeSlots()) && !request.preferredTimeSlots().isEmpty()) {
+            consultant.getProfile().setPreferredTimeSlots(request.preferredTimeSlots().toArray(new String[0]));
+        }
+        if (Objects.nonNull(request.certifications())) {
+            consultant.getProfile().setCertifications(request.certifications());
+        }
+        if (Objects.nonNull(request.languages()) && !request.languages().isEmpty()) {
+            consultant.getProfile().setLanguages(request.languages().toArray(new String[0]));
+        }
+        if (Objects.nonNull(request.consultationFee())) {
+            consultant.getProfile().setOnlineConsultationFee(request.consultationFee());
+        }else {
+            consultant.getProfile().setOnlineConsultationFee(10000);
+        }
+        if (Objects.nonNull(request.consultationDuration())) {
+            consultant.getProfile().setConsultationDuration(request.consultationDuration());
+        }else {
+            consultant.getProfile().setConsultationDuration(60);
+        }
+        if (Objects.nonNull(request.bio())) {
+            consultant.getProfile().setBio(request.bio());
+        }
+        consultant.getProfile().setLicenseNumber(request.licenseNumber());
+        consultant.getProfile().setYearsOfExperience(request.yearsOfExperience());
+        consultant.getProfile().setLocationOfInstitution(request.currentWorkplace());
+        ProfilePicture profilePicture = new ProfilePicture(request.profilePictureUrl());
+        consultant.getProfile().setProfilePicture(profilePicture);
+
+        Set<Certification> certifications = new HashSet<>(5);
+        certifications.add(new Certification(consultant, request.resume().name(), request.resume().fileUrl(), CertificateType.RESUME));
+
+        certifications.addAll(request.credentials().stream()
+                .map(credential -> new Certification(consultant, credential.name(), credential.fileUrl(), CertificateType.CERTIFICATE))
+                .toList()
+        );
+
+
+        ConsultantEducation education = new ConsultantEducation();
+        education.setConsultant(consultant);
+        education.setYear(request.graduationYear());
+        education.setInstitution(request.university());
+        education.setDegree(request.medicalDegree());
+
+        consultantEducationRepository.save(education);
+        certificationRepository.saveAll(certifications);
+
         consultant.setUserStage(UserStage.ACTIVE_USER);
-        consultantRepository.save(consultant);
 
         return true;
     }
@@ -394,7 +443,7 @@ public class ConsultantService {
         ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
         if (Objects.nonNull(profile)) {
             if (Objects.nonNull(profile.specialty())) {
-                consultant.setSpecialization(medicalCategoryService.getMedicalCategoryByName(profile.specialty()));
+                consultant.setSpecialization(medicalCategoryService.getMedicalCategoryById(profile.specialty()));
             }
 
             if (Objects.nonNull(profile.address())) {

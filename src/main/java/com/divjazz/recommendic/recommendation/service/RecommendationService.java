@@ -6,7 +6,6 @@ import com.divjazz.recommendic.recommendation.model.ArticleRecommendation;
 import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.repository.ArticleRecommendationRepository;
 import com.divjazz.recommendic.recommendation.repository.ConsultantRecommendationRepository;
-import com.divjazz.recommendic.search.model.Search;
 import com.divjazz.recommendic.user.domain.MedicalCategory;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -18,10 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,7 +57,7 @@ public class RecommendationService {
 
     private Set<Consultant> retrieveConsultantsBasedOnMedicalCategories(Set<MedicalCategory> medicalCategories) {
         return medicalCategories.stream()
-                .map(medicalCategory -> medicalCategoryService.getMedicalCategoryByName(medicalCategory.name()))
+                .map(medicalCategory -> medicalCategoryService.getMedicalCategoryById(medicalCategory.id()))
                 .flatMap(medicalCategory -> consultantService
                         .getConsultantsByCategory(medicalCategory)
                         .stream())

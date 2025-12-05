@@ -8,7 +8,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UniCertRepository extends JpaRepository<Certification, Long> {
+public interface CertificationRepository extends JpaRepository<Certification, Long> {
 
-    Optional<Certification> findByOwnerOfCertification(Consultant consultant);
+
+    Optional<Certification> findByOwnerOfCertification_UserId(String userId);
 }

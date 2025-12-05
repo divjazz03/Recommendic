@@ -21,5 +21,8 @@ public class ProfilePicture {
     @JsonProperty("picture_url")
     private String pictureUrl;
 
-
+    public ProfilePicture(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+        this.name= "unknown";
+    }
 }

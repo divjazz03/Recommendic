@@ -171,7 +171,7 @@ public class DataSeeder implements ApplicationRunner {
 
         Role patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
         Role consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
-        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
 
 
         CompletableFuture<Void> patientTask = CompletableFuture.runAsync(() -> {

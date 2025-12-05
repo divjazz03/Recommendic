@@ -30,8 +30,8 @@ public class SecurityService {
     @Value("${spring.session.timeout}")
     private Duration sessionTimeout;
 
-    public UserSecuritySettingDTO createUserSetting(User user) {
-        return switch (user.getUserType()) {
+    public void createUserSetting(User user) {
+        switch (user.getUserType()) {
             case PATIENT -> {
                 var userSecurity = new PatientUserSecuritySetting(
                         false,
@@ -41,7 +41,7 @@ public class SecurityService {
                 );
                 var savedUserSecurity = patientUserSecuritySettingRepository.save(userSecurity);
 
-                yield new UserSecuritySettingDTO(
+                new UserSecuritySettingDTO(
                         savedUserSecurity.isMultiFactorAuthEnabled(),
                         savedUserSecurity.getSessionTimeoutMin(),
                         savedUserSecurity.isLoginAlertsEnabled()
@@ -55,13 +55,13 @@ public class SecurityService {
                         (Consultant) user
                 );
                 var savedUserSecuritySetting = consultantUserSecuritySettingRepository.save(userSetting);
-                yield new UserSecuritySettingDTO(
+                new UserSecuritySettingDTO(
                         savedUserSecuritySetting.isMultiFactorAuthEnabled(),
                         savedUserSecuritySetting.getSessionTimeoutMin(),
                         savedUserSecuritySetting.isLoginAlertsEnabled()
                 );
             }
-            case ADMIN -> null;
+            case ADMIN -> {}
         };
 
     }

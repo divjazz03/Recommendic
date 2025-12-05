@@ -7,6 +7,7 @@ import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.controller.patient.PatientController;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
 import com.divjazz.recommendic.user.dto.ConsultantMinimal;
@@ -39,6 +40,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,6 +64,23 @@ public class PatientService {
     private final PatientCustomRepository patientCustomRepository;
     private final AppNotificationService appNotificationService;
     private final SecurityService securityService;
+
+    private static Address getAddressToChange(PatientProfileUpdateRequest updateRequest, Patient patient) {
+        Address addressToChange = patient.getPatientProfile().getAddress();
+        if (Objects.isNull(addressToChange)) {
+            addressToChange = new Address();
+        }
+        if (Objects.nonNull(updateRequest.address().getCity())) {
+            addressToChange.setCity(updateRequest.address().getCity());
+        }
+        if (Objects.nonNull(updateRequest.address().getCountry())) {
+            addressToChange.setCountry(updateRequest.address().getCountry());
+        }
+        if (Objects.nonNull(updateRequest.address().getState())) {
+            addressToChange.setState(updateRequest.address().getState());
+        }
+        return addressToChange;
+    }
 
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
@@ -138,7 +157,6 @@ public class PatientService {
         patientRepository.deleteByUserId(patient_Id);
     }
 
-
     @Transactional(readOnly = true)
     public Patient findPatientByUserId(String id) {
         return patientRepository.findByUserId(id)
@@ -146,19 +164,70 @@ public class PatientService {
     }
 
     @Transactional
-    public void handleOnboarding(String userId, Set<String> medicalCategoryNames) {
-        Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByNames(medicalCategoryNames);
+    public void handleOnboarding(String userId, PatientOnboardingRequest request) {
+
         Patient patient = patientRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Patient with id: %s not found".formatted(userId)));
         if (patient.getUserStage() == UserStage.ONBOARDING) {
-            patient.setMedicalCategories(medicalCategoryEntities);
+            if (Objects.nonNull(request.specializations()) && !request.specializations().isEmpty()) {
+                Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByIds(request.specializations());
+                patient.setMedicalCategories(medicalCategoryEntities);
+            }
+            if ((Objects.nonNull(request.alcoholConsumption()) && !request.alcoholConsumption().isBlank())
+                    || (Objects.nonNull(request.smokingStatus()) && !request.smokingStatus().isBlank())
+                    || (Objects.nonNull(request.exerciseFrequency()) && !request.exerciseFrequency().isBlank())
+                    || (Objects.nonNull(request.dietaryRestrictions()) && !request.dietaryRestrictions().isBlank())) {
+                LifeStyleInfo lifeStyleInfo = new LifeStyleInfo(
+                        request.smokingStatus(),
+                        request.alcoholConsumption(),
+                        request.exerciseFrequency(),
+                        request.dietaryRestrictions()
+                );
+                patient.getPatientProfile().setLifeStyleInfo(lifeStyleInfo);
+            }
+            if ((Objects.nonNull(request.bloodType()))
+                    || (Objects.nonNull(request.chronicConditions()) && !request.chronicConditions().isBlank())
+                    || (Objects.nonNull(request.allergies()) && !request.allergies().isBlank())
+                    || (Objects.nonNull(request.currentMedications()) && !request.currentMedications().isBlank())
+                    || (Objects.nonNull(request.pastSurgeries()) && !request.pastSurgeries().isBlank())
+                    || (Objects.nonNull(request.familyHistory()) && !request.familyHistory().isBlank())
+            ) {
+                MedicalHistory medicalHistory = new MedicalHistory(
+                        request.allergies(),
+                        request.chronicConditions(),
+                        request.pastSurgeries(),
+                        request.familyHistory(),
+                        request.currentMedications(),
+                        request.bloodType()
+                );
+                patient.getPatientProfile().setMedicalHistory(medicalHistory);
+            }
+            if (Objects.nonNull(request.dateOfBirth()) && !request.dateOfBirth().isBlank()) {
+                try {
+                    var localDate = LocalDate.parse(request.dateOfBirth());
+                    patient.getPatientProfile().setDateOfBirth(localDate);
+                } catch (DateTimeParseException ex) {
+                    throw new IllegalArgumentException(ex.getMessage());
+                }
+            }
+            if (Objects.nonNull(request.phone()) && !request.phone().isBlank()) {
+                patient.getPatientProfile().setPhoneNumber(request.phone());
+            }
+            if (Objects.nonNull(request.emergencyPhone()) && !request.emergencyPhone().isBlank()) {
+                patient.getPatientProfile().setEmergencyContactNumber(request.emergencyPhone());
+            }
+            if (Objects.nonNull(request.emergencyContact()) && !request.emergencyContact().isBlank()) {
+                patient.getPatientProfile().setEmergencyContactName(request.emergencyContact());
+            }
             patient.setUserStage(UserStage.ACTIVE_USER);
+
         }
+
     }
 
     @Transactional(readOnly = true)
     public Page<ConsultantMinimal> getRecommendationForPatient(Pageable pageable) {
-        UserDTO userDTO =  authUtils.getCurrentUser();
+        UserDTO userDTO = authUtils.getCurrentUser();
         return recommendationService.retrieveRecommendationByPatient(userDTO.userId(), pageable)
                 .map(ConsultantRecommendation::getConsultant)
                 .map(consultantService::getConsultantRecommendationProfileMinimal);
@@ -174,7 +243,7 @@ public class PatientService {
                     profileProjection.getUserName(),
                     profileProjection.getEmail(),
                     profileProjection.getPhoneNumber(),
-                    Objects.nonNull(profileProjection.getDateOfBirth()) ? profileProjection.getDateOfBirth().toString(): null,
+                    Objects.nonNull(profileProjection.getDateOfBirth()) ? profileProjection.getDateOfBirth().toString() : null,
                     userDTO.gender().name().toLowerCase(),
                     profileProjection.getAddress(),
                     profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet()),
@@ -260,23 +329,6 @@ public class PatientService {
                 patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet()),
                 patient.getPatientProfile().getProfilePicture().getPictureUrl()
         );
-    }
-
-    private static Address getAddressToChange(PatientProfileUpdateRequest updateRequest, Patient patient) {
-        Address addressToChange = patient.getPatientProfile().getAddress();
-        if (Objects.isNull(addressToChange)) {
-            addressToChange = new Address();
-        }
-        if (Objects.nonNull(updateRequest.address().getCity())) {
-            addressToChange.setCity(updateRequest.address().getCity());
-        }
-        if (Objects.nonNull(updateRequest.address().getCountry())) {
-            addressToChange.setCountry(updateRequest.address().getCountry());
-        }
-        if (Objects.nonNull(updateRequest.address().getState())) {
-            addressToChange.setState(updateRequest.address().getState());
-        }
-        return addressToChange;
     }
 
     private PatientInfoResponse toPatientInfoResponse(Patient patient) {

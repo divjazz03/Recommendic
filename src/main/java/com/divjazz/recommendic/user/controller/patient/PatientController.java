@@ -110,14 +110,14 @@ public class PatientController {
 
     @PostMapping("/{userId}/onboard")
     @Operation(summary = "Set Patient Area of Interest")
-    public ResponseEntity<Void> onboardingSetListOfMedicalInterests(
+    public ResponseEntity<Void> onboardPatient(
             @PathVariable @Parameter(name = "targetId", description = "User id") String userId,
             @RequestBody
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Onboarding Request")
             PatientOnboardingRequest request
     ) {
 
-        patientService.handleOnboarding(userId, request.medicalCategories());
+        patientService.handleOnboarding(userId,request);
         return ResponseEntity.ok().build();
     }
 
@@ -149,6 +149,6 @@ public class PatientController {
         return ResponseEntity.ok(getResponse(response, HttpStatus.OK));
     }
 
-    public record PatientOnboardingRequest(Set<String> medicalCategories) {}
+
 
 }

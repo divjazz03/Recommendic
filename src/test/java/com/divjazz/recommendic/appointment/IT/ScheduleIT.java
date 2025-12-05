@@ -204,7 +204,7 @@ public class ScheduleIT extends BaseIntegrationTest {
     void setup() {
         consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
         patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryByName("cardiology");
+        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
