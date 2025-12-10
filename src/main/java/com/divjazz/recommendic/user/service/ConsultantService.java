@@ -406,6 +406,9 @@ public class ConsultantService {
                     .specialty(consultantProfile.specialty().name())
                     .userName(consultantProfile.userName())
                     .phoneNumber(consultantProfile.phoneNumber())
+                    .medicalLicenseNumber(consultantProfile.licenseNumber())
+                    .subSpecialties(consultantProfile.subSpecialties())
+                    .medicalCertifications(consultantProfile.certifications())
                     .profileImgUrl(Optional.ofNullable(consultantProfile.profilePicture())
                             .map(ProfilePicture::getPictureUrl).orElse(null))
                     .build();
@@ -422,7 +425,7 @@ public class ConsultantService {
             );
 
         }
-        throw new EntityNotFoundException("Could't find this customer's profile");
+        throw new EntityNotFoundException("Couldn't find this customer's profile");
     }
 
     public ConsultantProfileDetails updateConsultantProfileDetails(ConsultantProfileUpdateRequest consultantProfileUpdateRequest) {

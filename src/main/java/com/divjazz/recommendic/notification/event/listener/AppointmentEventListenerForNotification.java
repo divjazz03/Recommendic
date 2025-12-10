@@ -56,7 +56,8 @@ public class AppointmentEventListenerForNotification {
                             cancellerId,
                             eventData.appointmentId(),
                             false,
-                            NotificationCategory.APPOINTMENT
+                            NotificationCategory.APPOINTMENT,
+                            null
                     ));
                     appNotificationService.createNotification(new NotificationDTO(
                             APPOINTMENT_CANCELLED_HEADER,
@@ -64,7 +65,8 @@ public class AppointmentEventListenerForNotification {
                             otherPersonId,
                             eventData.appointmentId(),
                             false,
-                            NotificationCategory.APPOINTMENT
+                            NotificationCategory.APPOINTMENT,
+                            null
                     ));
             }
             case APPOINTMENT_REQUESTED -> {
@@ -77,7 +79,8 @@ public class AppointmentEventListenerForNotification {
                         eventData.consultantId(),
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
                 appNotificationService.createNotification(new NotificationDTO(
                         APPOINTMENT_REQUESTED_HEADER,
@@ -85,7 +88,8 @@ public class AppointmentEventListenerForNotification {
                         requesterId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
             }
             case APPOINTMENT_CONFIRMED -> {
@@ -101,7 +105,8 @@ public class AppointmentEventListenerForNotification {
                         confirmerId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
                 appNotificationService.createNotification(new NotificationDTO(
@@ -110,7 +115,8 @@ public class AppointmentEventListenerForNotification {
                         otherPersonId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
             }
             case APPOINTMENT_RESCHEDULE_REQUESTED -> {
@@ -125,7 +131,8 @@ public class AppointmentEventListenerForNotification {
                         rescheduleRequesterId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
                 appNotificationService.createNotification(new NotificationDTO(
@@ -134,7 +141,8 @@ public class AppointmentEventListenerForNotification {
                         otherPersonId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
             }
             case APPOINTMENT_RESCHEDULE_ACCEPTED -> {
@@ -149,7 +157,8 @@ public class AppointmentEventListenerForNotification {
                         rescheduleAccepterId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
                 appNotificationService.createNotification(new NotificationDTO(
@@ -158,7 +167,8 @@ public class AppointmentEventListenerForNotification {
                         otherPersonId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
             }
@@ -174,7 +184,8 @@ public class AppointmentEventListenerForNotification {
                         followUpRequesterId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
                 appNotificationService.createNotification(new NotificationDTO(
@@ -183,7 +194,8 @@ public class AppointmentEventListenerForNotification {
                         otherPersonId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
             }
             case CONSULTANT_FOLLOWUP_APPOINTMENT_CONFIRMED -> {
@@ -198,7 +210,8 @@ public class AppointmentEventListenerForNotification {
                         followUpAccepterId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
 
                 appNotificationService.createNotification(new NotificationDTO(
@@ -207,7 +220,8 @@ public class AppointmentEventListenerForNotification {
                         otherPersonId,
                         eventData.appointmentId(),
                         false,
-                        NotificationCategory.APPOINTMENT
+                        NotificationCategory.APPOINTMENT,
+                        null
                 ));
             }
 

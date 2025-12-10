@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.user.repository;
 
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
-import com.divjazz.recommendic.user.repository.projection.PatientProfileProjection;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Repository

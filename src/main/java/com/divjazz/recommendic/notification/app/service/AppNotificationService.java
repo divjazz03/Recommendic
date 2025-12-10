@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +69,21 @@ public class AppNotificationService {
         }
     }
 
+    public Set<NotificationDTO> getLatest5NotificationsForThisUser() {
+        var currentUser = authUtils.getCurrentUser();
+        return notificationRepository.findTop5ByForUserId(currentUser.userId())
+                .stream()
+                .map(appNotification -> new NotificationDTO(
+                        appNotification.getHeader(),
+                        appNotification.getSummary(),
+                        appNotification.getSubjectId(),
+                        appNotification.getForUserId(),
+                        appNotification.isSeen(),
+                        appNotification.getCategory(),
+                        appNotification.getCreatedAt()
+                )).collect(Collectors.toSet());
+    }
+
     @Transactional
     public NotificationDTO setNotificationToSeen(Long notificationId) {
         var notification = notificationRepository.findById(notificationId)
@@ -79,7 +96,8 @@ public class AppNotificationService {
                 notification.getForUserId(),
                 notification.getSubjectId(),
                 notification.isSeen(),
-                notification.getCategory()
+                notification.getCategory(),
+                notification.getCreatedAt()
         );
     }
 
@@ -91,7 +109,8 @@ public class AppNotificationService {
                         appNotification.getForUserId(),
                         appNotification.getSubjectId(),
                         appNotification.isSeen(),
-                        appNotification.getCategory())
+                        appNotification.getCategory(),
+                        appNotification.getCreatedAt())
                 ));
     }
 

@@ -31,7 +31,10 @@ public class PatientCustomRepository {
                         pf.address as address,
                         pf.profile_picture as profilePicture,
                         mc.name as medicalCategoryName,
-                        mc.description as medicalDesc
+                        mc.description as medicalDesc,
+                        pf.blood_type as bloodType,
+                        pf.medical_history as medicalHistory,
+                        pf.lifestyle_info as lifeStyleInfo
                         FROM patient p
                         LEFT JOIN patient_profiles pf on p.id = pf.id
                         LEFT JOIN patient_medical_category pmc on p.id = pmc.patient_id

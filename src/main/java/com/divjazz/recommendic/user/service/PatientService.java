@@ -7,7 +7,6 @@ import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
 import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
-import com.divjazz.recommendic.user.controller.patient.PatientController;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
 import com.divjazz.recommendic.user.dto.ConsultantMinimal;
@@ -17,16 +16,15 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
-import com.divjazz.recommendic.user.model.*;
+import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.PatientCustomRepository;
-import com.divjazz.recommendic.user.repository.PatientProfileRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.repository.projection.MedicalCategoryProjection;
-import com.divjazz.recommendic.user.repository.projection.PatientProfileProjection;
-import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -197,8 +198,7 @@ public class PatientService {
                         request.chronicConditions(),
                         request.pastSurgeries(),
                         request.familyHistory(),
-                        request.currentMedications(),
-                        request.bloodType()
+                        request.currentMedications()
                 );
                 patient.getPatientProfile().setMedicalHistory(medicalHistory);
             }
@@ -219,8 +219,10 @@ public class PatientService {
             if (Objects.nonNull(request.emergencyContact()) && !request.emergencyContact().isBlank()) {
                 patient.getPatientProfile().setEmergencyContactName(request.emergencyContact());
             }
+            if (Objects.nonNull(request.bloodType())) {
+                patient.getPatientProfile().setBloodType(request.bloodType());
+            }
             patient.setUserStage(UserStage.ACTIVE_USER);
-
         }
 
     }
@@ -240,15 +242,17 @@ public class PatientService {
         if (patientProfileProjectionOpt.isPresent()) {
             var profileProjection = patientProfileProjectionOpt.get();
             return new PatientProfileDetails(
-                    profileProjection.getUserName(),
-                    profileProjection.getEmail(),
-                    profileProjection.getPhoneNumber(),
-                    Objects.nonNull(profileProjection.getDateOfBirth()) ? profileProjection.getDateOfBirth().toString() : null,
+                    profileProjection.userName(),
+                    profileProjection.email(),
+                    profileProjection.phoneNumber(),
+                    Objects.nonNull(profileProjection.dateOfBirth()) ? profileProjection.dateOfBirth().toString() : null,
                     userDTO.gender().name().toLowerCase(),
-                    profileProjection.getAddress(),
-                    profileProjection.getMedicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet()),
-                    profileProjection.getProfilePicture().getPictureUrl()
-
+                    profileProjection.address(),
+                    profileProjection.medicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet()),
+                    profileProjection.bloodType(),
+                    Optional.ofNullable(profileProjection.medicalHistory()).map(MedicalHistory::toDTO).orElse(null),
+                    Optional.ofNullable(profileProjection.lifeStyleInfo()).map(LifeStyleInfo::toDTO).orElse(null),
+                    profileProjection.profilePicture().getPictureUrl()
             );
         }
 
@@ -299,7 +303,9 @@ public class PatientService {
                 patient.getPatientProfile().setPhoneNumber(updateRequest.phoneNumber());
             }
             if (Objects.nonNull(updateRequest.interests())) {
-                Set<MedicalCategoryEntity> medicalCategoryToAdd = medicalCategoryService.getAllByNames(updateRequest.interests());
+                Set<MedicalCategoryEntity> medicalCategoryToAdd = medicalCategoryService.getAllByIds(
+                        updateRequest.interests().stream().map(String::toLowerCase).collect(Collectors.toSet())
+                );
                 patient.setMedicalCategories(medicalCategoryToAdd);
             }
             if (Objects.nonNull(updateRequest.userName())) {
@@ -327,6 +333,9 @@ public class PatientService {
                 patient.getGender().name().toLowerCase(),
                 patient.getPatientProfile().getAddress(),
                 patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet()),
+                patient.getPatientProfile().getBloodType(),
+                Optional.ofNullable(patient.getPatientProfile().getMedicalHistory()).map(MedicalHistory::toDTO).orElse(null),
+                Optional.ofNullable(patient.getPatientProfile().getLifeStyleInfo()).map(LifeStyleInfo::toDTO).orElse(null),
                 patient.getPatientProfile().getProfilePicture().getPictureUrl()
         );
     }
@@ -347,10 +356,10 @@ public class PatientService {
         if (profileOpt.isPresent()) {
             var profile = profileOpt.get();
             return new PatientProfileResponse(
-                    profile.getUserName(),
-                    PatientProfile.getAge(profile.getDateOfBirth()),
-                    profile.getAddress(),
-                    profile.getProfilePicture()
+                    profile.userName(),
+                    PatientProfile.getAge(profile.dateOfBirth()),
+                    profile.address(),
+                    profile.profilePicture()
             );
         }
         throw new EntityNotFoundException("No profile for this user");

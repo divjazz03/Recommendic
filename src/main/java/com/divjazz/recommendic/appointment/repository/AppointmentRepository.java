@@ -5,6 +5,7 @@ import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
+import net.datafaker.providers.base.App;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,7 +27,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             WHERE a.patient.userId = :userId
             ORDER BY a.schedule.startTime DESC
             """)
-    @Transactional(readOnly = true)
     Stream<Appointment> findAppointmentsByPatient_UserId(@Param("targetId") String userId);
 
     @Query(""" 
@@ -34,7 +34,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
              WHERE a.consultant.userId = :userId
              ORDER BY a.schedule.startTime DESC
             """)
-    @Transactional(readOnly = true)
     Stream<Appointment> findAppointmentsByConsultant_UserId(String userId);
 
     @Query("""
@@ -74,6 +73,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     Set<Appointment> findAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate localDate);
 
+    int countAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate date);
+
     boolean existsByAppointmentDateAndSchedule_Id(LocalDate date, long id);
 
     Optional<Appointment> findByAppointmentId(String appointmentId);
@@ -102,6 +103,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
                         WHERE a.appointmentId = :appointmentId
             """)
     void updateAppointmentDate(String appointmentId, LocalDate newAppointmentDate);
+
+
 
 
 }

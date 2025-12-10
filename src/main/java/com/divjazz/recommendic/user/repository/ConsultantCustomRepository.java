@@ -37,6 +37,9 @@ public class ConsultantCustomRepository {
                        ce.id as educationId,
                        ce.institution as educationInstitution,
                        ce.degree as educationDegree,
+                       cf.license_number as licenseNumber,
+                       cf.sub_specialties as subSpecialties,
+                       cf.certifications as certifications,
                        mc.id as specialtyId,
                        mc.name as specialtyName,
                        mc.description as specialtyDesc

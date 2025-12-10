@@ -36,11 +36,11 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ConsultationService {
 
+    public static final Integer MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START = 15;
     private final AppointmentService appointmentService;
     private final ConsultationRepository consultationRepository;
     private final ConsultationCustomRepository consultationCustomRepository;
     private final AuthUtils authUtils;
-    public static final Integer MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START = 15;
     private final ConsultationSessionRepository consultationSessionRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -49,7 +49,7 @@ public class ConsultationService {
     public ConsultationResponse startConsultation(String appointmentId, String dateTime) {
         LocalDateTime dateTimeOfRequest;
 
-        try{
+        try {
             dateTimeOfRequest = LocalDateTime.parse(dateTime);
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException(ex.getMessage());
@@ -70,10 +70,10 @@ public class ConsultationService {
                 .isAfter(dateTimeOfRequest)) {
             throw new ConsultationStartedBeforeAppointmentException();
         }
-        Consultation consultation = new Consultation(appointment,appointment.getConsultationChannel());
+        Consultation consultation = new Consultation(appointment, appointment.getConsultationChannel());
         consultation = consultationRepository.save(consultation);
         ConsultationSession consultationSession = new ConsultationSession(appointment.getPatient(), appointment.getConsultant(), consultation);
-        var session = consultationSessionRepository.save(consultationSession);
+        consultationSessionRepository.save(consultationSession);
         return ConsultationMapper.consultationToConsultationResponse(consultation);
     }
 
@@ -104,7 +104,7 @@ public class ConsultationService {
                     completeRequest.reason()
             );
             applicationEventPublisher.publishEvent(event);
-        }else {
+        } else {
             var event = new ConsultationEndedWithoutFollowUpData(
                     consultation.getConsultationId(),
                     consultation.getAppointment().getPatient().getUserId(),
@@ -119,17 +119,26 @@ public class ConsultationService {
     public Stream<ConsultationProjection> retrieveConsultationDetailByPatientId(String patientId) {
         return consultationRepository.findConsultationByPatientId(patientId).stream();
     }
+
     @Transactional(readOnly = true)
     public Stream<ConsultationProjection> retrieveConsultationDetailByConsultantId(String consultantId) {
         return consultationRepository.findConsultationByConsultantId(consultantId).stream();
     }
+
     public Consultation getConsultationById(String consultationId) {
         return consultationRepository.findByConsultationId(consultationId)
                 .orElseThrow(
                         () -> new EntityNotFoundException("Consultation with id: %s not found".formatted(consultationId))
                 );
     }
+
     public Set<ReviewDTO> retrieveReviewsByConsultantId(String consultantId) {
         return consultationRepository.findReviewsForConsultant(consultantId);
+    }
+
+    public long countOfCompletedConsultationsFromAppointmentIds(Set<String> appointmentIds) {
+        if (appointmentIds.isEmpty()) return 0;
+
+        return consultationRepository.countAllConsultationByAppointment_IdsAndStatus(appointmentIds, ConsultationStatus.COMPLETED);
     }
 }

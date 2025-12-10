@@ -1,9 +1,8 @@
 package com.divjazz.recommendic.user.transformer;
 
+import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.enums.Gender;
-import com.divjazz.recommendic.user.model.userAttributes.Address;
-import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
-import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.repository.projection.MedicalCategoryProjection;
 import com.divjazz.recommendic.user.repository.projection.PatientProfileProjection;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +29,9 @@ public class PatientProfileProjectionTransformer {
         LocalDate dateOfBirth = null;
         Gender gender = null;
         Address address = null;
+        BloodType bloodType = null;
+        MedicalHistory medicalHistory = null;
+        LifeStyleInfo lifeStyleInfo = null;
         Set<MedicalCategoryProjection> medicalCategoryProjections = new HashSet<>();
         ProfilePicture profilePicture = null;
 
@@ -66,6 +68,21 @@ public class PatientProfileProjectionTransformer {
                             medicalCategoryDesc
                     ));
                 }
+
+                var bloodTypeString = rs.getString("bloodType");
+                if (Objects.nonNull(bloodTypeString)) {
+                    bloodType = BloodType.fromValue(bloodTypeString);
+                }
+
+                var lifeStyleInfoString = rs.getString("lifeStyleInfo");
+                if (Objects.nonNull(lifeStyleInfoString)) {
+                    lifeStyleInfo = objectMapper.readValue(lifeStyleInfoString, LifeStyleInfo.class);
+                }
+
+                var medicalHistoryString = rs.getString("medicalHistory");
+                if (Objects.nonNull(medicalHistoryString)) {
+                    medicalHistory = objectMapper.readValue(medicalHistoryString, MedicalHistory.class);
+                }
             } else {
                 var medicalCategoryName = rs.getString("medicalCategoryName");
                 var medicalCategoryDesc = rs.getString("medicalDesc");
@@ -78,55 +95,30 @@ public class PatientProfileProjectionTransformer {
             }
         }
 
-        UserName finalUserName = userName;
-        String finalEmail = email;
-        String finalPhoneNumber = phoneNumber;
-        LocalDate finalDateOfBirth = dateOfBirth;
-        Gender finalGender = gender;
-        Address finalAddress = address;
-        ProfilePicture finalProfilePicture = profilePicture;
+        final UserName finalUserName = userName;
+        final String finalEmail = email;
+        final String finalPhoneNumber = phoneNumber;
+        final LocalDate finalDateOfBirth = dateOfBirth;
+        final Gender finalGender = gender;
+        final Address finalAddress = address;
+        final ProfilePicture finalProfilePicture = profilePicture;
+        final MedicalHistory finalMedicalHistory = medicalHistory;
+        final BloodType finalBloodType = bloodType;
+        final LifeStyleInfo finalLifeStyleInfo = lifeStyleInfo;
+        final Set<MedicalCategoryProjection> finalMedicalCategories = Set.copyOf(medicalCategoryProjections);
 
-        return Optional.of(
-                new PatientProfileProjection() {
-                    @Override
-                    public UserName getUserName() {
-                        return finalUserName;
-                    }
-
-                    @Override
-                    public String getEmail() {
-                        return finalEmail;
-                    }
-
-                    @Override
-                    public String getPhoneNumber() {
-                        return finalPhoneNumber;
-                    }
-
-                    @Override
-                    public LocalDate getDateOfBirth() {
-                        return finalDateOfBirth;
-                    }
-
-                    @Override
-                    public Gender getGender() {
-                        return finalGender;
-                    }
-
-                    @Override
-                    public Address getAddress() {
-                        return finalAddress;
-                    }
-
-                    @Override
-                    public Set<MedicalCategoryProjection> getMedicalCategories() {
-                        return medicalCategoryProjections;
-                    }
-
-                    @Override
-                    public ProfilePicture getProfilePicture() {
-                        return finalProfilePicture;
-                    }
-                });
+        return Optional.of(new PatientProfileProjection(
+                finalUserName,
+                finalEmail,
+                finalDateOfBirth,
+                finalGender,
+                finalAddress,
+                finalPhoneNumber,
+                finalMedicalCategories,
+                finalProfilePicture,
+                finalBloodType,
+                finalLifeStyleInfo,
+                finalMedicalHistory
+        ));
     }
 }

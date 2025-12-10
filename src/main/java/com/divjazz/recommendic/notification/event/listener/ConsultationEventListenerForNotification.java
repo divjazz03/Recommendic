@@ -33,7 +33,8 @@ public class ConsultationEventListenerForNotification {
                                 data.consultantId(),
                                 data.consultationId(),
                                 false,
-                                NotificationCategory.CONSULTATION
+                                NotificationCategory.CONSULTATION,
+                                null
 
                         )
                 );
@@ -44,7 +45,8 @@ public class ConsultationEventListenerForNotification {
                                 data.patientId(),
                                 data.consultationId(),
                                 false,
-                                NotificationCategory.CONSULTATION
+                                NotificationCategory.CONSULTATION,
+                                null
 
                         )
                 );
@@ -59,7 +61,8 @@ public class ConsultationEventListenerForNotification {
                                 data.consultantId(),
                                 data.consultationId(),
                                 false,
-                                NotificationCategory.CONSULTATION
+                                NotificationCategory.CONSULTATION,
+                                null
 
                         )
                 );
@@ -70,7 +73,8 @@ public class ConsultationEventListenerForNotification {
                                 data.patientId(),
                                 data.consultationId(),
                                 false,
-                                NotificationCategory.CONSULTATION
+                                NotificationCategory.CONSULTATION,
+                                null
 
                         )
                 );

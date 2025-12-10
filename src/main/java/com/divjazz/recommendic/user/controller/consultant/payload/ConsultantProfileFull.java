@@ -17,6 +17,9 @@ public record ConsultantProfileFull(
         String experience,
         String[] languages,
         String bio,
+        String[] subSpecialties,
+        String medicalLicenseNumber,
+        String medicalCertifications,
         String profileImgUrl
 ) {
 }

@@ -4,10 +4,12 @@ import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.user.dto.ConsultantEducationDTO;
 import com.divjazz.recommendic.user.dto.ConsultantStatDTO;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
 import java.util.Set;
 @Builder
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record PatientFullConsultantView(
         String id,
         String name,

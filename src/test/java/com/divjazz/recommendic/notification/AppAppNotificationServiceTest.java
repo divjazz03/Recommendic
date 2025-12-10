@@ -40,7 +40,8 @@ public class AppAppNotificationServiceTest {
                 UUID.randomUUID().toString(),
                 "0L",
                 false,
-                NotificationCategory.CONSULTATION
+                NotificationCategory.CONSULTATION,
+                null
         );
         var result = appNotificationService.createNotification(notificationDTO);
         assertThat(result.header()).isEqualTo(notificationDTO.header());

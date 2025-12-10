@@ -101,10 +101,10 @@ public class GeneralUserService {
                     patientProfileProjectionOpt.ifPresent(
                             profile -> response.put("profile",
                                     new PatientProfileResponse(
-                                            profile.getUserName(),
-                                            profile.getPhoneNumber(),
-                                            profile.getAddress(),
-                                            profile.getProfilePicture()
+                                            profile.userName(),
+                                            profile.phoneNumber(),
+                                            profile.address(),
+                                            profile.profilePicture()
                                     ))
                     );
                 }

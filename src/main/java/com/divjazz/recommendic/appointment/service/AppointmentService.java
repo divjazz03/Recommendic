@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -186,6 +187,8 @@ public class AppointmentService {
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
+
+
     @Transactional
     public void cancelAppointment(AppointmentCancellationRequest cancellationRequest) {
         var currentUser = authUtils.getCurrentUser();
@@ -208,6 +211,7 @@ public class AppointmentService {
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 
+    @Transactional
     public void rescheduleRequest(AppointmentRescheduleRequest rescheduleRequest) {
         var currentUser = authUtils.getCurrentUser();
         var appointmentProjection = getAppointmentProjection(rescheduleRequest.appointmentId());
@@ -226,8 +230,17 @@ public class AppointmentService {
     }
 
 
+
     public Stream<Appointment> getAppointmentsByPatientId(String patientId) {
         return appointmentRepository.findAppointmentsByPatient_UserId(patientId);
+    }
+
+    public Set<Appointment> getTodayAppointmentByConsultantId(String consultantId) {
+        return appointmentRepository.findAllByConsultant_UserIdAndAppointmentDate(consultantId, LocalDate.now());
+    }
+
+    public int getCountAppointmentByConsultantIdAndDate(String consultantId, LocalDate date) {
+        return appointmentRepository.countAllByConsultant_UserIdAndAppointmentDate(consultantId, LocalDate.now());
     }
 
 

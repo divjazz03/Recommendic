@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.consultation.repository;
 
+import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -16,84 +18,98 @@ import java.util.stream.Stream;
 @Repository
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     Optional<Consultation> findByAppointmentId(Long id);
+
     Optional<Consultation> findByConsultationId(String id);
+
     boolean existsByAppointment_AppointmentId(String id);
 
 
     @Query(value = """ 
-    SELECT c FROM Consultation c
-    WHERE c.appointment.consultant.userId = :consultantId
-    """)
+            SELECT c FROM Consultation c
+            WHERE c.appointment.consultant.userId = :consultantId
+            """)
     Page<Consultation> findAllByAppointment_Consultant_UserId(@Param("consultantId") String consultantId, Pageable pageable);
 
     @Query(value = """ 
-    SELECT c from Consultation c
-    WHERE c.appointment.patient.userId = :userId or c.appointment.consultant.userId = :userId
-    """)
+            SELECT c from Consultation c
+            WHERE c.appointment.patient.userId = :userId or c.appointment.consultant.userId = :userId
+            """)
     Set<Consultation> getAllConsultationsByAppointment_Patient_UserIdOrAppointment_Consultant_UserId(
             @Param("targetId") String userId);
 
     @Query(value = """
-     select c from Consultation c
-     WHERE c.appointment.patient.userId = :patientId
-     ORDER BY c.appointment.createdAt
-     """
+            select c from Consultation c
+            WHERE c.appointment.patient.userId = :patientId
+            ORDER BY c.appointment.createdAt
+            """
     )
     Page<Consultation> findConsultationsByPatientIdOrderByAppointmentCreatedAt(@Param("patientId") String patientId, Pageable pageable);
+
     @Query(value = """
-    select c from Consultation c
-    WHERE c.appointment.patient.userId = :patientId
-    """)
+            select c from Consultation c
+            WHERE c.appointment.patient.userId = :patientId
+            """)
     Stream<Consultation> findConsultationsByPatientUserId(@Param("patientId") String patientId);
+
     @Query(value = """ 
-    select c from Consultation c
-    WHERE c.appointment.consultant.userId = :consultantId
-    """)
+            select c from Consultation c
+            WHERE c.appointment.consultant.userId = :consultantId
+            """)
     Stream<Consultation> findConsultationsByConsultantUserId(@Param("consultantId") String consultantId);
 
     @Query(
             value = """
-    SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
-        c.consultationId,
-        c.appointment,
-        c.appointment.patient.patientProfile,
-        c.appointment.consultant.profile,
-        c.summary,
-        c.consultationStatus,
-        c.channel,
-        c.endedAt,
-        c.startedAt
-    ) FROM Consultation c
-    WHERE c.appointment.consultant.userId = :consultantId
-"""
+                        SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
+                            c.consultationId,
+                            c.appointment,
+                            c.appointment.patient.patientProfile,
+                            c.appointment.consultant.profile,
+                            c.summary,
+                            c.consultationStatus,
+                            c.channel,
+                            c.endedAt,
+                            c.startedAt
+                        ) FROM Consultation c
+                        WHERE c.appointment.consultant.userId = :consultantId
+                    """
     )
-    Set<ConsultationProjection> findConsultationByConsultantId(String consultantId);@Query(
+    Set<ConsultationProjection> findConsultationByConsultantId(String consultantId);
+
+    @Query(
             value = """
-    SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
-        c.consultationId,
-        c.appointment,
-        c.appointment.patient.patientProfile,
-        c.appointment.consultant.profile,
-        c.summary,
-        c.consultationStatus,
-        c.channel,
-        c.endedAt,
-        c.startedAt
-    ) FROM Consultation c
-    WHERE c.appointment.consultant.userId = :patientId
-"""
+                        SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
+                            c.consultationId,
+                            c.appointment,
+                            c.appointment.patient.patientProfile,
+                            c.appointment.consultant.profile,
+                            c.summary,
+                            c.consultationStatus,
+                            c.channel,
+                            c.endedAt,
+                            c.startedAt
+                        ) FROM Consultation c
+                        WHERE c.appointment.consultant.userId = :patientId
+                    """
     )
     Set<ConsultationProjection> findConsultationByPatientId(String patientId);
 
     @Query(value = """
-        SELECT new com.divjazz.recommendic.user.dto.ReviewDTO(
-                c.review.name,
-                c.review.rating,
-                c.review.comment,
-                c.review.date
-                )
-                        FROM Consultation c
-                                WHERE c.appointment.consultant.userId = :consultantId
-        """)
+            SELECT new com.divjazz.recommendic.user.dto.ReviewDTO(
+                    c.review.name,
+                    c.review.rating,
+                    c.review.comment,
+                    c.review.date
+                    )
+                            FROM Consultation c
+                                    WHERE c.appointment.consultant.userId = :consultantId
+            """)
     Set<ReviewDTO> findReviewsForConsultant(String consultantId);
+
+    @Query("""
+            SELECT count(*)
+                FROM Consultation c
+                WHERE c.appointment.appointmentId in :appointmentIds
+                AND c.consultationStatus= :status
+            """)
+    Long countAllConsultationByAppointment_IdsAndStatus(Set<String> appointmentIds, ConsultationStatus status);
 }

@@ -21,5 +21,8 @@ public record ConsultantProfileProjection (
     String[] languages,
     String bio,
     Set<ConsultantEducationProjection> educations,
-    ProfilePicture profilePicture
+    ProfilePicture profilePicture,
+    String[] subSpecialties,
+    String licenseNumber,
+    String certifications
 ){}

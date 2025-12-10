@@ -52,6 +52,10 @@ public class PatientProfile{
     @Column(name = "username", nullable = false, columnDefinition = "jsonb")
     private UserName userName;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "blood_type")
+    private BloodType bloodType;
+
     @Column
     private String phoneNumber;
     @Column(name = "emergency_contact_name")

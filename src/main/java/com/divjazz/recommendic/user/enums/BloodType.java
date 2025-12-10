@@ -23,8 +23,12 @@ public enum BloodType {
         if (Objects.isNull(value)) {
             throw new IllegalArgumentException("Blood type Value cannot be null");
         }
+
         for (BloodType bloodType: BloodType.values()) {
             if (bloodType.value.equalsIgnoreCase(value)) {
+                return bloodType;
+            }
+            if (bloodType.name().equalsIgnoreCase(value)) {
                 return bloodType;
             }
         }
