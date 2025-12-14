@@ -8,6 +8,7 @@ import com.divjazz.recommendic.security.filter.TestAuthFilter;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -19,12 +20,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -110,10 +115,30 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    CustomAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService,
+    @Profile({"prod"})
+    @Primary
+    AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
                                                            PasswordEncoder passwordEncoder,
                                                            GeneralUserService generalUserService){
-        return new CustomAuthenticationProvider(passwordEncoder, userDetailsService, generalUserService);
+        return new CustomAuthenticationProvider(generalUserService,passwordEncoder,userDetailsService);
+    }
+
+    @Bean
+    @Profile({"dev"})
+    AuthenticationProvider devAuthenticationProvider(UserDetailsService userDetailsService) {
+        return new AuthenticationProvider() {
+            @Override
+            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                var userDetails = userDetailsService.loadUserByUsername(authentication.getName());
+                return UsernamePasswordAuthenticationToken.authenticated(userDetails, "", userDetails.getAuthorities());
+
+            }
+
+            @Override
+            public boolean supports(Class<?> authentication) {
+                return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+            }
+        };
     }
 
     @Bean
@@ -135,8 +160,10 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationProvider provider) {
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(HttpSecurity http, AuthenticationProvider provider) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(provider)
+                .build();
     }
     @Bean
     UserDetailsService userDetailsService (){

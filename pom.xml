@@ -18,7 +18,7 @@
         <maven.compiler.version>3.13.0</maven.compiler.version>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.source>21</maven.compiler.source>
-        <flyway.version>11.7.2</flyway.version>
+        <flyway.version>11.18.0</flyway.version>
     </properties>
 
     <dependencies>
@@ -233,6 +233,22 @@
                 <configuration>
                     <outputFileName>openapi.json</outputFileName>
                     <outputDir>${project.build.directory}</outputDir>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <user>${env.DB_USER}</user>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <password>${env.DB_PASSWORD}</password>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <url>${env.DB_URL}</url>
+                    <schemas>public</schemas>
+                    <locations>classpath:db/migrations</locations>
+                    <baselineOnMigrate>true</baselineOnMigrate>
                 </configuration>
             </plugin>
         </plugins>

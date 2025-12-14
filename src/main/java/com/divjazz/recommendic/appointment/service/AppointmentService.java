@@ -235,6 +235,10 @@ public class AppointmentService {
         return appointmentRepository.findAppointmentsByPatient_UserId(patientId);
     }
 
+    public Set<Appointment> getTodayAppointmentByPatientId(String patientId) {
+        return appointmentRepository.findAllByPatient_UserIdAndAppointmentDate(patientId, LocalDate.now());
+    }
+
     public Set<Appointment> getTodayAppointmentByConsultantId(String consultantId) {
         return appointmentRepository.findAllByConsultant_UserIdAndAppointmentDate(consultantId, LocalDate.now());
     }
@@ -258,6 +262,5 @@ public class AppointmentService {
                 .map(appointment -> appointment.getStartDateAndTime().format(DateTimeFormatter.ISO_DATE_TIME))
                 .toList();
     }
-
 
 }

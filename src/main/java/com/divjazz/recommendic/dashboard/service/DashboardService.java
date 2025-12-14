@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.dashboard.service;
 
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
@@ -31,14 +32,34 @@ public class DashboardService {
         var currentUser = authUtils.getCurrentUser();
 
         return switch (currentUser.userType()) {
-            case PATIENT -> getPatientDashboardInfo();
+            case PATIENT -> getPatientDashboardInfo(currentUser.userId());
             case ADMIN -> null;
             case CONSULTANT -> getConsultantDashboardInfo(currentUser.userId());
         };
     }
 
-    public PatientDashboardResponse getPatientDashboardInfo() {
-        return new PatientDashboardResponse();
+    public PatientDashboardResponse getPatientDashboardInfo(String patientId) {
+
+        var todayAppointments = appointmentService.getTodayAppointmentByPatientId(patientId);
+
+        Set<PatientDashboardResponse.DashboardAppointment> appointments = todayAppointments
+                .stream()
+                .map(appointment -> new PatientDashboardResponse.DashboardAppointment(
+                        appointment.getAppointmentId(),
+                        appointment.getConsultant().getProfile().getUserName().getFullName(),
+                        appointment.getConsultant().getSpecialization().getName(),
+                        appointment.getStartDateAndTime().toString(),
+                        appointment.getConsultationChannel()
+                ))
+                .collect(Collectors.toSet());
+        Set<PatientDashboardResponse.RecentActivity> recentActivities = appNotificationService.getLatest5NotificationsForThisUser()
+                .stream().map(notificationDTO -> new PatientDashboardResponse.RecentActivity(
+                        notificationDTO.header(),
+                        notificationDTO.timeStamp().toString(),
+                        notificationDTO.category()
+                )).collect(Collectors.toSet());
+        Set<PatientDashboardResponse.Medication> medications = Set.of();
+        return new PatientDashboardResponse(appointments,recentActivities,medications);
     }
 
     public ConsultantDashboardResponse getConsultantDashboardInfo(String consultantId) {
@@ -57,14 +78,21 @@ public class DashboardService {
                         notificationDTO.timeStamp().toString(),
                         "%s: %s".formatted(notificationDTO.header(), notificationDTO.summary())
                 )).collect(Collectors.toSet());
+        Set<ConsultantDashboardResponse.DashboardAppointment> appointments = todayAppointments.stream()
+                .map(appointment -> new ConsultantDashboardResponse.DashboardAppointment(
+                        appointment.getAppointmentId(),
+                        appointment.getPatient().getPatientProfile().getUserName().getFullName(),
+                        appointment.getStartDateAndTime().toString(),
+                        appointment.getPatient().getPatientProfile().getAge(),
+                        appointment.getConsultationChannel(),
+                        appointment.getHistory().equals(AppointmentHistory.FOLLOW_UP)
+                ))
+                .collect(Collectors.toSet());
 
         return new ConsultantDashboardResponse(
-                todayAppointments.size(),
-                countOfYesterdayAppointment,
-                todayAppointments.size() > countOfYesterdayAppointment,
+               todayAppointments.size() - countOfYesterdayAppointment,
                 countOfCompletedAppointment,
-                todayAppointments.size() - countOfCompletedAppointment,
-                0,0,0,0, Set.of(),recentUpdates
+                0,0,0,0,appointments,recentUpdates
         );
     }
 }

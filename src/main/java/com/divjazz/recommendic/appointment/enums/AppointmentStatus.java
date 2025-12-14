@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Objects;
 
 public enum AppointmentStatus {
-    PENDING("pending"), CONFIRMED("confirmed"), CANCELLED("cancelled"), RESCHEDULED("rescheduled");
+    PENDING("pending"), CONFIRMED("confirmed"), COMPLETED("completed"), CANCELLED("cancelled"), RESCHEDULED("rescheduled");
 
     @JsonValue
     private final String value;

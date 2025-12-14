@@ -72,6 +72,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     Set<Appointment> findAllByConsultant_UserIdAndAppointmentDateBetween(String consultantId, LocalDate startDate, LocalDate endDate);
 
     Set<Appointment> findAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate localDate);
+    Set<Appointment> findAllByPatient_UserIdAndAppointmentDate(String patientId, LocalDate localDate);
 
     int countAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate date);
 

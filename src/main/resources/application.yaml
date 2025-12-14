@@ -97,11 +97,14 @@ management:
     metrics:
       export:
         enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: startup
 cors:
   frontend:
     domain: 'http://localhost:5173'
-auth:
-  maxAttempts: 5
+
 
 springdoc:
   api-docs:
@@ -109,14 +112,16 @@ springdoc:
     enabled: true
 app:
   cloudinary:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME}
-    api_key: ${CLOUDINARY_API_KEY}
-    api_secret: ${CLOUDINARY_API_SECRET}
+    cloudName: ${CLOUDINARY_CLOUD_NAME}
+    apiKey: ${CLOUDINARY_API_KEY}
+    apiSecret: ${CLOUDINARY_API_SECRET}
+  auth:
+    maxAttempts: 5
 
 
 logging:
   level:
-    org.flywaydb: warn
+    org.flywaydb: info
     io.zonky.test: warn
     org.springframework.security: warn
     org.springframework.security.web.context.HttpSessionSecurityContextRepository: error

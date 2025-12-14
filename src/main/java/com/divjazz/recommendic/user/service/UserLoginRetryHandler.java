@@ -1,8 +1,8 @@
 package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.cache.service.CacheService;
+import com.divjazz.recommendic.global.config.ApplicationConfigProp;
 import com.divjazz.recommendic.security.exception.LoginFailedException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Component;
 
@@ -12,19 +12,19 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class UserLoginRetryHandler {
 
-    @Value("${auth.maxAttempts}")
-    private int MAX_ATTEMPTS;
 
     private final CacheService<Object, Object> cacheService;
+    private final Integer max_attempts;
 
-    public UserLoginRetryHandler(CacheService<Object, Object> cacheService) {
+    public UserLoginRetryHandler(CacheService<Object, Object> cacheService, ApplicationConfigProp configProp) {
         this.cacheService = cacheService;
+        this.max_attempts = configProp.auth().maxAttempts();
     }
 
     public void handleFailedAttempts(String email) {
         var failedAttempts = incrementFailedAttempt(email);
-        var remainingAttempts = MAX_ATTEMPTS - Math.min(MAX_ATTEMPTS, failedAttempts);
-        if (failedAttempts >= MAX_ATTEMPTS) {
+        var remainingAttempts = max_attempts - Math.min(max_attempts, failedAttempts);
+        if (failedAttempts >= max_attempts) {
             lockAccount(email);
             throw new LockedException(
                     "Your account has been locked due to too many failed attempts. Please try again in %d minutes".formatted(getRemainingLockTime(email)));

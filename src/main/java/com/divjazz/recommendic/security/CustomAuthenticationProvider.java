@@ -1,46 +1,46 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.service.GeneralUserService;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+@Slf4j
+public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
 
     private final GeneralUserService generalUserService;
+    private final PasswordEncoder passwordEncoder;
+    private final UserDetailsService userDetailsService;
 
-    public CustomAuthenticationProvider(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService, GeneralUserService userService) {
-        super(passwordEncoder);
-        super.setUserDetailsService(userDetailsService);
-        this.generalUserService = userService;
+    public CustomAuthenticationProvider(GeneralUserService generalUserService, PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
+        this.generalUserService = generalUserService;
+        this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication){
         var userCredentials = generalUserService.retrieveUserCredentials((String) authentication.getPrincipal());
-        if (userCredentials.isExpired()) {
-            throw new CredentialsExpiredException("Credentials are expired, please reset your password");
-        }
-        try {
-            return super.authenticate(authentication);
-        } catch (AuthenticationException authenticationException) {
-            if (authenticationException instanceof BadCredentialsException ex) {
-                logger.error(ex.getMessage());
-                throw new com.divjazz.recommendic.security.exception.AuthenticationException("Login Failed: %s".formatted(ex.getMessage()));
+        var userDetails = userDetailsService.loadUserByUsername(authentication.getName());
+            if (!passwordEncoder.matches((String)authentication.getCredentials(), userCredentials.getPassword() )) {
+                throw new BadCredentialsException("Invalid Credentials");
             }
-            if (authenticationException instanceof DisabledException ex) {
-                logger.error(ex.getMessage());
-                throw ex;
+            if (userCredentials.isExpired()) {
+                throw new CredentialsExpiredException("Credentials are expired, please reset your password");
             }
-            throw authenticationException;
-        }
+            if (!userDetails.isAccountNonExpired()) {
+                throw new AccountExpiredException("Your account has expired");
+            }
+            if (!userDetails.isAccountNonLocked()) {
+                throw new LockedException("Your account is currently locked");
+            }
+
+            return UsernamePasswordAuthenticationToken.authenticated(userDetails, "",userDetails.getAuthorities() );
     }
 
     @Override

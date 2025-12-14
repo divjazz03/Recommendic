@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +39,7 @@ public class AuthService {
     private final GeneralUserService generalUserService;
 
     private final UserLoginRetryHandler userLoginRetryHandler;
-    private final CustomAuthenticationProvider customAuthenticationProvider;
+    private final AuthenticationManager authenticationManager;
     private final UserConfirmationRepository userConfirmationRepository;
     private final SecurityService securityService;
 
@@ -51,7 +52,7 @@ public class AuthService {
         UsernamePasswordAuthenticationToken unAuthenticated = UsernamePasswordAuthenticationToken
                 .unauthenticated(loginRequest.email(), loginRequest.password());
         try {
-            Authentication authenticated = customAuthenticationProvider.authenticate(unAuthenticated);
+            Authentication authenticated = authenticationManager.authenticate(unAuthenticated);
             var authenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());
             generalUserService.updateLoginAttempt(authenticatedUser, LoginType.LOGIN_SUCCESS);
 
