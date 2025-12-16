@@ -172,6 +172,10 @@ public class PatientService {
         if (patient.getUserStage() == UserStage.ONBOARDING) {
             if (Objects.nonNull(request.specializations()) && !request.specializations().isEmpty()) {
                 Set<MedicalCategoryEntity> medicalCategoryEntities = medicalCategoryService.getAllByIds(request.specializations());
+                if (medicalCategoryEntities.isEmpty()) {
+                    var medicalCategoriesString = String.join(", ", request.specializations());
+                    throw new IllegalArgumentException("Invalid medical categories, [%s]".formatted(medicalCategoriesString));
+                }
                 patient.setMedicalCategories(medicalCategoryEntities);
             }
             if ((Objects.nonNull(request.alcoholConsumption()) && !request.alcoholConsumption().isBlank())

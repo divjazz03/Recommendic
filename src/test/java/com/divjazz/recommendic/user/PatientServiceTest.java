@@ -21,6 +21,7 @@ import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.user.service.RoleService;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -94,7 +95,7 @@ public class PatientServiceTest {
         );
         patient.getUserPrincipal().setEnabled(true);
         patient.addMedicalCategory(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc",""));
-        patient.setUserStage(UserStage.ACTIVE_USER);
+        patient.setUserStage(UserStage.ONBOARDING);
         patient.setUserId("User Id");
 
         PatientProfile patientProfile = PatientProfile.builder()
@@ -103,6 +104,8 @@ public class PatientServiceTest {
                 .userName(new UserName(faker.name().firstName(), faker.name().lastName()))
                 .patient(patient)
                 .build();
+
+        patient.setPatientProfile(patientProfile);
     }
 
     static Stream<Arguments> getValidPatientDTOParameters() {
@@ -134,42 +137,33 @@ public class PatientServiceTest {
 
     static Stream<Arguments> getValidMedicalCategories() {
         return Stream.of(
-                Arguments.of(
-                        Set.of("pediatrician", "cardiology", "oncology")
-                ),
-                Arguments.of(
-                        Set.of("orthopedic surgery", "neurosurgery")
-                )
-        );
-    }
-    static Stream<Arguments> getInValidMedicalCategories() {
-        return Stream.of(
-                Arguments.of(
-                        Set.of("pediaician", "cardology", "onclogy")
-                ),
-                Arguments.of(
-                        Set.of("orthopedic ", "neusurgery")
+                Arguments.argumentSet("Valid Medical Categories",
+                        Set.of(new MedicalCategoryEntity(1,"Pediatrician", "pediatrician","Some desc","icon" )),
+                        Set.of(new MedicalCategoryEntity(1,"Cardiology", "cardiology","Some desc","icon" )),
+                        Set.of(new MedicalCategoryEntity(1,"Oncology", "oncology","Some desc","icon" ))
                 )
         );
     }
 
+
     @ParameterizedTest
     @MethodSource("getValidMedicalCategories")
-    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(Set<String> medicalCategories) {
+    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(Set<MedicalCategoryEntity> medicalCategories) {
+
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(patient));
-        given(medicalCategoryService.getAllByNames(anySet())).willReturn(Set.of(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc","")));
+        given(medicalCategoryService.getAllByIds(anySet())).willReturn(medicalCategories);
         patientService.handleOnboarding(patient.getUserId(), mockRequest);
     }
-    @ParameterizedTest
-    @MethodSource("getInValidMedicalCategories")
-    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(Set<String> invalidMedicalCategories) {
-        given(medicalCategoryService.getAllByNames(anySet())).willThrow(new IllegalArgumentException());
+
+   @Test
+    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories() {
+       given(patientRepository.findByUserId(anyString())).willReturn(Optional.of(patient));
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), mockRequest));
     }
-    @ParameterizedTest
-    @MethodSource("getValidMedicalCategories")
-    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(Set<String> medicalCategories) {
+
+    @Test
+    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound() {
         given(patientRepository.findByUserId(anyString())).willReturn(Optional.empty());
         assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> patientService.handleOnboarding(patient.getUserId(), mockRequest));
     }

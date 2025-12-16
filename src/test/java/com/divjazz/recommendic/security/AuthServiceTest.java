@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,7 +54,7 @@ public class AuthServiceTest {
     @Mock
     private UserLoginRetryHandler userLoginRetryHandler;
     @Mock
-    private CustomAuthenticationProvider customAuthenticationProvider;
+    private AuthenticationManager authenticationManager;
     @Mock
     private UserConfirmationRepository userConfirmationRepository;
     @InjectMocks
@@ -129,7 +130,7 @@ public class AuthServiceTest {
         };
         given(userLoginRetryHandler.isAccountLocked(anyString())).willReturn(false);
         given(generalUserService.retrieveUserByEmail(anyString())).willReturn(user);
-        given(customAuthenticationProvider.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid Credentials"));
+        given(authenticationManager.authenticate(any(Authentication.class))).willThrow(new BadCredentialsException("Invalid Credentials"));
 
         assertThatExceptionOfType(BadCredentialsException.class).isThrownBy(() -> authService.handleUserLogin(loginRequest, httpServletRequest));
         then(generalUserService).should(times(1)).updateLoginAttempt(any(UserProjection.class), eq(LoginType.LOGIN_FAILED));
@@ -224,7 +225,7 @@ public class AuthServiceTest {
                 };
             }
         });
-        given(customAuthenticationProvider.authenticate(any(Authentication.class)))
+        given(authenticationManager.authenticate(any(Authentication.class)))
                 .willReturn(UsernamePasswordAuthenticationToken
                         .authenticated(user, "[protected]",
                                 List.of(new SimpleGrantedAuthority(user.getUserPrincipal().getRole().getPermissions()))));

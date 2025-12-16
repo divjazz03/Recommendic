@@ -5,6 +5,8 @@ import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantOnboardingRequest;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantRegistrationParams;
+import com.divjazz.recommendic.user.dto.CertificationDTO;
+import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -15,6 +17,8 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
+import com.divjazz.recommendic.user.repository.certificationRepo.CertificationRepository;
+import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
@@ -48,13 +52,9 @@ import static org.mockito.Mockito.lenient;
 public class ConsultantServiceTest {
     private static final Faker faker = new Faker();
     @Mock
-    private  UserConfirmationRepository userConfirmationRepository;
-    @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
     private  GeneralUserService userService;
-    @Mock
-    private  ApplicationEventPublisher applicationEventPublisher;
     @Mock
     private  ConsultantRepository consultantRepository;
     @InjectMocks
@@ -63,11 +63,19 @@ public class ConsultantServiceTest {
     @Mock
     private RoleService roleService;
     @Mock
+    private MedicalCategoryService medicalCategoryService;
+    @Mock
+    private UserConfirmationRepository userConfirmationRepository;
+    @Mock
+    private ConsultantEducationRepository consultantEducationRepository;
+    @Mock
+    private CertificationRepository certificationRepository;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+    @Mock
     private AppNotificationService appNotificationService;
     @Mock
     private SecurityService securityService;
-    @Mock
-    private MedicalCategoryService medicalCategoryService;
     @BeforeEach
     void setup() {
         consultant = new Consultant(
@@ -92,7 +100,7 @@ public class ConsultantServiceTest {
 
     private static Stream<Arguments> getValidConsultantDTOParameters() {
         return Stream.of(
-                Arguments.of(
+                Arguments.argumentSet("consultant requests",
                         new ConsultantRegistrationParams(
                                 faker.name().firstName(),
                                 faker.name().lastName(),
@@ -143,46 +151,52 @@ public class ConsultantServiceTest {
 
     private static Stream<Arguments> getValidMedicalSpecialty() {
         return Stream.of(
-                Arguments.of(
-                        "pediatrician"
-                ),
-                Arguments.of(
-                        "orthopedic surgery"
-                )
-        );
-    }
-    private static Stream<Arguments> getInValidMedicalSpecialty() {
-        return Stream.of(
-                Arguments.of(
-                        "cardology"
-                ),
-                Arguments.of(
-                       "neusurgery"
+                Arguments.argumentSet("Valid Medical Categories",
+                        Set.of(new MedicalCategoryEntity(1,"Pediatrician", "pediatrician","Some desc","icon" )),
+                        Set.of(new MedicalCategoryEntity(1,"Cardiology", "cardiology","Some desc","icon" )),
+                        Set.of(new MedicalCategoryEntity(1,"Oncology", "oncology","Some desc","icon" ))
                 )
         );
     }
 
-    private final ConsultantOnboardingRequest onboardingRequest = ConsultantOnboardingRequest.builder().build();
 
-    @ParameterizedTest
-    @MethodSource("getValidMedicalSpecialty")
-    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue(String medicalSpecialization) {
+    private final ConsultantOnboardingRequest onboardingRequest = ConsultantOnboardingRequest.builder()
+            .specialization("oncology")
+            .yearsOfExperience(6)
+            .availableDays(Set.of("saturday"))
+            .bio(faker.text().text(200))
+            .certifications(faker.medicalProcedure().icd10())
+            .consultationDuration(120)
+            .consultationFee(20000)
+            .currentWorkplace(faker.location().work())
+            .medicalDegree(faker.university().degree())
+            .resume(new CertificationDTO(faker.file().fileName(), faker.internet().url(), CertificateType.RESUME))
+            .credentials(Set.of(new CertificationDTO(faker.file().fileName(), faker.internet().url(), CertificateType.RESUME)))
+            .graduationYear(2019)
+            .languages(Set.of("English", "French"))
+            .licenseNumber(faker.medication().drugName())
+            .preferredTimeSlots(Set.of("12am-1pm"))
+            .profilePictureUrl(faker.avatar().image())
+            .university(faker.university().name())
+            .build();
+
+    @Test
+    void shouldSuccessfullyHandleUserOnboardingAndReturnTrue() {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(consultant));
-        given(medicalCategoryService.getMedicalCategoryByName(medicalSpecialization)).willReturn(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon"));
+        given(medicalCategoryService.getMedicalCategoryById(anyString())).willReturn(new MedicalCategoryEntity(1,"Opthalmology","opthalmology", "some desc", "icon"));
 
         boolean result = consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest);
         assertThat(result).isTrue();
     }
-    @ParameterizedTest
-    @MethodSource("getInValidMedicalSpecialty")
-    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories(String invalidMedicalSpecialty) {
-        given(medicalCategoryService.getMedicalCategoryByName(invalidMedicalSpecialty)).willThrow(new IllegalArgumentException());
+    @Test
+    void shouldThrowIllegalArgumentExceptionIfInvalidMedicalCategories() {
+        given(consultantRepository.findByUserId(anyString())).willReturn(Optional.of(consultant));
+        given(medicalCategoryService.getMedicalCategoryById(anyString())).willThrow(new IllegalArgumentException());
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest));
     }
-    @ParameterizedTest
-    @MethodSource("getValidMedicalSpecialty")
-    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound(String medicalCategories) {
+    @Test
+    void shouldFailHandlingOnboardingAndReturnEntityNotFoundExceptionIfUserNotFound() {
         given(consultantRepository.findByUserId(anyString())).willReturn(Optional.empty());
         assertThatExceptionOfType(EntityNotFoundException.class).isThrownBy(() -> consultantService.handleOnboarding(consultant.getUserId(), onboardingRequest));
     }

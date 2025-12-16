@@ -124,7 +124,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @Profile({"dev"})
+    @Profile({"dev","test"})
     AuthenticationProvider devAuthenticationProvider(UserDetailsService userDetailsService) {
         return new AuthenticationProvider() {
             @Override
