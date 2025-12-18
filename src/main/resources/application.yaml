@@ -103,7 +103,7 @@ management:
         include: startup
 cors:
   frontend:
-    domain: 'http://localhost:5173'
+    domain: ${FRONTEND_DOMAIN:'localhost:5173'}
 
 
 springdoc:
