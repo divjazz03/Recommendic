@@ -16,9 +16,9 @@ server:
     session:
       cookie:
         http-only: false
-        secure: false
+        secure: ${SESSION_COOKIE_SECURE:false}
         name: SESSIONID
-        same-site: none
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
 
 spring:
   application:
