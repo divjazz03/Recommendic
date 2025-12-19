@@ -18,6 +18,7 @@ server:
         http-only: false
         secure: false
         name: SESSIONID
+        same-site: none
 
 spring:
   application:
