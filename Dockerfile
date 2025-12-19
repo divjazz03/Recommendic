@@ -45,7 +45,4 @@ EXPOSE ${SERVER_PORT}
 
 RUN java -Xshare:dump
 
-ENTRYPOINT ["java","-Xshare:on","-XX:+UseContainerSupport \
- -XX:MaxRAMPercentage=75 \
- -XX:+TieredCompilation \
- -XX:TieredStopAtLevel=1", "--enable-preview","-jar" ,"./app.jar" ]
+ENTRYPOINT ["java","-Xshare:on", "--enable-preview","-jar" ,"./app.jar" ]
