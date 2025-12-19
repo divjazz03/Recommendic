@@ -23,6 +23,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -60,7 +61,7 @@ public class WebSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Getter
@@ -114,17 +115,9 @@ public class WebSecurityConfig {
                 .build();
     }
 
-    @Bean
-    @Profile({"prod"})
-    @Primary
-    AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-                                                           PasswordEncoder passwordEncoder,
-                                                           GeneralUserService generalUserService){
-        return new CustomAuthenticationProvider(generalUserService,passwordEncoder,userDetailsService);
-    }
 
     @Bean
-    @Profile({"dev","test"})
+    @Profile({"test","dev"})
     AuthenticationProvider devAuthenticationProvider(UserDetailsService userDetailsService) {
         return new AuthenticationProvider() {
             @Override
@@ -160,10 +153,8 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, AuthenticationProvider provider) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .authenticationProvider(provider)
-                .build();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
     @Bean
     UserDetailsService userDetailsService (){

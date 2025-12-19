@@ -17,8 +17,10 @@ import com.divjazz.recommendic.user.repository.*;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GeneralUserService {
@@ -57,11 +60,16 @@ public class GeneralUserService {
     }
 
     public UserCredential retrieveUserCredentials(String email) {
-        return objectMapper
-                .convertValue(userRepository
-                                .findByEmail_ReturningCredentialsJsonB(email)
-                        .orElseThrow(() -> new EntityNotFoundException("User with email: %s not found".formatted(email))),
-                        UserCredential.class);
+        try {
+            var credentialString = userRepository
+                    .findByEmail_ReturningCredentialsJsonB(email)
+                    .orElseThrow(() -> new EntityNotFoundException("User with email: %s not found".formatted(email)));
+            return objectMapper
+                    .readValue(credentialString,
+                            UserCredential.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

@@ -3,6 +3,8 @@ server:
     include-binding-errors: never
     include-message: never
   tomcat:
+    mbeanregistry:
+      enabled: false
     accept-count: 500
     threads:
       max: 300
@@ -20,6 +22,9 @@ server:
 spring:
   application:
     name: Recommendic
+  security:
+    filter:
+      dispatcher-types: request
   servlet:
     multipart:
       enabled: true
@@ -37,6 +42,7 @@ spring:
         enabled: false
   cache:
     type: redis
+
 
   flyway:
     enabled: true
@@ -81,6 +87,10 @@ spring:
     default: test
   main:
     banner-mode: off
+    lazy-initialization: true
+
+  jmx:
+    enabled: false
 
 management:
   endpoint:
@@ -100,7 +110,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: startup
+        include: "health,info"
 cors:
   frontend:
     domain: ${FRONTEND_DOMAIN:'localhost:5173'}

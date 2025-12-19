@@ -43,4 +43,9 @@ ENV CLOUDINARY_API_KEY='dsdspodsodspdos'
 ENV CLOUDINARY_API_SECRET='dslkdlskdsldksdl'
 EXPOSE ${SERVER_PORT}
 
-ENTRYPOINT ["java", "--enable-preview","-jar" ,"./app.jar" ]
+RUN java -Xshare:dump
+
+ENTRYPOINT ["java","-Xshare:on","-XX:+UseContainerSupport \
+ -XX:MaxRAMPercentage=75 \
+ -XX:+TieredCompilation \
+ -XX:TieredStopAtLevel=1", "--enable-preview","-jar" ,"./app.jar" ]

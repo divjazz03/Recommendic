@@ -1,15 +1,23 @@
 package com.divjazz.recommendic.security;
 
 import com.divjazz.recommendic.user.service.GeneralUserService;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
+@Primary
+@Profile("prod")
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
 
