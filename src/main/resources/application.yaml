@@ -106,7 +106,7 @@ management:
         include: "health,metrics"
 cors:
   frontend:
-    domain: ${FRONTEND_DOMAIN:'localhost:5173'}
+    domain: ${FRONTEND_DOMAIN:http://localhost:5173}
 
 
 springdoc:

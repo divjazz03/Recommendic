@@ -51,6 +51,7 @@ public class Appointment extends Auditable {
     @Column(name = "reason")
     private String reason;
     @Column(name = "history")
+    @Enumerated(EnumType.STRING)
     private AppointmentHistory history;
 
 
