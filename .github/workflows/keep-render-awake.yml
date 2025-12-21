@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Curl endpoint
-        run: curl -FsS https://recommendic.onrender.com/actuator/health/db || true
+        run: curl -fsS https://recommendic.onrender.com/actuator/health/db || true
