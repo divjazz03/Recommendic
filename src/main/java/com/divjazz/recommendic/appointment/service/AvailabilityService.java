@@ -113,6 +113,9 @@ public class AvailabilityService {
 
     private Stream<Slot> generateTimeSlots(Schedule schedule, LocalDateTime startDate, LocalDateTime endOfThisWeek) {
         Set<LocalDateTime> localDateTimes = new TreeSet<>();
+        if (Objects.isNull(schedule.getRecurrenceRule())){
+            return Stream.empty();
+        }
         switch (schedule.getRecurrenceRule().frequency()) {
             case ONE_OFF -> {
                 var currentDay = startDate.truncatedTo(ChronoUnit.DAYS);

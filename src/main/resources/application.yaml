@@ -7,8 +7,8 @@ server:
       enabled: false
     accept-count: 500
     threads:
-      max: 300
-      min-spare: 20
+      max: ${TOMCAT_MAX_THREADS:200}
+      min-spare: ${TOMCAT_MIN_SPARE:10}
     max-swallow-size: 50MB
   shutdown: graceful
   port: ${SERVER_PORT}
@@ -100,18 +100,10 @@ management:
       access: read_only
     metrics:
       access: read_only
-    info:
-      access: read_only
-    startup:
-      access: read_only
-  prometheus:
-    metrics:
-      export:
-        enabled: true
   endpoints:
     web:
       exposure:
-        include: "health,info"
+        include: "health,metrics"
 cors:
   frontend:
     domain: ${FRONTEND_DOMAIN:'localhost:5173'}

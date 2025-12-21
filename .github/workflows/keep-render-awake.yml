@@ -1,0 +1,11 @@
+name: keep-render-awake.yml
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl endpoint
+        run: curl -FsS https://recommendic.onrender.com/actuator/health/db || true
