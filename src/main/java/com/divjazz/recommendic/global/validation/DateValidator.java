@@ -1,27 +1,29 @@
-package com.divjazz.recommendic.appointment.validation.schedule;
+package com.divjazz.recommendic.global.validation;
 
-import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleTime;
+import com.divjazz.recommendic.global.validation.annotation.ValidDate;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-public class ScheduleTimeValidator implements ConstraintValidator<ScheduleTime, String> {
+public class DateValidator implements ConstraintValidator<ValidDate, String> {
     @Override
-    public void initialize(ScheduleTime constraintAnnotation) {
+    public void initialize(ValidDate constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);
     }
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        if (s == null) return true;
+        if (s == null)
+            return true;
         try {
-            LocalTime.parse(s);
+            LocalDate.parse(s);
             return true;
         } catch (DateTimeParseException e) {
             constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext.buildConstraintViolationWithTemplate(e.getMessage()).addConstraintViolation();
+            constraintValidatorContext.buildConstraintViolationWithTemplate(e.getMessage())
+                    .addConstraintViolation();
             return false;
         }
     }

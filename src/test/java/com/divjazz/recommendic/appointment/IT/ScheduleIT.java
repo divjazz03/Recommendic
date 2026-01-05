@@ -27,6 +27,7 @@ import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -75,62 +76,6 @@ public class ScheduleIT extends BaseIntegrationTest {
     private Role patientRole;
     private MedicalCategoryEntity medicalCategory;
 
-    private static Stream<Arguments> invalidCreateScheduleRequests() {
-        return Stream.of(Arguments.of("""
-                [{
-                    "name":"My schedule",
-                    "startTime": "11:30",
-                    "zoneOffset": "+01:00",
-                    "channels": ["voice","in_person"],
-                    "recurrenceRule": null,
-                    "isRecurring": false,
-                    "isActive": true
-                }]
-                """), Arguments.of("""
-                [{
-                    "name":"My schedule",
-                    "startTime": "1130",
-                    "endTime": "14:400",
-                    "zoneOffset": "+01:00p",
-                    "channels": ["voicee","in_pearson"],
-                    "recurrenceRule": {},
-                    "isRecurring": true,
-                    "isActive": true
-                }]
-                """), Arguments.of("""
-                [{
-                    "name":"My schedule",
-                    "startTime": "11:30",
-                    "endTime": "14:00",
-                    "zoneOffset": "+01:00",
-                    "channels": ["voice","in_person"],
-                    "recurrenceRule": {
-                        "frequency": "one-of",
-                        "weekDays": ["moday", "wednsday"],
-                        "interval": 2,
-                        "endDate": "2023-0s1-23"
-                    },
-                    "isRecurring": true,
-                    "isActive": true
-                }]
-                """), Arguments.of("""
-                [{
-                    "name":"My schedule",
-                    "startTime": "11:30",
-                    "endTime": "14:00",
-                    "zoneOffset": "+01:00",
-                    "channels": ["voice","in_person"],
-                    "recurrenceRule": {
-                        "frequency": "weekly",
-                        "weekDays": [],
-                        "interval": 2,
-                        "endDate": "2023-0s1-23"
-                    },
-                    "isRecurring": true,
-                    "isActive": true
-                }]
-                """));
-    }
 
     private static Stream<Arguments> createScheduleRequests() {
         return Stream.of(
@@ -208,7 +153,7 @@ public class ScheduleIT extends BaseIntegrationTest {
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"), consultantRole );
+                new UserCredential("sjfskjvnksjfns"), consultantRole);
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedconsultant.setSpecialization(medicalCategory);
@@ -238,18 +183,6 @@ public class ScheduleIT extends BaseIntegrationTest {
         log.info("Response {}", result);
     }
 
-    @ParameterizedTest
-    @MethodSource("invalidCreateScheduleRequests")
-    void shouldNotCreateScheduleButReturn400(String invalidCreateScheduleRequest) throws Exception {
-        var result = mockMvc.perform(
-                post(BASE_URL)
-                        .with(user(consultant.getUserPrincipal()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidCreateScheduleRequest)
-        ).andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
-        log.info("Response {}", result);
-    }
-
     @Test
     void shouldReturnMySchedules() throws Exception {
         populateAppointmentForThisUser();
@@ -260,6 +193,7 @@ public class ScheduleIT extends BaseIntegrationTest {
 
         log.info("result {}", result);
     }
+
     @Test
     void shouldNotAccessMySchedules() throws Exception {
         Patient patient = new Patient(
@@ -292,23 +226,23 @@ public class ScheduleIT extends BaseIntegrationTest {
         populateAppointmentForThisUser();
         var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).getFirst();
         var modificationRequest = """
-                        {
-                            "name":"My schedule Modified",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["online","in_person"],
-                            "recurrenceRule": {
-                                "frequency": "one-off",
-                                "interval": 2,
-                                "endDate": "2023-01-23"
-                            },
-                            "isRecurring": true,
-                            "isActive": true
-                        }
-                        """;
+                {
+                    "name":"My schedule Modified",
+                    "startTime": "11:30",
+                    "endTime": "14:00",
+                    "zoneOffset": "+01:00",
+                    "channels": ["online","in_person"],
+                    "recurrenceRule": {
+                        "frequency": "one-off",
+                        "interval": 2,
+                        "endDate": "2023-01-23"
+                    },
+                    "isRecurring": true,
+                    "isActive": true
+                }
+                """;
         var result = mockMvc.perform(
-                patch(BASE_URL+"/%s".formatted(schedule.schedule().id()))
+                patch(BASE_URL + "/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(modificationRequest)
@@ -340,22 +274,22 @@ public class ScheduleIT extends BaseIntegrationTest {
         var consultant = consultantRepository.save(unSavedconsultant);
         var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).getFirst();
         var modificationRequest = """
-                        {
-                            "name":"My schedule Modified",
-                            "startTime": "11:30",
-                            "endTime": "14:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["online","in_person"],
-                            "recurrenceRule": {
-                                "frequency": "one-off",
-                                "interval": 2,
-                                "endDate": "2023-01-23"
-                            },
-                            "isActive": true
-                        }
-                        """;
+                {
+                    "name":"My schedule Modified",
+                    "startTime": "11:30",
+                    "endTime": "14:00",
+                    "zoneOffset": "+01:00",
+                    "channels": ["online","in_person"],
+                    "recurrenceRule": {
+                        "frequency": "one-off",
+                        "interval": 2,
+                        "endDate": "2023-01-23"
+                    },
+                    "isActive": true
+                }
+                """;
         var result = mockMvc.perform(
-                patch(BASE_URL+"/%s".formatted(schedule.schedule().id()))
+                patch(BASE_URL + "/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(modificationRequest)
@@ -371,17 +305,18 @@ public class ScheduleIT extends BaseIntegrationTest {
 
         var schedule = scheduleService.getSchedulesByConsultantId(consultant.getUserId()).getFirst();
         mockMvc.perform(
-                delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
+                delete(BASE_URL + "/%s".formatted(schedule.schedule().id()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
     }
+
     @Test
     void shouldNotDeleteScheduleAndReturn403() throws Exception {
         populateAppointmentForThisUser();
         var unSavedconsultant = new Consultant(
                 faker.internet().emailAddress(),
                 Gender.MALE,
-                new UserCredential("sjfskjvnksjfns"),consultantRole);
+                new UserCredential("sjfskjvnksjfns"), consultantRole);
         unSavedconsultant.setCertified(true);
         unSavedconsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedconsultant.setSpecialization(medicalCategory);
@@ -398,161 +333,22 @@ public class ScheduleIT extends BaseIntegrationTest {
         var consultant = consultantRepository.save(unSavedconsultant);
         var schedule = scheduleService.getSchedulesByConsultantId(this.consultant.getUserId()).getFirst();
         mockMvc.perform(
-                delete(BASE_URL+"/%s".formatted(schedule.schedule().id()))
+                delete(BASE_URL + "/%s".formatted(schedule.schedule().id()))
                         .with(user(this.consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
     }
 
-    @Test
-    void shouldNotCreateScheduleIfAnyDailyScheduleExistsThatHasTheSameStartTime() throws Exception{
-        var schedule = Schedule.builder()
-                .consultant(consultant)
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
-                .endTime(LocalTime.of(11,0))
-                .startTime(LocalTime.of(9,0))
-                .isActive(true)
-                .name("Schedule that already exists")
-                .recurrenceRule(new RecurrenceRule(
-                        RecurrenceFrequency.DAILY,
-                        Collections.emptySet(),
-                        1,
-                        null
-                ))
-                .zoneOffset(ZoneOffset.ofHours(1))
-                .build();
-
-        scheduleRepository.save(schedule);
-
-        var request = """
-                
-                    [{
-                            "name":"My schedule",
-                            "startTime": "09:00",
-                            "endTime": "11:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["in_person"],
-                            "recurrenceRule": {
-                                "frequency": "daily",
-                                "interval": 1
-                            },
-                            "isActive": true
-                    }]
-                
-                """;
-        var response = mockMvc.perform(
-                post(BASE_URL)
-                        .with(user(consultant.getUserPrincipal()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(request)
-        ).andExpect(status().isBadRequest())
-                .andReturn().getResponse().getContentAsString();
-
-        log.error(response);
-    }
-
-    @Test
-    void shouldNotCreateAWeeklyScheduleIfAScheduleWithTheSameWeekDaysAndStartTimesExist() throws Exception{
-        var schedule = Schedule.builder()
-                .consultant(consultant)
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
-                .endTime(LocalTime.of(11,0))
-                .startTime(LocalTime.of(9,0))
-                .isActive(true)
-                .name("Schedule that already exists")
-                .recurrenceRule(new RecurrenceRule(
-                        RecurrenceFrequency.WEEKLY,
-                        Set.of("monday", "wednesday"),
-                        0,
-                        null
-                ))
-                .zoneOffset(ZoneOffset.ofHours(1))
-                .build();
-
-        scheduleRepository.save(schedule);
-
-        var request = """
-                
-                    [{
-                            "name":"My schedule",
-                            "startTime": "09:00",
-                            "endTime": "11:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["in_person","online"],
-                            "recurrenceRule": {
-                                "frequency": "weekly",
-                                "weekDays": ["monday","wednesday"]
-                            },
-                            "isActive": true
-                    }]
-                
-                """;
-        var response = mockMvc.perform(
-                        post(BASE_URL)
-                                .with(user(consultant.getUserPrincipal()))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request)
-                ).andExpect(status().isBadRequest())
-                .andReturn().getResponse().getContentAsString();
-
-        log.error(response);
-    }
-    @Test
-    void shouldNotCreateAOneOffScheduleIfAWeeklyScheduleCoincides() throws Exception{
-        var schedule = Schedule.builder()
-                .consultant(consultant)
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.ONLINE})
-                .endTime(LocalTime.of(11,0))
-                .startTime(LocalTime.of(9,0))
-                .isActive(true)
-                .name("Weekly Schedule that already exists")
-                .recurrenceRule(new RecurrenceRule(
-                        RecurrenceFrequency.WEEKLY,
-                        Set.of("saturday", "sunday"),
-                        0,
-                        null
-                ))
-                .zoneOffset(ZoneOffset.ofHours(1))
-                .build();
-
-        scheduleRepository.save(schedule);
-
-        var request = """
-                
-                    [{
-                            "name":"My schedule",
-                            "startTime": "09:00",
-                            "endTime": "11:00",
-                            "zoneOffset": "+01:00",
-                            "channels": ["in_person","online"],
-                            "recurrenceRule": {
-                                "frequency": "one-off",
-                                "endDate": "2025-06-01"
-                            },
-                            "isActive": true
-                    }]
-                
-                """;
-        var response = mockMvc.perform(
-                        post(BASE_URL)
-                                .with(user(consultant.getUserPrincipal()))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(request)
-                ).andExpect(status().isBadRequest())
-                .andReturn().getResponse().getContentAsString();
-
-        log.error(response);
-    }
 
     @Test
     void shouldGetConsultantsAvailability() throws Exception {
         var schedule = Schedule.builder()
                 .name("Some schedule")
-                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
+                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday", "friday"), 2, "2023-04-23"))
                 .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
-                .startTime(LocalTime.of(12,30))
-                .endTime(LocalTime.of(15,30))
+                .startTime(LocalTime.of(12, 30))
+                .endTime(LocalTime.of(15, 30))
                 .consultant(consultant)
                 .build();
         scheduleRepository.save(schedule);
@@ -576,30 +372,13 @@ public class ScheduleIT extends BaseIntegrationTest {
         patient.setPatientProfile(patientProfile);
         patient = patientRepository.save(patient);
         var result = mockMvc.perform(
-                get("/api/v1/appointments/timeslots/%s?date=2025-10-12".formatted(consultant.getUserId()))
-                        .with(user(patient.getUserPrincipal()))
-        ).andExpect(status().isOk())
+                        get("/api/v1/appointments/timeslots/%s?date=2025-10-12".formatted(consultant.getUserId()))
+                                .with(user(patient.getUserPrincipal()))
+                ).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         log.info(result);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private void populateAppointmentForThisUser() {
 
@@ -624,12 +403,12 @@ public class ScheduleIT extends BaseIntegrationTest {
 
         var schedule = Schedule.builder()
                 .name("Some schedule")
-                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
+                .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.WEEKLY, Set.of("monday", "wednesday", "friday"), 2, "2023-04-23"))
                 .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
-                .startTime(LocalTime.of(12,30))
-                .endTime(LocalTime.of(15,30))
+                .startTime(LocalTime.of(12, 30))
+                .endTime(LocalTime.of(15, 30))
                 .consultant(consultant)
                 .build();
         schedule = scheduleRepository.save(schedule);
@@ -653,9 +432,557 @@ public class ScheduleIT extends BaseIntegrationTest {
                 .reason("Test reason")
                 .history(AppointmentHistory.NEW)
                 .build();
-        List<Appointment> appointments = List.of(appointment1,appointment2);
+        List<Appointment> appointments = List.of(appointment1, appointment2);
         appointmentRepository.saveAll(appointments);
 
+    }
+
+    @Nested
+    class ScheduleCreationValidation {
+
+        private final String validRequestExample = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "09:30",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                }]
+                """;
+
+        @Test
+        void shouldNotCreateScheduleIfRecurrenceFrequencyIsInvalid() throws Exception {
+            var badRequestBody = """
+                    [{
+                        "name":"My schedule",
+                        "startTime": "09:30",
+                        "endTime": "11:00",
+                        "zoneOffset": "+01:00",
+                        "channels": ["online","in_person"],
+                        "recurrenceRule": {
+                            "frequency": "yearly",
+                            "weekDays": ["monday", "wednesday"],
+                            "interval": 2,
+                            "endDate": "2023-01-23"
+                        },
+                        "isActive": true
+                    }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfWeekDaysInvalid() throws Exception {
+            var badRequestBody = """
+                    [{
+                        "name":"My schedule",
+                        "startTime": "09:30",
+                        "endTime": "11:00",
+                        "zoneOffset": "+01:00",
+                        "channels": ["online","in_person"],
+                        "recurrenceRule": {
+                            "frequency": "weekly",
+                            "weekDays": ["monda", "wedsday"],
+                            "interval": 2,
+                            "endDate": "2023-01-23"
+                        },
+                        "isActive": true
+                    }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfFrequencyIsWeekdaysButWeekdaysIsEmptyOrNull() throws Exception {
+            var badRequestBody = """
+                    [{
+                        "name":"My schedule",
+                        "startTime": "09:30",
+                        "endTime": "11:00",
+                        "zoneOffset": "+01:00",
+                        "channels": ["online","in_person"],
+                        "recurrenceRule": {
+                            "frequency": "weekly",
+                            "weekDays": [],
+                            "interval": 2,
+                            "endDate": "2023-01-23"
+                        },
+                        "isActive": true
+                    }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfFrequencyIsOneOffButNoValidEndDate() throws Exception {
+            var badRequestBody = """
+                    [{
+                        "name":"My schedule",
+                        "startTime": "09:30",
+                        "endTime": "11:00",
+                        "zoneOffset": "+01:00",
+                        "channels": ["online","in_person"],
+                        "recurrenceRule": {
+                            "frequency": "one-off",
+                            "weekDays": [],
+                            "interval": 2
+                        },
+                        "isActive": true
+                    }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfRecurrenceRuleIsNull() throws Exception {
+            var badRequestBody = """
+                    [{
+                        "name":"My Schedule",
+                        "startTime": "09:30",
+                        "endTime": "11:00",
+                        "zoneOffset": "+01:00",
+                        "channels": ["online","in_person"],
+                        "isActive": true
+                    }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfRecurrenceFrequencyIsNull() throws Exception {
+            var badRequestBody = """
+                     [{
+                            "name":"My schedule",
+                            "startTime": "09:30",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                     }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfNameIsBlank() throws Exception {
+            var badRequestBody = """
+                     [{
+                            "name":"",
+                            "startTime": "09:30",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                     }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfStartTimeInvalid() throws Exception {
+            var badRequestBody = """
+                    [{
+                            "name":"My schedule",
+                            "startTime": "09:t0",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfStartTimeIsBlank() throws Exception {
+            var badRequestBody = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "",
+                            "endTime": "11:00",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfZoneOffsetIsBlank() throws Exception {
+            var badRequestBody = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfZoneOffsetIsInvalid() throws Exception {
+            var badRequestBody = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "+32:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfChannelsIsEmptyOrNull() throws Exception {
+            var badRequestBody = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:00",
+                            "zoneOffset": "+2:00",
+                            "channels": [],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        },
+                        {
+                            "name":"My schedule",
+                            "startTime": "13:30",
+                            "endTime": "14:00",
+                            "zoneOffset": "+01:00",
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+        @Test
+        void shouldNotCreateScheduleIfEndTimeInvalid() throws Exception {
+            var badRequestBody = """
+                    [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "11:70",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                    """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfEndTimeIsBlank() throws Exception {
+            var badRequestBody = """
+                [{
+                            "name":"My schedule",
+                            "startTime": "09:00",
+                            "endTime": "",
+                            "zoneOffset": "+01:00",
+                            "channels": ["online","in_person"],
+                            "recurrenceRule": {
+                                "frequency": "one-off",
+                                "weekDays": ["monday", "wednesday"],
+                                "interval": 2,
+                                "endDate": "2023-01-23"
+                            },
+                            "isActive": true
+                        }]
+                """;
+
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(badRequestBody)
+            ).andExpect(status().isBadRequest());
+
+        }
+
+        @Test
+        void shouldNotCreateAOneOffScheduleIfAWeeklyScheduleCoincides() throws Exception {
+            var schedule = Schedule.builder()
+                    .consultant(consultant)
+                    .consultationChannels(new ConsultationChannel[]{ConsultationChannel.ONLINE})
+                    .endTime(LocalTime.of(11, 0))
+                    .startTime(LocalTime.of(9, 0))
+                    .isActive(true)
+                    .name("Weekly Schedule that already exists")
+                    .recurrenceRule(new RecurrenceRule(
+                            RecurrenceFrequency.WEEKLY,
+                            Set.of("saturday", "sunday"),
+                            0,
+                            null
+                    ))
+                    .zoneOffset(ZoneOffset.ofHours(1))
+                    .build();
+
+            scheduleRepository.save(schedule);
+
+            var request = """
+                    
+                        [{
+                                "name":"My schedule",
+                                "startTime": "09:00",
+                                "endTime": "11:00",
+                                "zoneOffset": "+01:00",
+                                "channels": ["in_person","online"],
+                                "recurrenceRule": {
+                                    "frequency": "one-off",
+                                    "endDate": "2025-06-01"
+                                },
+                                "isActive": true
+                        }]
+                    
+                    """;
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request)
+            ).andExpect(status().isBadRequest());
+
+
+        }
+
+        @Test
+        void shouldNotCreateAWeeklyScheduleIfAScheduleWithTheSameWeekDaysAndStartTimesExist() throws Exception {
+            var schedule = Schedule.builder()
+                    .consultant(consultant)
+                    .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
+                    .endTime(LocalTime.of(11, 0))
+                    .startTime(LocalTime.of(9, 0))
+                    .isActive(true)
+                    .name("Schedule that already exists")
+                    .recurrenceRule(new RecurrenceRule(
+                            RecurrenceFrequency.WEEKLY,
+                            Set.of("monday", "wednesday"),
+                            0,
+                            null
+                    ))
+                    .zoneOffset(ZoneOffset.ofHours(1))
+                    .build();
+
+            scheduleRepository.save(schedule);
+
+            var request = """
+                    
+                        [{
+                                "name":"My schedule",
+                                "startTime": "09:00",
+                                "endTime": "11:00",
+                                "zoneOffset": "+01:00",
+                                "channels": ["in_person","online"],
+                                "recurrenceRule": {
+                                    "frequency": "weekly",
+                                    "weekDays": ["monday","wednesday"]
+                                },
+                                "isActive": true
+                        }]
+                    
+                    """;
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request)
+            ).andExpect(status().isBadRequest());
+
+
+        }
+
+        @Test
+        void shouldNotCreateScheduleIfAnyDailyScheduleExistsThatHasTheSameStartTime() throws Exception {
+            var schedule = Schedule.builder()
+                    .consultant(consultant)
+                    .consultationChannels(new ConsultationChannel[]{ConsultationChannel.IN_PERSON})
+                    .endTime(LocalTime.of(11, 0))
+                    .startTime(LocalTime.of(9, 0))
+                    .isActive(true)
+                    .name("Schedule that already exists")
+                    .recurrenceRule(new RecurrenceRule(
+                            RecurrenceFrequency.DAILY,
+                            Collections.emptySet(),
+                            1,
+                            null
+                    ))
+                    .zoneOffset(ZoneOffset.ofHours(1))
+                    .build();
+
+            scheduleRepository.save(schedule);
+
+            var request = """
+                    
+                        [{
+                                "name":"My schedule",
+                                "startTime": "09:00",
+                                "endTime": "11:00",
+                                "zoneOffset": "+01:00",
+                                "channels": ["in_person"],
+                                "recurrenceRule": {
+                                    "frequency": "daily",
+                                    "interval": 1
+                                },
+                                "isActive": true
+                        }]
+                    
+                    """;
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .with(user(consultant.getUserPrincipal()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request)
+            ).andExpect(status().isBadRequest());
+
+
+        }
     }
 
 

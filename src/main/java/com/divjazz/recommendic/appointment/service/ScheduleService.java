@@ -6,6 +6,7 @@ import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.dto.ScheduleWithAppointmentDetail;
+import com.divjazz.recommendic.appointment.mapper.ScheduleMapper;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleCustomRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
@@ -33,9 +34,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -51,40 +51,6 @@ public class ScheduleService {
     private final ObjectMapper objectMapper;
     private final AvailabilityService availabilityService;
 
-    private static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
-        return Arrays.stream(consultationChannels)
-                .map(consultationChannel -> consultationChannel.toString().toLowerCase())
-                .collect(Collectors.toSet());
-    }
-
-    private static ScheduleDisplay toScheduleDisplay(Schedule schedule) {
-        return new ScheduleDisplay(
-                schedule.getScheduleId(),
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().toString(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.getRecurrenceRule(),
-                schedule.isActive(),
-                schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                0
-        );
-    }
-
-    public static ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule) {
-        return new ScheduleResponseDTO(
-                schedule.getScheduleId(),
-                schedule.getName(),
-                schedule.getStartTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getEndTime().format(DateTimeFormatter.ISO_TIME),
-                schedule.getZoneOffset().getId(),
-                fromConsultationChannels(schedule.getConsultationChannels()),
-                schedule.getRecurrenceRule() != null
-                        ? schedule.getRecurrenceRule() : null,
-                schedule.isActive()
-        );
-    }
 
     @Transactional
     public ScheduleResponseDTO createSchedule(List<ScheduleCreationRequest> creationRequests) {
@@ -104,7 +70,7 @@ public class ScheduleService {
 
                     if (Objects.nonNull(creationRequest.recurrenceRule())) {
                         var recurrenceRule = new RecurrenceRule(
-                                creationRequest.recurrenceRule().frequency(),
+                                RecurrenceFrequency.fromValue(creationRequest.recurrenceRule().frequency()),
                                 creationRequest.recurrenceRule().weekDays(),
                                 creationRequest.recurrenceRule().interval(),
                                 creationRequest.recurrenceRule().endDate()
@@ -119,7 +85,7 @@ public class ScheduleService {
 
         schedules = scheduleRepository.saveAll(schedules);
 
-        return toScheduleResponseDTO(schedules.getFirst());
+        return ScheduleMapper.toScheduleResponseDTO(schedules.getFirst());
     }
 
     private void verifyScheduleDoesNotConflictWithOthers(RecurrenceRule recurrenceRule, Schedule schedule) {
@@ -166,7 +132,7 @@ public class ScheduleService {
     public ScheduleResponseDTO getScheduleById(String id) {
         var schedule = scheduleRepository
                 .findByScheduleId(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
-        return toScheduleResponseDTO(schedule);
+        return ScheduleMapper.toScheduleResponseDTO(schedule);
     }
 
     public ConsultantSchedulesResponse getSchedulesByConsultantIdHandler(String consultantId, String date) {
@@ -202,7 +168,7 @@ public class ScheduleService {
                 .map(schedule -> {
                     var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForSchedule(schedule);
                     return new ScheduleWithAppointmentDetail(
-                            ScheduleService.toScheduleResponseDTO(schedule),
+                            ScheduleMapper.toScheduleResponseDTO(schedule),
                             appointmentDateAndTime
                     );
                 }).toList();
@@ -215,7 +181,7 @@ public class ScheduleService {
                         schedule -> {
                             var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForScheduleAndDate(schedule, date);
                             return new ScheduleWithAppointmentDetail(
-                                    ScheduleService.toScheduleResponseDTO(schedule),
+                                    ScheduleMapper.toScheduleResponseDTO(schedule),
                                     appointmentDateAndTime
                             );
                         }).toList();
@@ -246,13 +212,13 @@ public class ScheduleService {
         }
         schedule.setActive(modificationRequest.isActive());
         if (Objects.nonNull(modificationRequest.recurrenceRule())) {
-            schedule.setRecurrenceRule(new RecurrenceRule(modificationRequest.recurrenceRule().frequency(),
+            schedule.setRecurrenceRule(new RecurrenceRule(RecurrenceFrequency.fromValue(modificationRequest.recurrenceRule().frequency()),
                     modificationRequest.recurrenceRule().weekDays(),
                     modificationRequest.recurrenceRule().interval(),
                     modificationRequest.recurrenceRule().endDate()));
         }
 
-        return toScheduleResponseDTO(schedule);
+        return ScheduleMapper.toScheduleResponseDTO(schedule);
     }
 
     private ConsultationChannel[] toConsultationChannels(Set<String> consultationChannelStrings) {

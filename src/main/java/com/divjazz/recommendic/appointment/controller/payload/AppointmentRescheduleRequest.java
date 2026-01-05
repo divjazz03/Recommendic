@@ -1,6 +1,6 @@
 package com.divjazz.recommendic.appointment.controller.payload;
 
-import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleDate;
+import com.divjazz.recommendic.global.validation.annotation.ValidDate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,7 +13,7 @@ public record AppointmentRescheduleRequest(
         @Size(max = 1024, min = 16, message = "Reason should have no less than 10 characters and no more than 1024 characters")
         String reason,
         @NotNull(message = "newDate is required")
-        @ScheduleDate
+        @ValidDate
         String newDate
 ) {
 }

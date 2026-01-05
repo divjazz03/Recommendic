@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.DisabledException;
@@ -43,145 +44,135 @@ public class GlobalControllerExceptionAdvice {
     public record FieldError(String field, String error){}
 
     @ExceptionHandler(AuthorizationException.class)
-    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(getErrorResponse(HttpStatus.FORBIDDEN,
+    public ProblemDetail handleAuthorizationDenied(AuthorizationException e) {
+        return getErrorResponse(HttpStatus.FORBIDDEN,
                         e,
-                        "You are not authorized to perform this action"));
+                        "You are not authorized to perform this action");
     }
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<Response<String>> handleAuthorizationDenied(AuthorizationDeniedException e) {
+    public ProblemDetail handleAuthorizationDenied(AuthorizationDeniedException e) {
         log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(getErrorResponse(HttpStatus.FORBIDDEN,
-                        e,
-                        "You are not authorized to access this resource"));
+        return getErrorResponse(HttpStatus.FORBIDDEN,
+                        e);
     }
 
     @ExceptionHandler(TransactionException.class)
-    public ResponseEntity<Response<String>> handleTransactionException(TransactionException ex) {
+    public ProblemDetail handleTransactionException(TransactionException ex) {
         log.error(ex.getMessage(), ex);
-        return ResponseEntity.internalServerError().body(new Response<>(
-                LocalDateTime.now().toString(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something happened on our end and we are hard at work to fix it" ,
-                null,
-                "Something happened on our end and we are hard at work to fix it"));
+        return getErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex);
     }
 
     @ExceptionHandler(ConsultationStartedBeforeAppointmentException.class)
-    public ResponseEntity<Response<String>> handleConsultationStartedBeforeAppointedTime(
+    public ProblemDetail handleConsultationStartedBeforeAppointedTime(
             ConsultationStartedBeforeAppointmentException ex
     ) {
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST,ex,ex.getMessage()));
+        return 
+                getErrorResponse(HttpStatus.BAD_REQUEST,ex);
     }
 
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<Response<Object>> handleAccountDisabled(DisabledException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(getErrorResponse(HttpStatus.UNAUTHORIZED,
+    public ProblemDetail handleAccountDisabled(DisabledException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED,
                 ex,
-                "Your account is disabled, please confirm your email"));
+                "Your account is disabled, please confirm your email");
     }
 
     @ExceptionHandler(ConsultationAlreadyStartedException.class)
-    public ResponseEntity<Response<Object>> handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(getErrorResponse(HttpStatus.CONFLICT, ex));
+    public ProblemDetail handleConsultationAlreadyStarted(ConsultationAlreadyStartedException ex) {
+        return getErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
     @ExceptionHandler(ConfirmationTokenExpiredException.class)
-    public ResponseEntity<Response<Object>> handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
-        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex));
+    public ProblemDetail handleConfirmationTokenExpired(ConfirmationTokenExpiredException ex) {
+        return getErrorResponse(HttpStatus.EXPECTATION_FAILED,ex);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Response<ValidationErrorResponse>> handleArgumentNotValid(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleArgumentNotValid(MethodArgumentNotValidException ex) {
         var bindingResult = ex.getBindingResult();
 
         List<FieldError> fieldErrors = bindingResult.getFieldErrors().stream()
                 .map(fieldError -> new FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(getErrorResponse(HttpStatus.BAD_REQUEST,ex, new ValidationErrorResponse("Validation failed for one or more fields.", fieldErrors)));
+        var problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), "Validation failed");
+        problem.setProperty("data", fieldErrors);
+        return problem;
     }
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<Response<Set<String>>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+    public ProblemDetail handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
         List<ParameterValidationResult> results = ex.getParameterValidationResults();
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST,
+        return getErrorResponse(HttpStatus.BAD_REQUEST,
                 ex,
                 results.stream()
                         .flatMap(
                                 result -> result.getResolvableErrors().stream()
                                         .map(MessageSourceResolvable::getDefaultMessage)
                         )
-                        .collect(Collectors.toSet())
-                ));
+                        .toList()
+                );
     }
 
     @ExceptionHandler(NoSuchMedicalCategory.class)
-    public ResponseEntity<Response<Object>> handleInvalidMedicalCategory(NoSuchMedicalCategory ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.BAD_REQUEST, ex), HttpStatus.BAD_REQUEST);
+    public ProblemDetail handleInvalidMedicalCategory(NoSuchMedicalCategory ex) {
+        return getErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 
 
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Response<String>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
+    public ProblemDetail handleUserAlreadyExists(UserAlreadyExistsException ex) {
 
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.CONFLICT, ex), HttpStatus.CONFLICT);
+        return getErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
     @ExceptionHandler(LoginFailedException.class)
-    public ResponseEntity<Response<String>> handleLoginFailed(LoginFailedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED, ex), HttpStatus.UNAUTHORIZED);
+    public ProblemDetail handleLoginFailed(LoginFailedException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED, ex);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
-    public ResponseEntity<Response<String>> handleHttpClientError(HttpClientErrorException ex) {
+    public ProblemDetail handleHttpClientError(HttpClientErrorException ex) {
         log.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(getResponse(ex.getResponseBodyAsString(), ex.getStatusCode()),
-                ex.getStatusCode());
+        return getErrorResponse(ex.getStatusCode(), ex);
     }
     @ExceptionHandler(CredentialExpiredException.class)
-    public ResponseEntity<Response<String>> handleCredentialExpired(CredentialExpiredException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+    public ProblemDetail handleCredentialExpired(CredentialExpiredException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED,ex);
     }
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<Response<String>> handleAccountLocked(LockedException ex) {
-        return new ResponseEntity<>(getErrorResponse(HttpStatus.UNAUTHORIZED,ex), HttpStatus.UNAUTHORIZED);
+    public ProblemDetail handleAccountLocked(LockedException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED,ex);
     }
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Response<String>> handleAuthentication(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
+    public ProblemDetail handleAuthentication(AuthenticationException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED, ex);
     }
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
-    public ResponseEntity<Response<String>> handleGeneralAuthenticationError(org.springframework.security.core.AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(getErrorResponse(HttpStatus.UNAUTHORIZED, ex));
+    public ProblemDetail handleGeneralAuthenticationError(org.springframework.security.core.AuthenticationException ex) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED, ex);
     }
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Response<String>> handleEntityNotFound(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrorResponse(HttpStatus.NOT_FOUND, ex));
+    public ProblemDetail handleEntityNotFound(EntityNotFoundException ex) {
+        return getErrorResponse(HttpStatus.NOT_FOUND, ex);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Response<String>> handleGeneralArgumentException(IllegalArgumentException e) {
+    public ProblemDetail handleGeneralArgumentException(IllegalArgumentException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, e));
+        return getErrorResponse(HttpStatus.BAD_REQUEST, e);
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Response<String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
+    public ProblemDetail handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return getErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
     @ExceptionHandler(AppointmentBookedException.class)
-    public ResponseEntity<Response<String>> handleAppointmentBookedException(AppointmentBookedException ex) {
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
+    public ProblemDetail handleAppointmentBookedException(AppointmentBookedException ex) {
+        return getErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
     @ExceptionHandler(AppBadRequestException.class)
-    public ResponseEntity<Response<String>> handleAppBadRequestException(AppBadRequestException ex) {
-        return ResponseEntity.badRequest().body(getErrorResponse(HttpStatus.BAD_REQUEST, ex));
+    public ProblemDetail handleAppBadRequestException(AppBadRequestException ex) {
+        return getErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 
 

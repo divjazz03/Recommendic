@@ -132,11 +132,11 @@ public class ScheduleRecurrenceTest {
                 "15:30:00",
                 "+01:00",
                 Set.of("online"),
-                new RecurrenceRuleRequest(RecurrenceFrequency.DAILY, Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
+                new RecurrenceRuleRequest("daily", Set.of(DaysOfWeek.FRIDAY.toString()), 1, ""),
                 true
         );
         var recurrenceRule = new RecurrenceRule(
-                creationRequest.recurrenceRule().frequency(),
+               RecurrenceFrequency.fromValue(creationRequest.recurrenceRule().frequency()),
                 creationRequest.recurrenceRule().weekDays(),
                 creationRequest.recurrenceRule().interval(),
                 creationRequest.recurrenceRule().endDate()

@@ -26,6 +26,7 @@ import com.divjazz.recommendic.user.service.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -67,14 +68,12 @@ public class AppointmentIT extends BaseIntegrationTest {
     private RoleService roleService;
     @Autowired
     private MedicalCategoryService medicalCategoryService;
-    private Role consultantRole;
-    private Role patientRole;
-    private MedicalCategoryEntity medicalCategory;
+
     @BeforeEach
     void setup() {
-        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
-        patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
-        medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
+        Role consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        Role patientRole = roleService.getRoleByName(PatientService.PATIENT_ROLE_NAME);
+        MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryById("cardiology");
 
         var unsavedPatient = new Patient(faker.internet().emailAddress(),
                 Gender.MALE,
@@ -121,7 +120,6 @@ public class AppointmentIT extends BaseIntegrationTest {
                 .consultant(consultant)
                 .build();
         schedule = scheduleRepository.save(unsavedSchedule);
-        log.info("Schedule was saved with id {}", schedule.getScheduleId());
     }
     @Test
     void shouldCreateANewAppointmentAndReturn201Created() throws Exception{
@@ -141,28 +139,11 @@ public class AppointmentIT extends BaseIntegrationTest {
                         .with(user(patient.getUserPrincipal()))
         ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
-        log.info("appointment = {}", result);
+        
 
     }
 
-    @Test
-    void shouldNotCreateAppointmentButReturn400BadRequest() throws Exception {
-        var request = """
-                        {
-                            "consultantId": "%s",
-                            "scheduleId": "%s",
-                            "channel": "vido"
-                        }
-                        """.formatted(consultant.getUserId(), schedule.getId());
-        var result = mockMvc.perform(
-                post(BASE_URL)
-                        .content(request)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(user(patient.getUserPrincipal()))
-        ).andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
 
-        log.info("appointment = {}", result);
-    }
     @Test
     void shouldNotCreateAppointmentButReturn404BecauseScheduleDoesNotExist() throws Exception {
         var request = """
@@ -174,14 +155,14 @@ public class AppointmentIT extends BaseIntegrationTest {
                             "reason" : "Test reason"
                         }
                         """.formatted(consultant.getUserId(), 2794879L);
-        var result = mockMvc.perform(
+        mockMvc.perform(
                 post(BASE_URL)
                         .content(request)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(user(patient.getUserPrincipal()))
-        ).andExpect(status().isNotFound()).andReturn().getResponse().getContentAsString();
+        ).andExpect(status().isNotFound());
 
-        log.info("appointment = {}", result);
+        
     }
 
     @Test
@@ -210,7 +191,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                         .content(requestPayLoad)
                         .with(user(patient.getUserPrincipal()))
 
-        ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ).andExpect(status().isOk());
     }
 
     @Test
@@ -234,7 +215,7 @@ public class AppointmentIT extends BaseIntegrationTest {
                         .content(requestPayLoad)
                         .with(user(consultant.getUserPrincipal()))
 
-        ).andExpect(status().isForbidden()).andReturn().getResponse().getContentAsString();
+        ).andExpect(status().isForbidden());
     }
     @Test
     void shouldConfirmAppointmentIfAuthorizedConsultant() throws Exception {
@@ -259,5 +240,64 @@ public class AppointmentIT extends BaseIntegrationTest {
                         .content(requestPayLoad)
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk());
+    }
+    @Nested
+    class CreationValidation {
+        @Test
+        void shouldNotCreateAppointmentBecauseInvalidChannel() throws Exception {
+            var request = """
+                        {
+                            "consultantId": "%s",
+                            "scheduleId": "%s",
+                            "channel": "vido",
+                            "reason": "just because"
+                        }
+                        """.formatted(consultant.getUserId(), schedule.getId());
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .content(request)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(user(patient.getUserPrincipal()))
+            ).andExpect(status().isBadRequest());
+
+            
+        }
+        @Test
+        void shouldNotCreateAppointmentBecauseNoChannel() throws Exception {
+            var request = """
+                        {
+                            "consultantId": "%s",
+                            "scheduleId": "%s",
+                            "reason": "just because"
+                        }
+                        """.formatted(consultant.getUserId(), schedule.getId());
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .content(request)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(user(patient.getUserPrincipal()))
+            ).andExpect(status().isBadRequest());
+
+            
+        }
+        @Test
+        void shouldNotCreateAppointmentBecauseNoReason() throws Exception {
+            var request = """
+                        {
+                            "consultantId": "%s",
+                            "scheduleId": "%s",
+                            "channel": "online"
+                            "reason": "just because"
+                        }
+                        """.formatted(consultant.getUserId(), schedule.getId());
+            mockMvc.perform(
+                    post(BASE_URL)
+                            .content(request)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(user(patient.getUserPrincipal()))
+            ).andExpect(status().isBadRequest());
+
+            
+        }
     }
 }

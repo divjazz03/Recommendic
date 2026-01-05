@@ -17,45 +17,9 @@ import java.util.stream.Stream;
 
 @Repository
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
-    Optional<Consultation> findByAppointmentId(Long id);
-
     Optional<Consultation> findByConsultationId(String id);
 
     boolean existsByAppointment_AppointmentId(String id);
-
-
-    @Query(value = """ 
-            SELECT c FROM Consultation c
-            WHERE c.appointment.consultant.userId = :consultantId
-            """)
-    Page<Consultation> findAllByAppointment_Consultant_UserId(@Param("consultantId") String consultantId, Pageable pageable);
-
-    @Query(value = """ 
-            SELECT c from Consultation c
-            WHERE c.appointment.patient.userId = :userId or c.appointment.consultant.userId = :userId
-            """)
-    Set<Consultation> getAllConsultationsByAppointment_Patient_UserIdOrAppointment_Consultant_UserId(
-            @Param("targetId") String userId);
-
-    @Query(value = """
-            select c from Consultation c
-            WHERE c.appointment.patient.userId = :patientId
-            ORDER BY c.appointment.createdAt
-            """
-    )
-    Page<Consultation> findConsultationsByPatientIdOrderByAppointmentCreatedAt(@Param("patientId") String patientId, Pageable pageable);
-
-    @Query(value = """
-            select c from Consultation c
-            WHERE c.appointment.patient.userId = :patientId
-            """)
-    Stream<Consultation> findConsultationsByPatientUserId(@Param("patientId") String patientId);
-
-    @Query(value = """ 
-            select c from Consultation c
-            WHERE c.appointment.consultant.userId = :consultantId
-            """)
-    Stream<Consultation> findConsultationsByConsultantUserId(@Param("consultantId") String consultantId);
 
     @Query(
             value = """

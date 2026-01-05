@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.user.controller.patient.payload;
 
-import com.divjazz.recommendic.global.validation.annotation.Gender;
+import com.divjazz.recommendic.global.validation.annotation.ValidEnum;
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.validation.ValidDateOfBirth;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
@@ -26,8 +27,8 @@ public record PatientRegistrationParams(
         @NotBlank(message = "Date of birth cannot be blank")
         @ValidDateOfBirth
         String dateOfBirth,
-        @Gender
         @NotNull(message = "gender is required")
+        @ValidEnum(enumClass = Gender.class)
         String gender) {
 }
 

@@ -5,6 +5,7 @@ import com.divjazz.recommendic.user.exception.NoSuchMedicalCategory;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 
 import java.util.function.BiFunction;
@@ -38,28 +39,17 @@ public class RequestUtils {
         );
     }
 
-    public static <T> Response<T> getErrorResponse(
+    public static <T> ProblemDetail getErrorResponse(
                                             HttpStatusCode status,
                                             Exception exception, T data) {
-        return new Response<>(
-                now().format(ISO_LOCAL_DATE_TIME),
-                status.value(),
-                HttpStatus.valueOf(status.value()),
-                errorReason.apply(exception, status),
-                exception.getClass().getCanonicalName(),
-                data
-        );
+
+        var detail =  ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+        detail.setProperty("data", data);
+        return detail;
     }
-    public static <T> Response<T> getErrorResponse(
+    public static ProblemDetail getErrorResponse(
             HttpStatusCode status,
             Exception exception) {
-        return new Response<>(
-                now().format(ISO_LOCAL_DATE_TIME),
-                status.value(),
-                HttpStatus.valueOf(status.value()),
-                errorReason.apply(exception, status),
-                exception.getClass().getCanonicalName(),
-                null
-        );
+        return ProblemDetail.forStatusAndDetail(status, exception.getMessage());
     }
 }

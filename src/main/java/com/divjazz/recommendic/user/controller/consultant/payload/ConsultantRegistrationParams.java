@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.controller.consultant.payload;
 
-import com.divjazz.recommendic.global.validation.annotation.Gender;
 import com.divjazz.recommendic.user.validation.ValidDateOfBirth;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -27,7 +26,6 @@ public record ConsultantRegistrationParams(
         @ValidDateOfBirth
         @Schema(name = "Date Of Birth", example = "13-04-2004", requiredMode = Schema.RequiredMode.REQUIRED)
         String dateOfBirth,
-        @Gender
         @NotEmpty(message = "Gender cannot be empty or null")
         @Schema(name = "Gender", example = "MALE | FEMALE", requiredMode = Schema.RequiredMode.REQUIRED)
         String gender){

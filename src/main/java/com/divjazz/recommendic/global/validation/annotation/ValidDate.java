@@ -1,6 +1,6 @@
-package com.divjazz.recommendic.appointment.validation.schedule.annotation;
+package com.divjazz.recommendic.global.validation.annotation;
 
-import com.divjazz.recommendic.appointment.validation.schedule.ScheduleDateValidator;
+import com.divjazz.recommendic.global.validation.DateValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -9,8 +9,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Target({ElementType.FIELD, ElementType.PARAMETER})
-@Constraint(validatedBy = ScheduleDateValidator.class)
-public @interface ScheduleDate {
+@Constraint(validatedBy = DateValidator.class)
+public @interface ValidDate {
     String message() default "Unable to parse provided date";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

@@ -70,11 +70,11 @@ public class ConsultantIT extends BaseIntegrationTest {
     @Autowired
     private MedicalCategoryService medicalCategoryService;
 
-    public Consultant consultant;
-    public Admin admin;
-    public Role adminRole;
-    public Role consultantRole;
-    public MedicalCategoryEntity medicalCategory;
+    private Consultant consultant;
+    private Admin admin;
+    private Role adminRole;
+    private Role consultantRole;
+    private MedicalCategoryEntity medicalCategory;
     @Autowired
     private ConsultantEducationRepository consultantEducationRepository;
 

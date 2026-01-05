@@ -1,9 +1,10 @@
 package com.divjazz.recommendic.appointment.controller.payload;
 
+import com.divjazz.recommendic.appointment.domain.DaysOfWeek;
 import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
-import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleDate;
-import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleDayOfWeeks;
+import com.divjazz.recommendic.global.validation.annotation.ValidDate;
 import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleRecurrenceRule;
+import com.divjazz.recommendic.global.validation.annotation.ValidEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
@@ -15,11 +16,11 @@ import java.util.Set;
 @ScheduleRecurrenceRule
 public record RecurrenceRuleRequest(
         @NotNull
-        RecurrenceFrequency frequency,
-        @ScheduleDayOfWeeks
-        Set<String> weekDays,
+        @ValidEnum(enumClass = RecurrenceFrequency.class)
+        String frequency,
+        Set<@ValidEnum(enumClass = DaysOfWeek.class) String> weekDays,
         int interval,
-        @ScheduleDate
+        @ValidDate
         String endDate
 ) {
 }

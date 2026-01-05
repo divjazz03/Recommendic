@@ -25,7 +25,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "com.divjazz.recommendic.chat.repository",
         "com.divjazz.recommendic.search.repository",
         "com.divjazz.recommendic.article.repository",
-        "com.divjazz.recommendic.notification.app.repository"
+        "com.divjazz.recommendic.notification.app.repository",
+        "com.divjazz.recommendic.medication.repository"
 })
 @EntityScan(basePackages = {
         "com.divjazz.recommendic.appointment.model",
@@ -37,7 +38,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "com.divjazz.recommendic.chat.model",
         "com.divjazz.recommendic.search.model",
         "com.divjazz.recommendic.article.model",
-        "com.divjazz.recommendic.notification.app.model"
+        "com.divjazz.recommendic.notification.app.model",
+        "com.divjazz.recommendic.medication.model"
 })
 @EnableTransactionManagement
 @EnableAsync

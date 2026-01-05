@@ -19,7 +19,7 @@ public class ScheduleChannelValidation implements ConstraintValidator<ScheduleCh
         if (stringSet == null) return true;
         if (stringSet.isEmpty()) return true;
         try {
-            Set<ConsultationChannel> set = stringSet.stream()
+            var ignored = stringSet.stream()
                     .map(name -> ConsultationChannel.valueOf(name.toUpperCase()))
                     .collect(Collectors.toSet());
             return true;

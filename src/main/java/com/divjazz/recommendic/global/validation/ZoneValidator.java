@@ -1,21 +1,21 @@
-package com.divjazz.recommendic.appointment.validation.schedule;
+package com.divjazz.recommendic.global.validation;
 
-import com.divjazz.recommendic.appointment.validation.schedule.annotation.ScheduleZone;
+import com.divjazz.recommendic.global.validation.annotation.ValidZone;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.DateTimeException;
 import java.util.Objects;
 
-public class ScheduleZoneValidator implements ConstraintValidator<ScheduleZone, String> {
+public class ZoneValidator implements ConstraintValidator<ValidZone, String> {
     @Override
-    public void initialize(ScheduleZone constraintAnnotation) {
+    public void initialize(ValidZone constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);
     }
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        if(Objects.isNull(s)) return true;
+        if(Objects.isNull(s) || s.isBlank()) return true;
         try {
             java.time.ZoneOffset.of(s);
             return true;
