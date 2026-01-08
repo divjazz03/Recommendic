@@ -12,8 +12,6 @@ import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.medication.constants.DurationType;
-import com.divjazz.recommendic.medication.constants.MedicationStatus;
-import com.divjazz.recommendic.medication.mapper.PrescriptionMapper;
 import com.divjazz.recommendic.medication.model.Medication;
 import com.divjazz.recommendic.medication.model.Prescription;
 import com.divjazz.recommendic.medication.repository.PrescriptionRepository;
@@ -31,7 +29,6 @@ import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.MedicalCategoryService;
 import com.divjazz.recommendic.user.service.PatientService;
 import com.divjazz.recommendic.user.service.RoleService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
@@ -180,13 +177,10 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
             Set<Medication> medications = Set.of(Medication.builder()
                     .name("Paracetamol")
                     .dosage("Two tablets")
-                    .condition("Headache")
                     .frequency("Thrice daily")
-                    .consultationDate(startDate)
                     .prescription(prescription)
                     .instructions("Take after meal")
                     .startDate(startDate)
-                    .medicationStatus(MedicationStatus.ONGOING)
                     .endDate(PrescriptionUtils.getEndDate(startDate,
                             2,
                             DurationType.valueOf("WEEK")))
@@ -313,13 +307,10 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
             Set<Medication> medications = Set.of(Medication.builder()
                     .name("Paracetamol")
                     .dosage("Two tablets")
-                    .condition("Headache")
                     .frequency("Thrice daily")
-                    .consultationDate(LocalDate.now())
                     .prescription(prescription)
                     .instructions("Take after meal")
                     .startDate(startDate)
-                    .medicationStatus(MedicationStatus.ONGOING)
                     .endDate(PrescriptionUtils.getEndDate(startDate,
                             2,
                             DurationType.valueOf("WEEK")))

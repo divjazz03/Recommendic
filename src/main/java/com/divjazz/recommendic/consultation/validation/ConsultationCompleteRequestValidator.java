@@ -1,6 +1,7 @@
-package com.divjazz.recommendic.consultation.validation.annotation;
+package com.divjazz.recommendic.consultation.validation;
 
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
+import com.divjazz.recommendic.consultation.validation.annotation.ConsultationCompleteValidationRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

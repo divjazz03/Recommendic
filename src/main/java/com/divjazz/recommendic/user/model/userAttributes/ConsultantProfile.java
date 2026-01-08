@@ -106,10 +106,10 @@ public class ConsultantProfile{
     @Column(name = "available_days_of_week", columnDefinition = "text[]")
     private String[] availableDaysOfWeek ;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JsonBackReference
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", nullable = false)
     private Consultant consultant;
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;

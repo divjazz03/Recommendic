@@ -20,6 +20,7 @@ import com.divjazz.recommendic.consultation.repository.ConsultationSessionReposi
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -130,6 +131,10 @@ public class ConsultationService {
                 .orElseThrow(
                         () -> new EntityNotFoundException("Consultation with id: %s not found".formatted(consultationId))
                 );
+    }
+
+    public Set<PatientMedicalData> getMedicalDataFromOngoingConsultations() {
+        return consultationCustomRepository.getPatientMedicalDataFromOngoingConsultations();
     }
 
     public Set<ReviewDTO> retrieveReviewsByConsultantId(String consultantId) {

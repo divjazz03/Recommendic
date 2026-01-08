@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.medication.dto;
 
-import com.divjazz.recommendic.medication.constants.MedicationStatus;
 
 public record MedicationDTO (
         String id,
@@ -9,7 +8,5 @@ public record MedicationDTO (
         String frequency,
         String startDate,
         String endDate,
-        String instructions,
-        MedicationStatus medicationStatus,
-        String consultationDate
+        String instructions
 ) {}

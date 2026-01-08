@@ -15,13 +15,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
-@Component
-@RequiredArgsConstructor
 public class PatientProfileProjectionTransformer {
 
-    private final ObjectMapper objectMapper;
-
-    public Optional<PatientProfileProjection> transform(ResultSet rs) throws SQLException, JsonProcessingException {
+    public static Optional<PatientProfileProjection> transform(ResultSet rs, ObjectMapper objectMapper) throws SQLException, JsonProcessingException {
         String userId = null;
         UserName userName = null;
         String email = null;

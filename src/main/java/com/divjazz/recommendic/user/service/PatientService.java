@@ -10,6 +10,7 @@ import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
 import com.divjazz.recommendic.user.dto.ConsultantMinimal;
+import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -367,5 +368,10 @@ public class PatientService {
             );
         }
         throw new EntityNotFoundException("No profile for this user");
+    }
+
+    public PatientMedicalData getMedicalData(String patientId) {
+        return patientCustomRepository.getPatientMedicalDataById(patientId)
+                .orElseThrow(() -> new EntityNotFoundException("Medical Data for this patient not found"));
     }
 }

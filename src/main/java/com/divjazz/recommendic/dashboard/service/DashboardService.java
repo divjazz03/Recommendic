@@ -85,7 +85,8 @@ public class DashboardService {
                         appointment.getStartDateAndTime().toString(),
                         appointment.getPatient().getPatientProfile().getAge(),
                         appointment.getConsultationChannel(),
-                        appointment.getHistory().equals(AppointmentHistory.FOLLOW_UP)
+                        appointment.getHistory().equals(AppointmentHistory.FOLLOW_UP),
+                        appointment.getReason()
                 ))
                 .collect(Collectors.toSet());
 

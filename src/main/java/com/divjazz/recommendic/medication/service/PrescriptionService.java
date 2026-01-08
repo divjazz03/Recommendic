@@ -6,8 +6,11 @@ import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.medication.constants.DurationType;
+import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
 import com.divjazz.recommendic.medication.controller.payload.PrescriptionRequest;
+import com.divjazz.recommendic.medication.controller.payload.PatientPrescriptionResponse;
 import com.divjazz.recommendic.medication.controller.payload.PrescriptionResponse;
+import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.medication.mapper.PrescriptionMapper;
 import com.divjazz.recommendic.medication.model.Medication;
 import com.divjazz.recommendic.medication.model.Prescription;
@@ -27,7 +30,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PrescriptionService {
 
     private final PrescriptionRepository prescriptionRepository;
@@ -35,7 +37,7 @@ public class PrescriptionService {
     private final PatientService patientService;
     private final ConsultationService consultationService;
 
-
+    @Transactional
     public PrescriptionResponse createPrescription(PrescriptionRequest request) {
         var currentUser = authUtils.getCurrentUser();
         var isSelfReported = currentUser.userType() == UserType.PATIENT && request.prescribedTo().equals(currentUser.userId());
@@ -66,15 +68,15 @@ public class PrescriptionService {
                 .prescribedTo(patient)
                 .prescriberId(currentUser.userId())
                 .diagnosis(request.diagnosis())
+                .status(PrescriptionStatus.ACTIVE)
+                .notes(request.notes())
                 .build();
         var startDate = LocalDate.now();
         Set<Medication> medications = request.medications().stream()
                 .map(medicationRequest -> Medication.builder()
                         .name(medicationRequest.name())
                         .dosage(medicationRequest.dosage())
-                        .condition(request.diagnosis())
                         .frequency(medicationRequest.medicationFrequency())
-                        .consultationDate(startDate)
                         .prescription(prescription)
                         .instructions(medicationRequest.instructions())
                         .startDate(startDate)
@@ -88,7 +90,7 @@ public class PrescriptionService {
 
         var savedPrescription = prescriptionRepository.save(prescription);
 
-        return PrescriptionMapper.prescriptionToResponse(savedPrescription);
+        return PrescriptionMapper.PatientMapper.prescriptionToResponse(savedPrescription);
 
     }
 
@@ -101,13 +103,13 @@ public class PrescriptionService {
             case PATIENT -> {
                 var prescriptions = prescriptionRepository.findAllByPrescribedTo_UserId(currentUser.userId());
                 yield prescriptions.stream()
-                        .map(PrescriptionMapper::prescriptionToResponse)
+                        .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
                         .collect(Collectors.toSet());
             }
             case CONSULTANT -> {
                 var prescriptions = prescriptionRepository.findAllByPrescriberId(currentUser.userId());
                 yield prescriptions.stream()
-                        .map(PrescriptionMapper::prescriptionToResponse)
+                        .map(PrescriptionMapper.ConsultantMapper::prescriptionToResponse)
                         .collect(Collectors.toSet());
             }
             case ADMIN -> null;
@@ -116,22 +118,38 @@ public class PrescriptionService {
     }
 
     @Transactional(readOnly = true)
-    public Set<PrescriptionResponse> getTodayPrescription() {
+    public Set<PatientPrescriptionResponse> getTodayPrescription() {
         var prescriptions = prescriptionRepository.findPrescriptionsCoinciding(LocalDate.now());
 
         return prescriptions.stream()
-                .map(PrescriptionMapper::prescriptionToResponse)
+                .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
                 .collect(Collectors.toSet());
     }
 
     @Transactional(readOnly = true)
-    public PrescriptionResponse getPrescriptionById(String prescriptionId) {
+    public PatientPrescriptionResponse getPrescriptionById(String prescriptionId) {
         return prescriptionRepository
                 .findPrescriptionByPrescriptionId(prescriptionId)
-                .map(PrescriptionMapper::prescriptionToResponse)
+                .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Prescription not found"));
 
     }
+
+    public PatientMedicalData getPatientMedicalData(String patientId) {
+        return patientService.getMedicalData(patientId);
+    }
+    public Set<PatientMedicalData> getPatientMedicalDataFromOngoingConsultations() {
+        return consultationService.getMedicalDataFromOngoingConsultations();
+    }
+
+
+
+
+
+
+
+
+
 
 
 }

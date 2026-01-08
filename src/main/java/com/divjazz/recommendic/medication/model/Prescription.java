@@ -2,6 +2,7 @@ package com.divjazz.recommendic.medication.model;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.global.Auditable;
+import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
 import com.divjazz.recommendic.user.model.Patient;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,4 +35,11 @@ public class Prescription extends Auditable {
     @JoinColumn (name = "prescribed_to")
     @ManyToOne (optional = false)
     private Patient prescribedTo;
+    @Column (name = "status")
+    @Enumerated(EnumType.STRING)
+    private PrescriptionStatus status;
+    @Column (name = "notes")
+    private String notes;
+
+
 }

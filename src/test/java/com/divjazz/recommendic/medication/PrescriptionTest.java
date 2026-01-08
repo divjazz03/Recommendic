@@ -1,9 +1,10 @@
 package com.divjazz.recommendic.medication;
 
 import com.divjazz.recommendic.medication.constants.DurationType;
+import com.divjazz.recommendic.medication.controller.payload.ConsultantPrescriptionResponse;
 import com.divjazz.recommendic.medication.controller.payload.MedicationRequest;
 import com.divjazz.recommendic.medication.controller.payload.PrescriptionRequest;
-import com.divjazz.recommendic.medication.controller.payload.PrescriptionResponse;
+import com.divjazz.recommendic.medication.controller.payload.PatientPrescriptionResponse;
 import com.divjazz.recommendic.medication.model.Medication;
 import com.divjazz.recommendic.medication.model.Prescription;
 import com.divjazz.recommendic.medication.repository.PrescriptionRepository;
@@ -34,7 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -156,14 +156,12 @@ public class PrescriptionTest {
                                         .endDate(PrescriptionUtils.getEndDate(LocalDate.now(),
                                                 medicationRequest.durationValue(),
                                                 DurationType.valueOf(medicationRequest.durationType())))
-                                        .condition(prescriptionRequest.diagnosis())
                                         .instructions(medicationRequest.instructions())
-                                        .consultationDate(LocalDate.now())
                                         .build()).collect(Collectors.toSet()))
                         .build()
         );
 
-        PrescriptionResponse response = prescriptionService.createPrescription(prescriptionRequest);
+        ConsultantPrescriptionResponse response = (ConsultantPrescriptionResponse) prescriptionService.createPrescription(prescriptionRequest);
 
         then(prescriptionRepository).should(times(1))
                 .save(prescriptionArgumentCaptor.capture());
@@ -200,14 +198,12 @@ public class PrescriptionTest {
                                         .frequency(medicationRequest.medicationFrequency())
                                         .startDate(LocalDate.now())
                                         .endDate(PrescriptionUtils.getEndDate(LocalDate.now(), medicationRequest.durationValue(), DurationType.valueOf(medicationRequest.durationType())))
-                                        .condition(prescriptionRequest.diagnosis())
                                         .instructions(medicationRequest.instructions())
-                                        .consultationDate(LocalDate.now())
                                         .build()).collect(Collectors.toSet()))
                         .build()
         );
 
-        PrescriptionResponse response = prescriptionService.createPrescription(prescriptionRequest);
+        PatientPrescriptionResponse response = (PatientPrescriptionResponse) prescriptionService.createPrescription(prescriptionRequest);
 
         then(prescriptionRepository).should(times(1))
                 .save(prescriptionArgumentCaptor.capture());
@@ -239,9 +235,7 @@ public class PrescriptionTest {
                                 .frequency("Twice daily")
                                 .startDate(LocalDate.now())
                                 .endDate(PrescriptionUtils.getEndDate(LocalDate.now(), 1, DurationType.WEEK))
-                                .condition("Head Ache")
                                 .instructions("Take after meal")
-                                .consultationDate(LocalDate.now())
                                 .build()))
                 .build()));
 
@@ -271,9 +265,7 @@ public class PrescriptionTest {
                                 .frequency("Twice daily")
                                 .startDate(LocalDate.now())
                                 .endDate(PrescriptionUtils.getEndDate(LocalDate.now(), 1, DurationType.WEEK))
-                                .condition("Head Ache")
                                 .instructions("Take after meal")
-                                .consultationDate(LocalDate.now())
                                 .build()))
                 .build()));
 

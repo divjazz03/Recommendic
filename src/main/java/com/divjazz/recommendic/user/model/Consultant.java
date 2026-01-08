@@ -43,7 +43,7 @@ public class Consultant extends User{
     @Column(name = "certified")
     private boolean certified;
 
-    @OneToOne(mappedBy = "consultant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "consultant", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonManagedReference
     private ConsultantProfile profile;
 

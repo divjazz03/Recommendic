@@ -1,7 +1,6 @@
 package com.divjazz.recommendic.medication.model;
 
 import com.divjazz.recommendic.global.Auditable;
-import com.divjazz.recommendic.medication.constants.MedicationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,15 +30,8 @@ public class Medication extends Auditable {
     private LocalDate startDate;
     @Column(name = "end_date")
     private LocalDate endDate;
-    @Column(name = "condition")
-    private String condition;
     @Column(name = "instructions")
     private String instructions;
-    @Column(name = "medicationStatus")
-    @Enumerated(EnumType.STRING)
-    private MedicationStatus medicationStatus;
-    @Column(name = "consultation_date")
-    private LocalDate consultationDate;
     @ManyToOne(optional = false)
     @JoinColumn(name = "prescription_id")
     private Prescription prescription;
