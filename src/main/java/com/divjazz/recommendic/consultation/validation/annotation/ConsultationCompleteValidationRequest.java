@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.consultation.validation.annotation;
 
+import com.divjazz.recommendic.consultation.validation.ConsultationCompleteRequestValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
