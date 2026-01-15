@@ -16,7 +16,7 @@ public final class PrescriptionMapper {
             return new PatientPrescriptionResponse(
                     prescription.getPrescriptionId(),
                     prescription.getDiagnosis(),
-                    prescription.getCreatedAt().toLocalDate().toString(),
+                    prescription.getCreatedAt().toString(),
                     prescription.getStatus(),
                     prescription.getNotes(),
                     prescription.getMedications().stream().map(medication -> new MedicationDTO(
@@ -54,7 +54,7 @@ public final class PrescriptionMapper {
                     )).collect(Collectors.toSet()),
                     prescription.getPrescriberId(),
                     prescription.getConsultation().getAppointment().getConsultant().getProfile().getUserName().getFullName(),
-                    prescription.getCreatedAt().toLocalDate().toString(),
+                    prescription.getCreatedAt().toString(),
                     prescription.getStatus(),
                     prescription.getNotes()
             );
