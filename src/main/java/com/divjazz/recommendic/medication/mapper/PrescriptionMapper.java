@@ -15,6 +15,10 @@ public final class PrescriptionMapper {
         public static PatientPrescriptionResponse prescriptionToResponse(Prescription prescription) {
             return new PatientPrescriptionResponse(
                     prescription.getPrescriptionId(),
+                    prescription.getDiagnosis(),
+                    prescription.getCreatedAt().toLocalDate().toString(),
+                    prescription.getStatus(),
+                    prescription.getNotes(),
                     prescription.getMedications().stream().map(medication -> new MedicationDTO(
                             medication.getMedicationId(),
                             medication.getName(),

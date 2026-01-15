@@ -41,7 +41,6 @@ public class Appointment extends Auditable {
     @Column(name = "date")
     private LocalDate appointmentDate;
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status")
     private AppointmentStatus status;
     @Enumerated(EnumType.STRING)

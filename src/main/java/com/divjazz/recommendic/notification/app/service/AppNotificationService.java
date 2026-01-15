@@ -1,10 +1,10 @@
 package com.divjazz.recommendic.notification.app.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.Cursor;
 import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.notification.app.controller.payload.*;
 import com.divjazz.recommendic.notification.app.dto.NotificationDTO;
-import com.divjazz.recommendic.notification.app.enums.NotificationCategory;
 import com.divjazz.recommendic.notification.app.model.AppNotification;
 import com.divjazz.recommendic.notification.app.model.ConsultantNotificationSetting;
 import com.divjazz.recommendic.notification.app.model.PatientNotificationSetting;
@@ -17,11 +17,10 @@ import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,14 +63,14 @@ public class AppNotificationService {
                 patientNotificationSetting.setPatient(patient);
                 patientNotificationSettingRepository.save(patientNotificationSetting);
             }
-            case null, default -> {
+            default -> {
             }
         }
     }
 
     public Set<NotificationDTO> getLatest5NotificationsForThisUser() {
         var currentUser = authUtils.getCurrentUser();
-        return notificationRepository.findTop5ByForUserId(currentUser.userId())
+        return notificationRepository.findTop5ByForUserIdOrderByNotificationIdDesc(currentUser.userId())
                 .stream()
                 .map(appNotification -> new NotificationDTO(
                         appNotification.getHeader(),
@@ -84,34 +83,52 @@ public class AppNotificationService {
                 )).collect(Collectors.toSet());
     }
 
-    @Transactional
-    public NotificationDTO setNotificationToSeen(Long notificationId) {
-        var notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new EntityNotFoundException("AppNotification with id: %s not found".formatted(notificationId)));
-        notification.setSeen(true);
 
-        return new NotificationDTO(
-                notification.getHeader(),
-                notification.getSummary(),
-                notification.getForUserId(),
-                notification.getSubjectId(),
-                notification.isSeen(),
-                notification.getCategory(),
-                notification.getCreatedAt()
-        );
+    public void setNotificationToSeen(String notificationId) {
+        notificationRepository.setNotificationToSeenById(notificationId);
     }
 
-    public PageResponse<NotificationDTO> getNotificationsForAuthenticatedUser(Pageable pageable) {
-        return PageResponse.from(notificationRepository
-                .findAllByForUserId(authUtils.getCurrentUser().userId(), pageable)
-                .map(appNotification -> new NotificationDTO(appNotification.getHeader(),
-                        appNotification.getSummary(),
-                        appNotification.getForUserId(),
-                        appNotification.getSubjectId(),
-                        appNotification.isSeen(),
-                        appNotification.getCategory(),
-                        appNotification.getCreatedAt())
-                ));
+    public void setAllNotificationToSeen() {
+        var currentUser = authUtils.getCurrentUser();
+        notificationRepository.setAllNotificationToSeenForUserId(currentUser.userId());
+    }
+
+    public List<NotificationResponse> getNotificationsForAuthenticatedUser(Cursor cursor, Pageable pageable) {
+        if (cursor == null) {
+            return notificationRepository.findNextPage(
+                            authUtils.getCurrentUser().userId(), null, null, pageable)
+                    .stream().map(notification ->
+                            new NotificationResponse(
+                                    notification.getNotificationId(),
+                                    notification.getCategory().toString(),
+                                    notification.getSubjectId(),
+                                    notification.getSummary(),
+                                    notification.isSeen(),
+                                    notification.getHeader(),
+                                    notification.getCreatedAt().toString(),
+                                    notification.getCreatedAt(),
+                                    notification.getId()
+
+                            )).toList();
+        }
+        return notificationRepository.findNextPage(
+                authUtils.getCurrentUser().userId(),
+                cursor.createdAt(),
+                cursor.id(),
+                pageable
+        ).stream().map(notification ->
+                new NotificationResponse(
+                        notification.getNotificationId(),
+                        notification.getCategory().toString(),
+                        notification.getSubjectId(),
+                        notification.getSummary(),
+                        notification.isSeen(),
+                        notification.getHeader(),
+                        notification.getCreatedAt().toString(),
+                        notification.getCreatedAt(),
+                        notification.getId()
+
+                )).toList();
     }
 
     public NotificationSettingResponse getNotificationSettingConfiguration() {

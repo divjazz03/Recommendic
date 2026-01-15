@@ -1,20 +1,16 @@
 package com.divjazz.recommendic.global;
 
 
-import com.divjazz.recommendic.user.domain.RequestContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.Instant;
 
 @Getter
 @MappedSuperclass
@@ -36,10 +32,10 @@ public abstract class Auditable {
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     @NotNull
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Override
     public boolean equals(Object o) {

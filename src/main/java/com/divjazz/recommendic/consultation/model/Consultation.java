@@ -30,7 +30,6 @@ public class Consultation extends Auditable {
     private String summary;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConsultationStatus consultationStatus;
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -38,7 +37,6 @@ public class Consultation extends Auditable {
     private LocalDateTime endedAt;
     @Column (name = "channel")
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConsultationChannel channel;
     @Column(name = "consultation_id", updatable = false, insertable = false)
     @org.hibernate.annotations.Generated(event = EventType.INSERT)

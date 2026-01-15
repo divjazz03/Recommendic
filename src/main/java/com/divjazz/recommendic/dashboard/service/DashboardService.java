@@ -49,7 +49,8 @@ public class DashboardService {
                         appointment.getConsultant().getProfile().getUserName().getFullName(),
                         appointment.getConsultant().getSpecialization().getName(),
                         appointment.getStartDateAndTime().toString(),
-                        appointment.getConsultationChannel()
+                        appointment.getConsultationChannel(),
+                        appointment.getStatus()
                 ))
                 .collect(Collectors.toSet());
         Set<PatientDashboardResponse.RecentActivity> recentActivities = appNotificationService.getLatest5NotificationsForThisUser()
@@ -86,7 +87,9 @@ public class DashboardService {
                         appointment.getPatient().getPatientProfile().getAge(),
                         appointment.getConsultationChannel(),
                         appointment.getHistory().equals(AppointmentHistory.FOLLOW_UP),
-                        appointment.getReason()
+                        appointment.getReason(),
+                        appointment.getStatus()
+
                 ))
                 .collect(Collectors.toSet());
 

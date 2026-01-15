@@ -16,7 +16,7 @@ import org.hibernate.type.SqlTypes;
 @Setter
 public class AppNotification extends Auditable {
     @Column(name = "notification_id", updatable = false, insertable = false)
-    private String notification_id;
+    private String notificationId;
     @Column(name = "header")
     private String header;
     @Column(name = "summary")

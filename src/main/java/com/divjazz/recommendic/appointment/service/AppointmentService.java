@@ -240,7 +240,7 @@ public class AppointmentService {
     }
 
     public Set<Appointment> getTodayAppointmentByConsultantId(String consultantId) {
-        return appointmentRepository.findAllByConsultant_UserIdAndAppointmentDate(consultantId, LocalDate.now());
+        return appointmentRepository.findAllByConsultant_UserIdAndAppointmentDateAndStatus(consultantId, LocalDate.now(), AppointmentStatus.CONFIRMED);
     }
 
     public int getCountAppointmentByConsultantIdAndDate(String consultantId, LocalDate date) {

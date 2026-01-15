@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.dashboard.controller.payload;
 
+import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.notification.app.enums.NotificationCategory;
 
@@ -16,7 +17,8 @@ public record PatientDashboardResponse(
             String consultantFullName,
             String specialty,
             String dateTime,
-            ConsultationChannel channel
+            ConsultationChannel channel,
+            AppointmentStatus status
     ){}
     public record RecentActivity(
             String title,

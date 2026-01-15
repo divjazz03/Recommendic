@@ -62,7 +62,7 @@ public class AppAppNotificationServiceTest {
                 .build();
         given(notificationRepository.findById(anyLong())).willReturn(Optional.of(notification));
 
-        var result = appNotificationService.setNotificationToSeen(1L);
+        var result = appNotificationService.setNotificationToSeen("1L");
         assertThat(result.seen()).isTrue();
 
     }
@@ -72,6 +72,6 @@ public class AppAppNotificationServiceTest {
         given(notificationRepository.findById(anyLong())).willReturn(Optional.empty());
 
         assertThatExceptionOfType(EntityNotFoundException.class)
-                .isThrownBy(() -> appNotificationService.setNotificationToSeen(1L));
+                .isThrownBy(() -> appNotificationService.setNotificationToSeen("1L"));
     }
 }
