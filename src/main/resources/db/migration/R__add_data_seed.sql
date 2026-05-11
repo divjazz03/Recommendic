@@ -147,7 +147,7 @@ INSERT INTO schedule_slot (
 SELECT
     c.id,
     '09:00','11:00','+01:00',
-    ARRAY['ONLINE'::session_channel,'IN_PERSON'::session_channel],
+    ARRAY['ONLINE','IN_PERSON'],
     'Default Slot',
     TRUE,
     'SEED','SEED'

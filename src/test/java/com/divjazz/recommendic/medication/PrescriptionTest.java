@@ -211,7 +211,7 @@ public class PrescriptionTest {
         Prescription prescription = prescriptionArgumentCaptor.getValue();
         assertThat(prescription.isSelfReported()).isTrue();
         assertThat(response.medications()).hasSizeGreaterThan(0);
-        assertThat(response.prescriberId()).isEqualTo(authenticatedPatientId);
+        assertThat(response.prescribedBy()).isEqualTo(authenticatedPatientId);
 
     }
 

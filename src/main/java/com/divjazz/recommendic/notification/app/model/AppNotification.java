@@ -25,7 +25,6 @@ public class AppNotification extends Auditable {
     private String forUserId;
     @Column(name = "seen")
     private boolean seen;
-    @JdbcTypeCode(value = SqlTypes.NAMED_ENUM)
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
     private NotificationCategory category;

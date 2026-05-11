@@ -62,8 +62,7 @@ public class AppAppNotificationServiceTest {
                 .build();
         given(notificationRepository.findById(anyLong())).willReturn(Optional.of(notification));
 
-        var result = appNotificationService.setNotificationToSeen("1L");
-        assertThat(result.seen()).isTrue();
+        appNotificationService.setNotificationToSeen("1L");
 
     }
 

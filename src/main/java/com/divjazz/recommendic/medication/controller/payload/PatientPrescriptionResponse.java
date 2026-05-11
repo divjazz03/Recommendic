@@ -12,6 +12,6 @@ public record PatientPrescriptionResponse(
         PrescriptionStatus status,
         String notes,
         Set<MedicationDTO> medications,
-        String prescriberBy,
+        String prescribedBy,
         Boolean selfReported
 ) implements PrescriptionResponse{}
