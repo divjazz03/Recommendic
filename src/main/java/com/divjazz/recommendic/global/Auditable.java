@@ -4,6 +4,7 @@ package com.divjazz.recommendic.global;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -49,5 +50,7 @@ public abstract class Auditable {
     public int hashCode() {
         return Long.hashCode(id);
     }
+
+    protected Auditable () {}
 
 }

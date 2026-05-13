@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.consultation.dto;
 
+import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
@@ -13,8 +15,8 @@ public record ConsultationResponse(
         String patientName,
         String consultantName,
         String consultationId,
-        String status,
-        String channel,
+        ConsultationStatus status,
+        ConsultationChannel channel,
         PatientData patientData
 ) {
 }

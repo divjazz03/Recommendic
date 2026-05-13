@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,12 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public AuthController.CurrentUser me(AuthenticatedPrincipal authenticatedPrincipal) {
+        SessionUser principal = (SessionUser) authenticatedPrincipal;
+        return new AuthController.CurrentUser(principal.getEmail());
+    }
 
     @PostMapping("/login")
     @Operation(summary = "Log User in")

@@ -16,16 +16,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 
 public class RequestUtils {
-
-    private static final BiFunction<Exception, HttpStatusCode, String> errorReason = (exception, httpStatus) -> {
-        if (httpStatus.isSameCodeAs(HttpStatus.FORBIDDEN))
-            return "You do not have enough permission";
-        if (httpStatus.is5xxServerError())
-            return "An Internal server error occurred";
-        else
-            return exception.getMessage();
-    };
-
     public static<T> Response<T> getResponse(
                                        T data,
                                        HttpStatusCode status) {

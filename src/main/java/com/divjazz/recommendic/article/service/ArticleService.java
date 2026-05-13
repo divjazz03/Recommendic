@@ -38,6 +38,7 @@ public class ArticleService {
     private final ApplicationEventPublisher eventPublisher;
     private final ArticleRepositoryCustom articleRepositoryCustom;
     private final ConsultantService consultantService;
+    private final ArticleMapper articleMapper;
 
     @Transactional
     public ArticleDTO uploadArticle(ArticleUpload articleUpload) {
@@ -52,17 +53,7 @@ public class ArticleService {
                 articleUpload.tags());
         articleRepository.save(article);
 
-        return new ArticleDTO(
-                article.getTitle(),
-                article.getSubtitle(),
-                article.getContent(),
-                article.getTags(),
-                article.getLikeUserIds().length,
-                consultant.getProfile().getUserName().getFirstName(),
-                article.getNumberOfReads(),
-                article.getPublished_at() == null ? null
-                        : article.getPublished_at().toString()
-                );
+        return articleMapper.articleToArticleDTO(article);
     }
 
     @Cacheable(value = "article_search", keyGenerator = "customCacheKeyGenerator")
@@ -103,7 +94,7 @@ public class ArticleService {
             ArticleEvent articleEvent = new ArticleEvent(authUtils.getCurrentUser(), EventType.ARTICLE_PATIENT_REQUESTED, article);
             eventPublisher.publishEvent(articleEvent);
         }
-        return ArticleMapper.articleToArticleDTO(article);
+        return articleMapper.articleToArticleDTO(article);
     }
 
 

@@ -21,6 +21,7 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.mapper.ConsultantMapper;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.UserConfirmation;
@@ -73,6 +74,7 @@ public class ConsultantService {
     private final AppNotificationService appNotificationService;
     private final SecurityService securityService;
     private final CertificationRepository certificationRepository;
+    private final ConsultantMapper consultantMapper;
 
     private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
         Address addressToChange = consultant.getProfile().getAddress();
@@ -131,15 +133,7 @@ public class ConsultantService {
             applicationEventPublisher.publishEvent(userEvent);
             appNotificationService.createNotificationSetting(savedConsultant);
             securityService.createUserSetting(savedConsultant);
-            return new ConsultantInfoResponse(
-                    savedConsultant.getUserId(),
-                    savedConsultant.getProfile().getUserName().getLastName(),
-                    savedConsultant.getProfile().getUserName().getFirstName(),
-                    savedConsultant.getGender().toString(),
-                    savedConsultant.getProfile().getAge(),
-                    savedConsultant.getProfile().getAddress(),
-                    null
-            );
+            return consultantMapper.toInfoResponse(savedConsultant);
         } else {
             throw new UserAlreadyExistsException(consultantRegistrationParams.email());
         }
@@ -148,7 +142,7 @@ public class ConsultantService {
     @Transactional(readOnly = true)
     public PageResponse<ConsultantInfoResponse> getAllConsultants(Pageable pageable) {
         return PageResponse.from(
-                consultantRepository.findAll(pageable).map(this::toConsultantInfoResponse)
+                consultantRepository.findAll(pageable).map(consultantMapper::toInfoResponse)
         );
     }
 
@@ -175,18 +169,6 @@ public class ConsultantService {
                 .collect(Collectors.toSet());
     }
 
-    public ConsultantInfoResponse toConsultantInfoResponse(Consultant consultant) {
-        return new ConsultantInfoResponse(
-                consultant.getUserId(),
-                consultant.getProfile().getUserName().getLastName(),
-                consultant.getProfile().getUserName().getFirstName(),
-                consultant.getGender().toString(),
-                consultant.getProfile().getAge(),
-                consultant.getProfile().getAddress(),
-                consultant.getSpecialization() == null ? null : consultant.getSpecialization().getName()
-        );
-    }
-
     public ConsultantInfoResponse toConsultantInfoResponse(ConsultantInfoProjection consultantInfoProjection) {
         return new ConsultantInfoResponse(
                 consultantInfoProjection.consultantId(),
@@ -197,11 +179,6 @@ public class ConsultantService {
                 objectMapper.convertValue(consultantInfoProjection.address(), Address.class),
                 consultantInfoProjection.medicalSpecialization()
         );
-    }
-
-    public ConsultantProfile getConsultantProfile(Consultant consultant) {
-        return consultantProfileRepository.findById(consultant.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
     }
 
     public ConsultantProfile getConsultantProfileByConsultantId(String id) {
@@ -302,7 +279,7 @@ public class ConsultantService {
 
     public ConsultantInfoResponse getConsultantInfoByUserId(String userId) {
         return consultantRepository.findByUserId(userId)
-                .map(this::toConsultantInfoResponse)
+                .map(consultantMapper::toInfoResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
     }
 
@@ -413,15 +390,15 @@ public class ConsultantService {
                             .map(ProfilePicture::getPictureUrl).orElse(null))
                     .build();
 
-            ConsultantEducationResponse educationResponse = consultantProfile.educations().stream()
+            Set<ConsultantEducationResponse> educations = consultantProfile.educations().stream()
                     .map(consultantEducation -> new ConsultantEducationResponse(
                             String.valueOf(consultantEducation.year()),
                             consultantEducation.institution(),
-                            consultantEducation.degree())).findAny().orElse(null);
+                            consultantEducation.degree())).collect(Collectors.toSet());
 
             return new ConsultantProfileDetails(
                     consultantProfileDetails,
-                    educationResponse
+                    educations
             );
 
         }
@@ -528,11 +505,11 @@ public class ConsultantService {
 
         return new ConsultantProfileDetails(
                 consultantProfile,
-                new ConsultantEducationResponse(
+                Set.of(new ConsultantEducationResponse(
                         String.valueOf(consultantEducation.getYear()),
                         consultantEducation.getInstitution(),
                         consultantEducation.getDegree()
-                )
+                ))
         );
 
     }

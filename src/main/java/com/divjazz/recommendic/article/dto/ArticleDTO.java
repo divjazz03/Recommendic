@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.article.dto;
 
+import com.divjazz.recommendic.article.enums.ArticleStatus;
+
 public record ArticleDTO(
         String title,
         String subtitle,
@@ -8,7 +10,8 @@ public record ArticleDTO(
         long likes,
         String authorFullName,
         long reads,
-        String published_at
+        String published_at,
+        ArticleStatus status
 
 ) {
 

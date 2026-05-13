@@ -37,12 +37,13 @@ public class SearchService {
     private final SearchRepository searchRepository;
     private final ConsultantService consultantService;
     private final GeneralUserService userService;
-    private final PatientService patientService;
+    private final AppointmentMapper appointmentMapper;
     private final ConsultationService consultationService;
     private final AppointmentService appointmentService;
     private final ArticleService articleService;
     private final AdminService adminService;
     private final AuthUtils authUtils;
+    private final ConsultationMapper consultationMapper;
 
 
     /**
@@ -82,10 +83,10 @@ public class SearchService {
                                 Pageable.ofSize(10)
                         );
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentToDTO)
+                                .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toUnmodifiableSet());
                         Set<ConsultationResponse> consultationsResult = consultations
-                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .map(consultationMapper::consultationToConsultationResponse)
                                 .limit(10).collect(Collectors.toUnmodifiableSet());
 
                         Set<ConsultantInfoResponse> consultants = consultantService.searchSomeConsultantsByQuery(query);
@@ -100,7 +101,7 @@ public class SearchService {
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
-                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .map(consultationMapper::consultationToConsultationResponse)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
@@ -119,7 +120,7 @@ public class SearchService {
                     case APPOINTMENT -> {
                         var appointments = appointmentService.getAppointmentsByPatientId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentToDTO)
+                                .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toSet());
 
                         results.add(
@@ -138,10 +139,10 @@ public class SearchService {
                         var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.userId());
                         var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentToDTO)
+                                .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toSet());
                         Set<ConsultationResponse> consultationsResult = consultations
-                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .map(consultationMapper::consultationToConsultationResponse)
                                 .collect(Collectors.toSet());
 
                         results.addAll(Set.of(
@@ -153,7 +154,7 @@ public class SearchService {
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
-                                .map(ConsultationMapper::consultationToConsultationResponse)
+                                .map(consultationMapper::consultationToConsultationResponse)
                                 .collect(Collectors.toSet());
 
                         results.add(
@@ -163,7 +164,7 @@ public class SearchService {
                     case APPOINTMENT -> {
                         var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
-                                .map(AppointmentMapper::appointmentToDTO)
+                                .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.APPOINTMENT, appointmentDTOSet));
                     }

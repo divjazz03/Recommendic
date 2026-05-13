@@ -51,7 +51,7 @@ public class RecommendicApplication {
     public RecommendicApplication() {
     }
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         SpringApplication.run(RecommendicApplication.class, args);
     }
 

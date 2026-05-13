@@ -99,6 +99,9 @@ public class AuthFilter extends BaseAuthFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         if (request.getMethod().equalsIgnoreCase("OPTIONS")) return true;
+        if (antPathMatcher.match("/api/v1/auth/me", request.getRequestURI())) {
+            return false;
+        }
         return WebSecurityConfig.getWHITELIST_PATHS().stream()
                 .anyMatch(skipPath -> antPathMatcher.match(skipPath, request.getRequestURI()))
                 || WebSecurityConfig.getNoAuthPostPaths().stream()

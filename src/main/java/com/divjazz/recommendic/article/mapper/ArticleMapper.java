@@ -2,20 +2,25 @@ package com.divjazz.recommendic.article.mapper;
 
 import com.divjazz.recommendic.article.dto.ArticleDTO;
 import com.divjazz.recommendic.article.model.Article;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-public class ArticleMapper {
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.WARN)
+public interface ArticleMapper {
 
-    public static ArticleDTO articleToArticleDTO(Article article) {
-
-        return new ArticleDTO(
-                article.getTitle(),
-                article.getSubtitle(),
-                article.getContent(),
-                null,//article.getTags(),
-                0L, //article.getLikeUserIds().length,
-                "",
-                article.getNumberOfReads(),
-                article.getPublished_at().toString()
-        );
-    }
+    @Mapping(target = "likes", expression = "java(article.getLikeUserIds().length)")
+    @Mapping(target = "authorFullName",
+            expression = """
+                    java(
+                        article.getConsultant().getProfile().getTitle()
+                        + " "
+                        + article.getConsultant()
+                                     .getProfile()
+                                     .getUserName()
+                                     .getFullName()
+                    )
+                    """)
+    @Mapping(target = "reads", source = "numberOfReads")
+    ArticleDTO articleToArticleDTO(Article article);
 }

@@ -50,6 +50,7 @@ public class ScheduleService {
     private final AppointmentService appointmentService;
     private final ObjectMapper objectMapper;
     private final AvailabilityService availabilityService;
+    private final ScheduleMapper scheduleMapper;
 
 
     @Transactional
@@ -85,7 +86,7 @@ public class ScheduleService {
 
         schedules = scheduleRepository.saveAll(schedules);
 
-        return ScheduleMapper.toScheduleResponseDTO(schedules.getFirst());
+        return scheduleMapper.toScheduleResponseDTO(schedules.getFirst());
     }
 
     private void verifyScheduleDoesNotConflictWithOthers(RecurrenceRule recurrenceRule, Schedule schedule) {
@@ -132,7 +133,7 @@ public class ScheduleService {
     public ScheduleResponseDTO getScheduleById(String id) {
         var schedule = scheduleRepository
                 .findByScheduleId(id).orElseThrow(() -> new EntityNotFoundException("Schedule with id %s not found".formatted(id)));
-        return ScheduleMapper.toScheduleResponseDTO(schedule);
+        return scheduleMapper.toScheduleResponseDTO(schedule);
     }
 
     public ConsultantSchedulesResponse getSchedulesByConsultantIdHandler(String consultantId, String date) {
@@ -168,7 +169,7 @@ public class ScheduleService {
                 .map(schedule -> {
                     var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForSchedule(schedule);
                     return new ScheduleWithAppointmentDetail(
-                            ScheduleMapper.toScheduleResponseDTO(schedule),
+                            scheduleMapper.toScheduleResponseDTO(schedule),
                             appointmentDateAndTime
                     );
                 }).toList();
@@ -181,7 +182,7 @@ public class ScheduleService {
                         schedule -> {
                             var appointmentDateAndTime = appointmentService.getAppointmentDatesAndTimeForScheduleAndDate(schedule, date);
                             return new ScheduleWithAppointmentDetail(
-                                    ScheduleMapper.toScheduleResponseDTO(schedule),
+                                    scheduleMapper.toScheduleResponseDTO(schedule),
                                     appointmentDateAndTime
                             );
                         }).toList();
@@ -218,7 +219,7 @@ public class ScheduleService {
                     modificationRequest.recurrenceRule().endDate()));
         }
 
-        return ScheduleMapper.toScheduleResponseDTO(schedule);
+        return scheduleMapper.toScheduleResponseDTO(schedule);
     }
 
     private ConsultationChannel[] toConsultationChannels(Set<String> consultationChannelStrings) {

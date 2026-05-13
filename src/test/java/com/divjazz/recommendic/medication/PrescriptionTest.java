@@ -1,5 +1,8 @@
 package com.divjazz.recommendic.medication;
 
+import com.divjazz.recommendic.appointment.model.Appointment;
+import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.medication.constants.DurationType;
 import com.divjazz.recommendic.medication.controller.payload.ConsultantPrescriptionResponse;
 import com.divjazz.recommendic.medication.controller.payload.MedicationRequest;
@@ -16,6 +19,7 @@ import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
@@ -75,6 +79,9 @@ public class PrescriptionTest {
     private AuthUtils authUtils;
     @Mock
     private PatientService patientService;
+
+    @Mock
+    private ConsultationService consultationService;
     @Mock
     private PrescriptionRepository prescriptionRepository;
     @InjectMocks
@@ -136,9 +143,19 @@ public class PrescriptionTest {
                 Gender.FEMALE,
                 null,
                 null);
+        Consultant consultant = new Consultant("conultantEmail", Gender.MALE, null, null);
+        consultant.setUserId(authenticatedConsultantId);
+        Appointment appointment = Appointment.builder()
+                .consultant(consultant)
+                .patient(patient)
+                .build();
+        Consultation consultation = Consultation.builder()
+                .appointment(appointment)
+                .build();
         patient.setUserId(prescriptionRequest.prescribedTo());
         given(authUtils.getCurrentUser()).willReturn(authenticatedConsultant);
         given(patientService.findPatientByUserId(anyString())).willReturn(patient);
+        given(consultationService.getConsultationById(anyString())).willReturn(consultation);
         given(prescriptionRepository.save(any(Prescription.class))).willReturn(
                 Prescription.builder()
                         .prescriptionId("%s-%s".formatted("PRX", UUID.randomUUID()))
@@ -160,6 +177,7 @@ public class PrescriptionTest {
                                         .build()).collect(Collectors.toSet()))
                         .build()
         );
+
 
         ConsultantPrescriptionResponse response = (ConsultantPrescriptionResponse) prescriptionService.createPrescription(prescriptionRequest);
 

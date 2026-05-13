@@ -29,7 +29,6 @@ public class UserPrincipal implements UserDetails {
     private String email;
     @ManyToOne
     @JoinColumn(name = "role")
-
     private Role role;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")

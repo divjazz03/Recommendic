@@ -5,33 +5,42 @@ import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
 import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-public class ConsultationMapper {
-
-    public static ConsultationResponse consultationToConsultationResponse(ConsultationProjection consultationProjection) {
-        var patientName = consultationProjection.patientProfile().getUserName();
-        var consultantName = consultationProjection.consultantProfile().getUserName();
-        return new ConsultationResponse(
-                consultationProjection.summary(),
-                consultationProjection.startedAt().toString(),
-                patientName.getFullName(),
-                consultantName.getFullName(),
-                consultationProjection.id(),
-                consultationProjection.consultationStatus().toString(),
-                consultationProjection.appointment().getConsultationChannel().toString(),
-                null
-        );
-    }
-    public static ConsultationResponse consultationToConsultationResponse(Consultation consultation) {
-        return new ConsultationResponse(
-                consultation.getSummary(),
-                consultation.getStartedAt().toString(),
-                consultation.getAppointment().getPatient().getPatientProfile().getUserName().getFullName(),
-                consultation.getAppointment().getConsultant().getProfile().getUserName().getFullName(),
-                consultation.getConsultationId(),
-                consultation.getConsultationStatus().toString(),
-                consultation.getAppointment().getConsultationChannel().toString(),
-                null
-        );
-    }
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.WARN)
+public interface ConsultationMapper {
+    @Mapping(target = "startTime", source = "startedAt")
+    @Mapping(target = "status", source = "consultationStatus")
+    @Mapping(target = "patientName",
+            source = "appointment.patient.patientProfile.userName.fullName")
+    @Mapping(target = "consultantName",
+            expression = """
+                    java(
+                        consultationProjection.appointment().getConsultant().getProfile().getTitle()
+                        + " "
+                        + consultationProjection.appointment().getConsultant()
+                                     .getProfile()
+                                     .getUserName()
+                                     .getFullName()
+                    )
+                    """)
+    ConsultationResponse consultationToConsultationResponse(ConsultationProjection consultationProjection);
+    @Mapping(target = "startTime", source = "startedAt")
+    @Mapping(target = "status", source = "consultationStatus")
+    @Mapping(target = "patientName",
+    source = "consultation.appointment.patient.patientProfile.userName.fullName")
+    @Mapping(target = "consultantName",
+            expression = """
+                    java(
+                        consultation.getAppointment().getConsultant().getProfile().getTitle()
+                        + " "
+                        + consultation.getAppointment().getConsultant()
+                                     .getProfile()
+                                     .getUserName()
+                                     .getFullName()
+                    )
+                    """)
+    ConsultationResponse consultationToConsultationResponse(Consultation consultation);
 }

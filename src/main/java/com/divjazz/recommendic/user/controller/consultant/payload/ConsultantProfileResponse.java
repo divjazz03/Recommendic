@@ -6,12 +6,8 @@ import com.divjazz.recommendic.user.model.userAttributes.UserName;
 
 public record ConsultantProfileResponse(
         UserName userName,
-
         String phoneNumber,
-
-
         Address address,
-
         ProfilePicture profilePicture
 ) {
 }

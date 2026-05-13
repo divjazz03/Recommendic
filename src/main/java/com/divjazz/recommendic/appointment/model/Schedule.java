@@ -51,8 +51,5 @@ public class Schedule extends Auditable {
     @Type(JsonBinaryType.class)
     private RecurrenceRule recurrenceRule;
     @Column (name = "is_active")
-    boolean isActive;
-
-
-
+    private boolean isActive;
 }

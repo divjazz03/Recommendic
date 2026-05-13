@@ -37,11 +37,6 @@ public class UserController {
         Map<String, Object> response = userService.retrieveCurrentUser();
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/me")
-    public AuthController.CurrentUser me() {
-        SessionUser principal = (SessionUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return new AuthController.CurrentUser(principal.getEmail());
-    }
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CurrentUser(String userId, String role, UserType userType, UserStage userStage){}
 

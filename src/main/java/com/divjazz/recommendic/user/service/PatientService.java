@@ -17,6 +17,7 @@ import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
+import com.divjazz.recommendic.user.mapper.PatientMapper;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.UserConfirmation;
@@ -66,6 +67,7 @@ public class PatientService {
     private final PatientCustomRepository patientCustomRepository;
     private final AppNotificationService appNotificationService;
     private final SecurityService securityService;
+    private final PatientMapper patientMapper;
 
     private static Address getAddressToChange(PatientProfileUpdateRequest updateRequest, Patient patient) {
         Address addressToChange = patient.getPatientProfile().getAddress();
@@ -129,13 +131,7 @@ public class PatientService {
             appNotificationService.createNotificationSetting(savedPatient);
             securityService.createUserSetting(savedPatient);
             log.info("New user with id {} created", user.getUserId());
-            return new PatientInfoResponse(
-                    user.getUserId(),
-                    patientProfile.getUserName().getLastName(),
-                    patientProfile.getUserName().getFirstName(),
-                    patientProfile.getAge(),
-                    user.getGender().toString(),
-                    patientProfile.getAddress());
+            return patientMapper.toInfoResponse(savedPatient);
         } else {
             throw new UserAlreadyExistsException(patientRegistrationParams.email());
         }
@@ -143,12 +139,12 @@ public class PatientService {
 
     @Transactional(readOnly = true)
     public PageResponse<PatientInfoResponse> getAllPatients(Pageable pageable) {
-        return PageResponse.from(patientRepository.findAll(pageable).map(this::toPatientInfoResponse));
+        return PageResponse.from(patientRepository.findAll(pageable).map(patientMapper::toInfoResponse));
     }
 
     @Transactional(readOnly = true)
     public PatientInfoResponse getPatientDetailById(String userId) {
-        return toPatientInfoResponse(findPatientByUserId(userId));
+        return patientMapper.toInfoResponse(findPatientByUserId(userId));
     }
 
     @Transactional
@@ -343,16 +339,6 @@ public class PatientService {
                 Optional.ofNullable(patient.getPatientProfile().getLifeStyleInfo()).map(LifeStyleInfo::toDTO).orElse(null),
                 patient.getPatientProfile().getProfilePicture().getPictureUrl()
         );
-    }
-
-    private PatientInfoResponse toPatientInfoResponse(Patient patient) {
-        return new PatientInfoResponse(
-                patient.getUserId(),
-                patient.getPatientProfile().getUserName().getLastName(),
-                patient.getPatientProfile().getUserName().getFirstName(),
-                patient.getPatientProfile().getAge(),
-                patient.getGender().toString(),
-                patient.getPatientProfile().getAddress());
     }
 
     public PatientProfileResponse getThisPatientProfile() {

@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.model.userAttributes;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -108,7 +109,7 @@ public class ConsultantProfile{
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
-    @JsonBackReference
+    @JsonIgnore
     @JoinColumn(name = "id", nullable = false)
     private Consultant consultant;
     @Column(name = "date_of_birth")

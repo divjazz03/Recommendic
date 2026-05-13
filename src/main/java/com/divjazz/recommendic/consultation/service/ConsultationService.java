@@ -44,6 +44,7 @@ public class ConsultationService {
     private final AuthUtils authUtils;
     private final ConsultationSessionRepository consultationSessionRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ConsultationMapper consultationMapper;
 
 
     @Transactional
@@ -75,7 +76,7 @@ public class ConsultationService {
         consultation = consultationRepository.save(consultation);
         ConsultationSession consultationSession = new ConsultationSession(appointment.getPatient(), appointment.getConsultant(), consultation);
         consultationSessionRepository.save(consultationSession);
-        return ConsultationMapper.consultationToConsultationResponse(consultation);
+        return consultationMapper.consultationToConsultationResponse(consultation);
     }
 
     @Transactional
@@ -113,7 +114,7 @@ public class ConsultationService {
             );
             applicationEventPublisher.publishEvent(event);
         }
-        return ConsultationMapper.consultationToConsultationResponse(consultation);
+        return consultationMapper.consultationToConsultationResponse(consultation);
     }
 
     @Transactional(readOnly = true)

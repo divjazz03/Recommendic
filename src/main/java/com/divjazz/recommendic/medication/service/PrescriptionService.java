@@ -10,6 +10,8 @@ import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
 import com.divjazz.recommendic.medication.controller.payload.PrescriptionRequest;
 import com.divjazz.recommendic.medication.controller.payload.PatientPrescriptionResponse;
 import com.divjazz.recommendic.medication.controller.payload.PrescriptionResponse;
+import com.divjazz.recommendic.medication.mapper.ConsultantPrescriptionMapper;
+import com.divjazz.recommendic.medication.mapper.PatientPrescriptionMapper;
 import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.medication.mapper.PrescriptionMapper;
 import com.divjazz.recommendic.medication.model.Medication;
@@ -21,6 +23,7 @@ import com.divjazz.recommendic.user.enums.UserType;
 import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,8 @@ public class PrescriptionService {
     private final AuthUtils authUtils;
     private final PatientService patientService;
     private final ConsultationService consultationService;
+    private final PatientPrescriptionMapper patientPrescriptionMapper;
+    private final ConsultantPrescriptionMapper consultantPrescriptionMapper;
 
     @Transactional
     public PrescriptionResponse createPrescription(PrescriptionRequest request) {
@@ -90,7 +95,7 @@ public class PrescriptionService {
 
         var savedPrescription = prescriptionRepository.save(prescription);
 
-        return PrescriptionMapper.PatientMapper.prescriptionToResponse(savedPrescription);
+        return patientPrescriptionMapper.prescriptionToResponse(savedPrescription);
 
     }
 
@@ -103,13 +108,13 @@ public class PrescriptionService {
             case PATIENT -> {
                 var prescriptions = prescriptionRepository.findAllByPrescribedTo_UserId(currentUser.userId());
                 yield prescriptions.stream()
-                        .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
+                        .map(patientPrescriptionMapper::prescriptionToResponse)
                         .collect(Collectors.toSet());
             }
             case CONSULTANT -> {
                 var prescriptions = prescriptionRepository.findAllByPrescriberId(currentUser.userId());
                 yield prescriptions.stream()
-                        .map(PrescriptionMapper.ConsultantMapper::prescriptionToResponse)
+                        .map(consultantPrescriptionMapper::prescriptionToResponse)
                         .collect(Collectors.toSet());
             }
             case ADMIN -> null;
@@ -122,7 +127,7 @@ public class PrescriptionService {
         var prescriptions = prescriptionRepository.findPrescriptionsCoinciding(LocalDate.now());
 
         return prescriptions.stream()
-                .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
+                .map(patientPrescriptionMapper::prescriptionToResponse)
                 .collect(Collectors.toSet());
     }
 
@@ -130,7 +135,7 @@ public class PrescriptionService {
     public PatientPrescriptionResponse getPrescriptionById(String prescriptionId) {
         return prescriptionRepository
                 .findPrescriptionByPrescriptionId(prescriptionId)
-                .map(PrescriptionMapper.PatientMapper::prescriptionToResponse)
+                .map(patientPrescriptionMapper::prescriptionToResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Prescription not found"));
 
     }

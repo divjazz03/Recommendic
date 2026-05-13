@@ -31,7 +31,7 @@ public class CloudinaryService {
                 "folder", folder
         );
 
-        String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret);
+        String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret, cloudinary.config.signatureVersion);
 
         return new UploadSignature(timeStamp,signature,cloudinary.config.apiKey, publicId, cloudinary.config.cloudName, folder);
     }
@@ -48,7 +48,7 @@ public class CloudinaryService {
                     "folder", folder
             );
 
-            String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret);
+            String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret, cloudinary.config.signatureVersion);
 
             return new UploadSignature(timeStamp,signature,cloudinary.config.apiKey, publicId, cloudinary.config.cloudName, folder);
         }).collect(Collectors.toSet());

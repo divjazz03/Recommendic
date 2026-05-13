@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.patient.payload;
 
+import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -9,7 +10,7 @@ public record PatientInfoResponse(
         String lastName,
         String firstName,
         String age,
-        String gender,
+        Gender gender,
         Address address
 ) {
 }
