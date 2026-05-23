@@ -27,10 +27,4 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     select from retrievetoparticles(:size, :page)
     """, nativeQuery = true)
     Set<ArticleSearchDTO> queryTopArticle(@Param("size") int size, @Param("page") int page);
-
-    @Query(value = """
-        select from recommendArticlesForPatient(:patient_id, :size, :page)
-    """, nativeQuery = true)
-    Set<ArticleSearchDTO> recommendArticleToPatient(@Param("patient_id") Long patientId,  @Param("size") int size, @Param("page") int page);
-
 }

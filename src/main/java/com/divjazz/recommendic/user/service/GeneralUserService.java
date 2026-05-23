@@ -4,10 +4,12 @@ import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.user.controller.UserController;
-import com.divjazz.recommendic.user.domain.RequestContext;
+import com.divjazz.recommendic.user.controller.UserResponse;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantProfileResponse;
 import com.divjazz.recommendic.user.controller.patient.payload.PatientProfileResponse;
+import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.LoginType;
+import com.divjazz.recommendic.user.mapper.UserMapper;
 import com.divjazz.recommendic.user.model.Admin;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -15,17 +17,17 @@ import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.*;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
-import com.divjazz.recommendic.user.repository.projection.UserSecurityProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -45,8 +47,10 @@ public class GeneralUserService {
     private final ConsultantCustomRepository consultantCustomRepository;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserProjection retrieveUserByEmail(String email) {
+
+    public User retrieveUserByEmail(String email) {
         return findUserByEmail(email);
     }
 
@@ -73,57 +77,14 @@ public class GeneralUserService {
     }
 
 
-    public Map<String, Object> retrieveCurrentUser() {
+    public UserResponse retrieveCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() == null || authentication.getPrincipal().equals("anonymousUser")) {
             throw new AuthenticationException("No authentication found in context please login");
         }
-
-        if (authentication.getPrincipal() instanceof SessionUser sessionUser) {
-            UserProjection user =  retrieveUserByEmail(sessionUser.getEmail());
-            Map<String, Object> response = new HashMap<>();
-
-            response.put("user", new UserController.CurrentUser(
-                    user.getUserId(),
-                    user.getUserPrincipal().getRole().getName(),
-                    user.getUserType(),
-                    user.getUserStage()
-            ));
-            switch (user.getUserType()) {
-                case CONSULTANT -> {
-                    var consultantProfileProjectionOpt = consultantCustomRepository
-                            .findConsultantProjectionByUserId(user.getUserId());
-                    consultantProfileProjectionOpt.ifPresent(profile -> response .put("profile",
-                            new ConsultantProfileResponse(
-                                    profile.userName(),
-                                    profile.phoneNumber(),
-                                    profile.address(),
-                                    profile.profilePicture()
-                            )));
-
-
-                }
-                case PATIENT -> {
-                    var patientProfileProjectionOpt = patientCustomRepository
-                            .getFullPatientProfileByUserId(user.getUserId());
-                    patientProfileProjectionOpt.ifPresent(
-                            profile -> response.put("profile",
-                                    new PatientProfileResponse(
-                                            profile.userName(),
-                                            profile.phoneNumber(),
-                                            profile.address(),
-                                            profile.profilePicture()
-                                    ))
-                    );
-                }
-                case ADMIN -> {}
-            }
-
-
-            return response;
-        } else {
-            return Map.of("user", authentication);
-        }
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        var user = retrieveUserByEmail(jwt.getSubject());
+        return userMapper.toUserResponse(user);
     }
 
     public User retrieveUserByUserId(String id) {
@@ -141,18 +102,14 @@ public class GeneralUserService {
         }
     }
 
-    private UserProjection findUserByEmail(String email) {
-        UserProjection patient = patientRepository.findByEmailReturningProjection(email);
-        if (Objects.nonNull(patient)){
-            return patient;
+    private User findUserByEmail(String email) {
+        Optional<Patient> patient = patientRepository.findByUserPrincipal_Email(email);
+        if (patient.isPresent()){
+            return patient.get();
         }
-        UserProjection consultant = consultantRepository.findByEmailReturningProjection(email);
-        if (Objects.nonNull(consultant)) {
-            return consultant;
-        }
-        UserProjection admin = adminRepository.findByEmailReturningProjection(email);
-        if (Objects.nonNull(admin)) {
-            return admin;
+        Optional<Consultant> consultant = consultantRepository.findByUserPrincipal_Email(email);
+        if (consultant.isPresent()) {
+            return consultant.get();
         }
 
         throw new EntityNotFoundException("User with email: %s not found".formatted(email));
@@ -176,7 +133,7 @@ public class GeneralUserService {
     }
 
     @Transactional
-    public void updateLoginAttempt(UserProjection user, LoginType loginType) throws EntityNotFoundException {
+    public void updateLoginAttempt(User user, LoginType loginType) throws EntityNotFoundException {
         switch (loginType) {
             case LOGIN_FAILED -> {
                 userLoginRetryHandler.handleFailedAttempts(user.getUserPrincipal().getEmail());
@@ -189,15 +146,17 @@ public class GeneralUserService {
     }
 
     public boolean isUserExists(String email) {
-        return patientRepository.existsByUserPrincipal_Email(email) ||
-                consultantRepository.existsByUserPrincipal_Email(email) ||
-                adminRepository.existsByUserPrincipal_Email(email) ;
+        return !(patientRepository.existsByUserPrincipal_Email(email) &&
+                consultantRepository.existsByUserPrincipal_Email(email) &&
+                adminRepository.existsByUserPrincipal_Email(email));
     }
     public boolean isUserExistsByUserId(String userId) {
         return patientRepository.existsByUserId(userId) ||
                 consultantRepository.existsByUserId(userId) ||
                 adminRepository.existsByUserId(userId);
     }
+
+
 
 }
 

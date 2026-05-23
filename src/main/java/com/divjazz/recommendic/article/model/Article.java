@@ -3,6 +3,7 @@ package com.divjazz.recommendic.article.model;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.article.enums.ArticleStatus;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.github.f4b6a3.ulid.UlidCreator;
 import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
@@ -20,14 +21,15 @@ import java.util.concurrent.atomic.AtomicLong;
 @Getter
 @Setter
 @Entity
-@Table(name = "article")
+@Table(name = "articles")
 @AllArgsConstructor
 @Builder
 public class Article extends Auditable {
 
     @Column(nullable = false)
     private String title;
-
+    @Column(name = "article_id")
+    private final String articleId = "ART-" + UlidCreator.getMonotonicUlid();
     @Column(name = "subtitle", nullable = false)
     private String subtitle;
     @Column(nullable = false)

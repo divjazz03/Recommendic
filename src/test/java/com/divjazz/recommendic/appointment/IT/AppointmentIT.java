@@ -112,7 +112,7 @@ public class AppointmentIT extends BaseIntegrationTest {
         var unsavedSchedule = Schedule.builder()
                 .name("Some schedule")
                 .recurrenceRule(new RecurrenceRule(RecurrenceFrequency.MONTHLY, Set.of("monday", "wednesday","friday"), 2, "2023-04-23"))
-                .consultationChannels(new ConsultationChannel[]{ConsultationChannel.ONLINE})
+                .consultationChannels(new String[]{ConsultationChannel.ONLINE.toString()})
                 .zoneOffset(ZoneOffset.of("+01:00"))
                 .isActive(true)
                 .startTime(LocalTime.of(12,30))
@@ -138,6 +138,8 @@ public class AppointmentIT extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(user(patient.getUserPrincipal()))
         ).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+
+        log.info("Result: {}", result);
 
         
 

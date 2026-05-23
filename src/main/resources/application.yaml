@@ -12,13 +12,6 @@ server:
     max-swallow-size: 50MB
   shutdown: graceful
   port: ${SERVER_PORT}
-  servlet:
-    session:
-      cookie:
-        http-only: false
-        secure: ${SESSION_COOKIE_SECURE:false}
-        name: SESSIONID
-        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
 
 spring:
   application:
@@ -32,9 +25,6 @@ spring:
       max-request-size: 50MB
       max-file-size: 30MB
   session:
-    redis:
-      flush-mode: on_save
-      namespace: 'recommendic:session'
     timeout: 30M
   data:
     redis:
@@ -43,15 +33,6 @@ spring:
         enabled: false
   cache:
     type: redis
-
-
-  flyway:
-    enabled: false
-    locations: 'classpath:db/migration'
-    baseline-on-migrate: true
-    user: ${DATABASE_USER}
-
-
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USER}
@@ -88,7 +69,7 @@ spring:
     default: test
   main:
     banner-mode: off
-    lazy-initialization: true
+    # lazy-initialization: true
 
   jmx:
     enabled: false
@@ -120,6 +101,9 @@ app:
     apiSecret: ${CLOUDINARY_API_SECRET}
   auth:
     maxAttempts: 5
+    rsa:
+      privateKey: classpath:keys/private.pem
+      publicKey: classpath:keys/public.pem
 
 
 logging:
@@ -127,5 +111,6 @@ logging:
     org.flywaydb: info
     io.zonky.test: warn
     org.springframework.security: warn
-    org.springframework.security.web.context.HttpSessionSecurityContextRepository: error
     org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: error
+
+

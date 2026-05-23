@@ -1,0 +1,1 @@
+CREATE TABLE roles_permissions (role_id BIGINT REFERENCES roles(id), permission_id BIGINT REFERENCES permissions(id));

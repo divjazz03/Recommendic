@@ -39,13 +39,13 @@ public class AppointmentCustomRepository {
                     a.status as status,
                     a.reason as reason,
                     coalesce(a.note, 'NOT_PROVIDED') as notes
-                FROM appointment a
-                LEFT JOIN patient p on a.patient_id = p.id
+                FROM appointments a
+                LEFT JOIN patients p on a.patient_id = p.id
                 LEFT JOIN patient_profiles pf on p.id = pf.id
-                LEFT JOIN consultant c on a.consultant_id = c.id
+                LEFT JOIN consultants c on a.consultant_id = c.id
                 LEFT JOIN consultant_profiles cf on c.id = cf.id
-                LEFT JOIN medical_category mc on c.specialization = mc.id
-                LEFT JOIN schedule_slot s on a.schedule_slot_id = s.id
+                LEFT JOIN medical_categories mc on c.specialization = mc.id
+                LEFT JOIN schedule_slots s on a.schedule_slot_id = s.id
                 WHERE a.patient_id = :patientId
                 LIMIT :limit
                 OFFSET ((:page + 1) * :limit) - :limit
@@ -53,13 +53,8 @@ public class AppointmentCustomRepository {
 
         var countSql = """
                 SELECT count(*)
-                FROM appointment a
-                LEFT JOIN patient p on a.patient_id = p.id
-                LEFT JOIN patient_profiles pf on p.id = pf.id
-                LEFT JOIN consultant c on a.consultant_id = c.id
-                LEFT JOIN consultant_profiles cf on c.id = cf.id
-                LEFT JOIN medical_category mc on c.specialization = mc.id
-                LEFT JOIN schedule_slot s on a.schedule_slot_id = s.id
+                FROM appointments a
+                
                 WHERE a.patient_id = :patientId
                 """;
 
@@ -138,13 +133,13 @@ public class AppointmentCustomRepository {
                     a.cancellation_reason as cancellation_reason,
                     a.priority as priority,
                     coalesce(symptoms, 'None Reported') as symptoms
-                FROM appointment a
-                LEFT JOIN patient p on a.patient_id = p.id
+                FROM appointments a
+                LEFT JOIN patients p on a.patient_id = p.id
                 LEFT JOIN patient_profiles pf on p.id = pf.id
-                LEFT JOIN consultant c on a.consultant_id = c.id
+                LEFT JOIN consultants c on a.consultant_id = c.id
                 LEFT JOIN consultant_profiles cf on c.id = cf.id
-                LEFT JOIN medical_category mc on c.specialization = mc.id
-                LEFT JOIN schedule_slot s on a.schedule_slot_id = s.id
+                LEFT JOIN medical_categories mc on c.specialization = mc.id
+                LEFT JOIN schedule_slots s on a.schedule_slot_id = s.id
                 WHERE a.consultant_id = :consultantId
                 LIMIT :limit
                 OFFSET ((:page + 1) * :limit) - :limit
@@ -152,13 +147,7 @@ public class AppointmentCustomRepository {
 
         var countSql = """
                 SELECT count(*)
-                FROM appointment a
-                LEFT JOIN patient p on a.patient_id = p.id
-                LEFT JOIN patient_profiles pf on p.id = pf.id
-                LEFT JOIN consultant c on a.consultant_id = c.id
-                LEFT JOIN consultant_profiles cf on c.id = cf.id
-                LEFT JOIN medical_category mc on c.specialization = mc.id
-                LEFT JOIN schedule_slot s on a.schedule_slot_id = s.id
+                FROM appointments a
                 WHERE a.consultant_id = :consultantId
                 """;
 

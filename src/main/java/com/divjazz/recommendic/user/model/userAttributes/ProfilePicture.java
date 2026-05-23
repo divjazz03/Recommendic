@@ -18,7 +18,6 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProfilePicture {
     private String name;
-    @JsonProperty("picture_url")
     private String pictureUrl;
 
     public ProfilePicture(String pictureUrl) {

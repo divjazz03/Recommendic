@@ -32,6 +32,8 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.shaded.org.hamcrest.collection.IsEmptyIterable;
+import org.testcontainers.shaded.org.hamcrest.core.IsNot;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -40,6 +42,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -182,11 +185,9 @@ public class PatientIT extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest)
         ).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
 
-        var validationError = validationErrorresponseJacksonTester.parse(responseString).getObject();
-
-        assertThat(validationError.data().errors()).isNotEmpty();
 
     }
     @Test
@@ -305,6 +306,26 @@ public class PatientIT extends BaseIntegrationTest {
                 .andReturn()
                 .getResponse().getContentAsString();
         log.info(result);
+    }
+    @Test
+    void shouldUpdateSecuritySetting() throws Exception {
+        var request = """
+                {
+                    "securityPreference": {
+                        "sessionTimeoutMin": 60
+                    }
+                }
+                """;
+
+        var responseString = mockMvc.perform(
+                        patch(PATIENT_BASE_ENDPOINT + "/profiles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                                .with(user(patient.getUserPrincipal()))
+                ).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        log.info(responseString);
     }
 
     @Test

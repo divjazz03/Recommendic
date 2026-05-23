@@ -135,7 +135,7 @@ public class PatientController {
     @PreAuthorize("hasAuthority('ROLE_PATIENT')")
     public ResponseEntity<Response<PageResponse<ConsultantMinimal>>> retrieveRecommendationsBasedOnCurrentPatientId(@PageableDefault(size = 20) Pageable pageable) {
 
-        var result = PageResponse.from(patientService.getRecommendationForPatient(pageable));
+        var result = patientService.getRecommendationForPatient(pageable);
         var response = getResponse(result,
                 HttpStatus.OK
         );

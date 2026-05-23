@@ -4,6 +4,6 @@ public record LifeStyleInfoDTO(
         String smokingStatus,
         String alcoholConsumption,
         String exerciseFrequency,
-        String dietaryRestriction
+        String dietaryRestrictions
 ) {
 }

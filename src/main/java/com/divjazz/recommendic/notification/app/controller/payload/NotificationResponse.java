@@ -13,15 +13,15 @@ public record NotificationResponse(
         String title,
         String timeStamp,
         Instant cursorCreatedAt,
-        Long cursorId
+        String cursorId
 ) implements Cursorable {
     @Override
     public Instant cursorCreatedAt() {
-        return null;
+        return cursorCreatedAt;
     }
 
     @Override
-    public Long cursorId() {
-        return 0L;
+    public String cursorId() {
+        return id;
     }
 }

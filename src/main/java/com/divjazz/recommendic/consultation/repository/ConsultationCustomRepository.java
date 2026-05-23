@@ -42,9 +42,9 @@ public class ConsultationCustomRepository {
                        p.gender as gender,
                        p.user_id as id,
                        age(current_date, pp.date_of_birth) as age
-                FROM consultation c
-                LEFT JOIN appointment a on c.appointment_id = a.id
-                LEFT JOIN patient p on a.patient_id = p.id
+                FROM consultations c
+                LEFT JOIN appointments a on c.appointment_id = a.id
+                LEFT JOIN patients p on a.patient_id = p.id
                 LEFT JOIN patient_profiles pp on p.id = pp.id
                 WHERE c.status = 'ONGOING'
                 """;

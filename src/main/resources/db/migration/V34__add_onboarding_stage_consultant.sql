@@ -1,0 +1,3 @@
+
+ALTER TABLE consultants
+    ADD COLUMN onboarding_stage TEXT DEFAULT 'PROFESSIONAL_INFO';

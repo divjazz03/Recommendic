@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS assignments
+(
+    id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    assignment_id  TEXT UNIQUE NOT NULL ,
+    admin_id   BIGINT REFERENCES admins (id),
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL
+);

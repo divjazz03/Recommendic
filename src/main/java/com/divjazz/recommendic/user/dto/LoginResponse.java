@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record LoginResponse(
         String userId,
         String role,
+        String refreshToken,
+        String accessToken,
         String userStage
 
 ) {

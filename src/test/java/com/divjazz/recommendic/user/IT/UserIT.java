@@ -40,11 +40,10 @@ public class UserIT extends BaseIntegrationTest {
     private User user;
     @Autowired
     private RoleService roleService;
-    private Role consultantRole;
 
     @BeforeEach
     void setup() {
-        consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
+        Role consultantRole = roleService.getRoleByName(ConsultantService.CONSULTANT_ROLE_NAME);
         user = User.builder()
                 .userPrincipal(UserPrincipal.builder()
                         .role(consultantRole)

@@ -4,6 +4,7 @@ import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.enums.UserType;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ public interface UserProjection {
     UserType getUserType();
     UserStage getUserStage();
     UserPrincipalProjection getUserPrincipal();
+    UserSecuritySetting getUserSecuritySetting();
 
     default UserDTO toUserDTO(){
         return new UserDTO(
@@ -24,7 +26,8 @@ public interface UserProjection {
                 getLastLogin(),
                 getUserType(),
                 getUserStage(),
-                getUserPrincipal().toUserPrincipal()
+                getUserPrincipal().toUserPrincipal(),
+                getUserSecuritySetting()
         );
     }
 }

@@ -6,6 +6,7 @@ import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Generated;
@@ -16,17 +17,16 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Table(name = "appointment")
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "appointments")
 public class Appointment extends Auditable {
-    @Column(name = "appointment_id", updatable = false, insertable = false)
-    @Generated(event = EventType.INSERT)
-    private String appointmentId;
+    @Column(name = "appointment_id")
+    private final String appointmentId = "APT-" + UlidCreator.getMonotonicUlid().toString();
     @ManyToOne(optional = false)
     @JoinColumn(name = "patient_id")
     private Patient patient;

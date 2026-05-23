@@ -12,5 +12,7 @@ public interface ConsultantPrescriptionMapper extends PrescriptionMapper{
     @Mapping(target = "gender", source = "prescribedTo.gender")
     @Mapping(target = "patientAge", expression = "java(prescription.getPrescribedTo().getPatientProfile().getAge())")
     @Mapping(target = "date", source = "createdAt", dateFormat = "yyyy-MM-dd")
+    @Mapping(target = "prescriberName", source = "prescriber.profile.userName.fullName")
+    @Mapping(target = "prescriberId", source = "prescriber.userId")
     ConsultantPrescriptionResponse prescriptionToResponse(Prescription prescription);
 }

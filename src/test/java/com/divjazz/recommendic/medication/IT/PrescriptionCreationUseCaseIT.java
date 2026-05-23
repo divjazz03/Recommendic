@@ -128,7 +128,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 .isActive(true)
                 .endTime(LocalTime.now().plusHours(1))
                 .startTime(LocalTime.now())
-                .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
+                .consultationChannels(Set.of(ConsultationChannel.ONLINE.name()).toArray(String[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
                 .build();
@@ -423,7 +423,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                   .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("Dosage is required")))
+                   .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("Dosage is required")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -456,7 +456,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("Diagnosis is required")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("Diagnosis is required")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -487,7 +487,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("prescribedTo is required")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("prescribedTo is required")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -519,8 +519,9 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("frequency is required")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("frequency is required")))
                     .andReturn().getResponse().getContentAsString();
+            log.info("Results: \n{}",results);
 
             
         }
@@ -550,7 +551,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("durationValue is required")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("durationValue is required")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -581,7 +582,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("durationType is required")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("durationType is required")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -614,7 +615,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("durationType is invalid")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("durationType is invalid")))
                     .andReturn().getResponse().getContentAsString();
 
             
@@ -646,7 +647,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                                     .content(request)
                                     .with(user(consultant.getUserPrincipal()))
                     ).andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.properties.data[0].error", IsEqual.equalTo("Duration should not be less than 1")))
+                    .andExpect(jsonPath("$.errors[0].error", IsEqual.equalTo("Duration should not be less than 1")))
                     .andReturn().getResponse().getContentAsString();
 
             

@@ -6,6 +6,8 @@ import com.divjazz.recommendic.appointment.domain.RecurrenceFrequency;
 import com.divjazz.recommendic.appointment.domain.RecurrenceRule;
 import com.divjazz.recommendic.appointment.controller.payload.RecurrenceRuleRequest;
 import com.divjazz.recommendic.appointment.controller.payload.ScheduleCreationRequest;
+import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
+import com.divjazz.recommendic.appointment.mapper.ScheduleMapper;
 import com.divjazz.recommendic.appointment.model.Schedule;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.appointment.service.ScheduleService;
@@ -23,6 +25,7 @@ import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 import com.divjazz.recommendic.user.service.ConsultantService;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,11 +48,19 @@ import static org.mockito.BDDMockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 
-
 @ExtendWith(MockitoExtension.class)
 public class ScheduleRecurrenceTest {
 
     public static final Faker faker = new Faker();
+    private final UserDTO currentUser = new UserDTO(1,
+            "",
+            Gender.MALE,
+            LocalDateTime.now(),
+            UserType.CONSULTANT,
+            UserStage.ONBOARDING,
+            new UserPrincipal("",
+                    new UserCredential("password"),
+                    new Role("Admin", Set.of())), new UserSecuritySetting(true, 30L, true));
     @Mock
     private ScheduleRepository scheduleRepository;
     @Mock
@@ -59,16 +70,8 @@ public class ScheduleRecurrenceTest {
     @Mock
     private ConsultantService consultantService;
     private Consultant consultant;
-
-    private final UserDTO currentUser = new UserDTO(1,
-            "",
-            Gender.MALE,
-            LocalDateTime.now(),
-            UserType.CONSULTANT,
-            UserStage.ONBOARDING,
-            new UserPrincipal("",
-                    new UserCredential("password"),
-                    new Role("Admin","")));
+    @Mock
+    private ScheduleMapper scheduleMapper;
 
     @BeforeEach
     void setup() {
@@ -76,7 +79,7 @@ public class ScheduleRecurrenceTest {
                 faker.internet().emailAddress(),
                 Gender.MALE,
                 new UserCredential(faker.text().text(20)),
-                new Role(1L,"ROLE_TEST", "")
+                new Role(1L, "ROLE_TEST", Set.of())
         );
         consultant.getUserPrincipal().setEnabled(true);
         consultant.setSpecialization(new MedicalCategoryEntity());
@@ -92,6 +95,7 @@ public class ScheduleRecurrenceTest {
         consultant.setProfile(consultantProfile);
         consultant.setUserId(UUID.randomUUID().toString());
     }
+
     @Test
     void shouldCreateScheduleWithoutRecurrenceRule() {
         var creationRequest = new ScheduleCreationRequest(
@@ -110,13 +114,17 @@ public class ScheduleRecurrenceTest {
                 .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                 .isActive(creationRequest.isActive())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
-                .consultationChannels(creationRequest.channels().stream().map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
-                        .toArray(ConsultationChannel[]::new))
+                .consultationChannels(creationRequest.channels().toArray(String[]::new))
                 .build();
 
         given(authUtils.getCurrentUser()).willReturn(currentUser);
         given(scheduleRepository.saveAll(anyList())).willReturn(List.of(schedule));
         given(consultantService.getReference(anyLong())).willReturn(consultant);
+        given(scheduleMapper.toScheduleResponseDTO(any(Schedule.class))).willReturn(ScheduleResponseDTO.builder()
+                        .id("Stuff")
+                        .name(schedule.getName())
+                        .startTime(schedule.getStartTime().format(DateTimeFormatter.ISO_TIME))
+                .build());
 
         var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());
@@ -136,11 +144,11 @@ public class ScheduleRecurrenceTest {
                 true
         );
         var recurrenceRule = new RecurrenceRule(
-               RecurrenceFrequency.fromValue(creationRequest.recurrenceRule().frequency()),
+                RecurrenceFrequency.fromValue(creationRequest.recurrenceRule().frequency()),
                 creationRequest.recurrenceRule().weekDays(),
                 creationRequest.recurrenceRule().interval(),
                 creationRequest.recurrenceRule().endDate()
-                );
+        );
         var schedule = Schedule.builder()
                 .name(creationRequest.name())
                 .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
@@ -148,13 +156,17 @@ public class ScheduleRecurrenceTest {
                 .isActive(creationRequest.isActive())
                 .zoneOffset(ZoneOffset.of(creationRequest.zoneOffset()))
                 .recurrenceRule(recurrenceRule)
-                .consultationChannels(creationRequest.channels().stream().map(channel -> ConsultationChannel.valueOf(channel.toUpperCase()))
-                        .toArray(ConsultationChannel[]::new))
+                .consultationChannels(creationRequest.channels().toArray(String[]::new))
                 .build();
 
         given(authUtils.getCurrentUser()).willReturn(currentUser);
         given(scheduleRepository.saveAll(anyList())).willReturn(List.of(schedule));
         given(consultantService.getReference(anyLong())).willReturn(consultant);
+        given(scheduleMapper.toScheduleResponseDTO(any(Schedule.class))).willReturn(ScheduleResponseDTO.builder()
+                .id("Stuff")
+                .name(schedule.getName())
+                .startTime(schedule.getStartTime().format(DateTimeFormatter.ISO_TIME))
+                .build());
 
         var response = scheduleService.createSchedule(Collections.singletonList(creationRequest));
         assertThat(response.name()).isEqualTo(creationRequest.name());

@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.medication.model;
 
 import com.divjazz.recommendic.global.Auditable;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,15 +12,15 @@ import org.hibernate.generator.EventType;
 
 import java.time.LocalDate;
 
+@Table(name = "medications")
 @Entity
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Medication extends Auditable {
-    @Column(name = "medication_id", insertable = false, updatable = false)
-    @Generated(event = EventType.INSERT)
-    private String medicationId;
+    @Column(name = "medication_id")
+    private final String medicationId = "MDC-" + UlidCreator.getMonotonicUlid();
     @Column(name = "name")
     private String name;
     @Column(name = "dosage")

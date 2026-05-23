@@ -1,5 +1,0 @@
-
-ALTER TABLE IF EXISTS patient_profiles
-    DROP COLUMN IF EXISTS blood_type CASCADE;
-ALTER TABLE IF EXISTS patient_profiles
-    ADD COLUMN IF NOT EXISTS blood_type VARCHAR(10);

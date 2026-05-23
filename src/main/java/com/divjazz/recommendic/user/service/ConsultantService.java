@@ -4,17 +4,15 @@ import com.divjazz.recommendic.appointment.controller.payload.ConsultationFee;
 import com.divjazz.recommendic.appointment.domain.Slot;
 import com.divjazz.recommendic.appointment.service.AvailabilityService;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
+import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.notification.app.service.AppNotificationService;
-import com.divjazz.recommendic.security.service.SecurityService;
+import com.divjazz.recommendic.global.general.ResponseWithCount;
 import com.divjazz.recommendic.security.utils.AuthUtils;
+import com.divjazz.recommendic.user.controller.UserResponse;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
-import com.divjazz.recommendic.user.controller.patient.payload.ConsultantEducationResponse;
-import com.divjazz.recommendic.user.dto.ConsultantEducationDTO;
-import com.divjazz.recommendic.user.dto.ConsultantFull;
-import com.divjazz.recommendic.user.dto.ConsultantMinimal;
-import com.divjazz.recommendic.user.dto.ConsultantStatDTO;
+import com.divjazz.recommendic.user.domain.OnboardingStage;
+import com.divjazz.recommendic.user.dto.*;
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.enums.EventType;
 import com.divjazz.recommendic.user.enums.Gender;
@@ -22,13 +20,17 @@ import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.event.UserEvent;
 import com.divjazz.recommendic.user.exception.UserAlreadyExistsException;
 import com.divjazz.recommendic.user.mapper.ConsultantMapper;
+import com.divjazz.recommendic.user.mapper.UserMapper;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.certification.Certification;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.ConsultantNotificationPreference;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 import com.divjazz.recommendic.user.repository.ConsultantCustomRepository;
 import com.divjazz.recommendic.user.repository.ConsultantProfileRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
@@ -40,16 +42,24 @@ import com.divjazz.recommendic.user.repository.projection.ConsultantInfoProjecti
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -71,10 +81,13 @@ public class ConsultantService {
     private final AvailabilityService availabilityService;
     private final ConsultationService consultationService;
     private final ConsultantCustomRepository consultantCustomRepository;
-    private final AppNotificationService appNotificationService;
-    private final SecurityService securityService;
     private final CertificationRepository certificationRepository;
     private final ConsultantMapper consultantMapper;
+    private final UserMapper userMapper;
+
+    @Value("${spring.session.timeout}")
+    private Duration sessionDuration;
+
 
     private static Address getAddressToChange(Consultant consultant, ConsultantProfileFull profile) {
         Address addressToChange = consultant.getProfile().getAddress();
@@ -93,10 +106,43 @@ public class ConsultantService {
         return addressToChange;
     }
 
+    private static @NonNull ConsultantEducation getConsultantEducation(ConsultantEducationDTO consultantEducationRequest) {
+        ConsultantEducation consultantEducation = new ConsultantEducation();
+        if (Objects.nonNull(consultantEducationRequest.degree())) {
+            consultantEducation.setDegree(consultantEducationRequest.degree());
+        }
+        if (Objects.nonNull(consultantEducationRequest.institution())) {
+            consultantEducation.setInstitution(consultantEducationRequest.institution());
+        }
+        if (Objects.nonNull(consultantEducationRequest.year())) {
+            consultantEducation.setYear(Integer.parseInt(consultantEducationRequest.year()));
+        }
+        return consultantEducation;
+    }
+
+    private static ConsultantNotificationPreference getConsultantNotificationPreference(ConsultantNotificationPreference notificationPreference, ConsultantNotificationPreference previous) {
+        return ConsultantNotificationPreference.builder()
+                .emailNotificationEnabled(Objects.nonNull(notificationPreference.emailNotificationEnabled()) ? notificationPreference.emailNotificationEnabled() : previous.emailNotificationEnabled())
+                .labResultsUpdateEnabled(Objects.nonNull(notificationPreference.labResultsUpdateEnabled()) ? notificationPreference.labResultsUpdateEnabled() : previous.labResultsUpdateEnabled())
+                .appointmentRemindersEnabled(Objects.nonNull(notificationPreference.appointmentRemindersEnabled()) ? notificationPreference.appointmentRemindersEnabled() : previous.appointmentRemindersEnabled())
+                .smsNotificationEnabled(Objects.nonNull(notificationPreference.smsNotificationEnabled()) ? notificationPreference.smsNotificationEnabled() : previous.smsNotificationEnabled())
+                .systemUpdatesEnabled(Objects.nonNull(notificationPreference.systemUpdatesEnabled()) ? notificationPreference.systemUpdatesEnabled() : previous.systemUpdatesEnabled())
+                .marketingEmailEnabled(Objects.nonNull(notificationPreference.marketingEmailEnabled()) ? notificationPreference.marketingEmailEnabled() : previous.marketingEmailEnabled())
+                .build();
+    }
+
+    private static UserSecuritySetting getUserSecuritySetting(UserSecuritySetting securitySetting, UserSecuritySetting previous) {
+        return UserSecuritySetting.builder()
+                .loginAlertsEnabled(Objects.nonNull(securitySetting.loginAlertsEnabled()) ? securitySetting.loginAlertsEnabled() : previous.loginAlertsEnabled())
+                .sessionTimeoutMin(Objects.nonNull(securitySetting.sessionTimeoutMin()) ? securitySetting.sessionTimeoutMin() : previous.sessionTimeoutMin())
+                .multiFactorAuthEnabled(Objects.nonNull(securitySetting.multiFactorAuthEnabled()) ? securitySetting.multiFactorAuthEnabled() : previous.multiFactorAuthEnabled())
+                .build();
+    }
+
     @Transactional
     public ConsultantInfoResponse createConsultant(ConsultantRegistrationParams consultantRegistrationParams) {
 
-        if (!userService.isUserExists(consultantRegistrationParams.email())) {
+        if (userService.isUserExists(consultantRegistrationParams.email())) {
             UserCredential userCredential = new UserCredential(passwordEncoder.encode(consultantRegistrationParams.password()));
             Role role = roleService.getRoleByName(CONSULTANT_ROLE_NAME);
             Consultant user = new Consultant(
@@ -122,6 +168,17 @@ public class ConsultantService {
                     ))
                     .build();
             user.setProfile(consultantProfile);
+            var securityPreference = new UserSecuritySetting(false, sessionDuration.toMinutes(), true);
+            user.setConsultantSecuritySetting(securityPreference);
+            var notificationPreference = ConsultantNotificationPreference.builder()
+                    .emailNotificationEnabled(true)
+                    .smsNotificationEnabled(false)
+                    .appointmentRemindersEnabled(true)
+                    .labResultsUpdateEnabled(true)
+                    .systemUpdatesEnabled(true)
+                    .marketingEmailEnabled(false)
+                    .build();
+            user.setNotificationPreference(notificationPreference);
             var savedConsultant = consultantRepository.save(user);
             var userConfirmation = new UserConfirmation(savedConsultant);
             userConfirmationRepository.save(userConfirmation);
@@ -131,8 +188,6 @@ public class ConsultantService {
                             "email", user.getUserPrincipal().getUsername(),
                             "firstname", consultantProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
-            appNotificationService.createNotificationSetting(savedConsultant);
-            securityService.createUserSetting(savedConsultant);
             return consultantMapper.toInfoResponse(savedConsultant);
         } else {
             throw new UserAlreadyExistsException(consultantRegistrationParams.email());
@@ -146,8 +201,11 @@ public class ConsultantService {
         );
     }
 
-    public List<Consultant> getAllConsultants() {
-        return consultantRepository.findAll();
+
+    public ResponseWithCount<ConsultantMinimal> getAllConsultantsMinimal(Pageable pageable) {
+        Page<Consultant> consultantPage =  consultantRepository.findAll(pageable);
+        var results =  consultantPage.stream().map(this::getConsultantRecommendationProfileMinimal).collect(Collectors.toSet());
+        return new ResponseWithCount<>(results, consultantPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
@@ -177,6 +235,7 @@ public class ConsultantService {
                 consultantInfoProjection.gender(),
                 consultantInfoProjection.age(),
                 objectMapper.convertValue(consultantInfoProjection.address(), Address.class),
+                OnboardingStage.COMPLETED,
                 consultantInfoProjection.medicalSpecialization()
         );
     }
@@ -187,18 +246,19 @@ public class ConsultantService {
     }
 
     public ConsultantProfileResponse getConsultantProfileResponse() {
-        var currentUser = authUtils.getCurrentUser();
-        var consultantProfileOpt = consultantProfileRepository.findByConsultantId(currentUser.userId());
-        if (consultantProfileOpt.isPresent()) {
-            var consultantProfile = consultantProfileOpt.get();
-            return new ConsultantProfileResponse(
-                    consultantProfile.getUserName(),
-                    consultantProfile.getPhoneNumber(),
-                    consultantProfile.getAddress(),
-                    consultantProfile.getProfilePicture()
-            );
-        }
-        return null;
+        var currentUser = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var consultant = consultantRepository.findByUserPrincipal_Email(currentUser.getSubject())
+                .orElseThrow(() -> new EntityNotFoundException("Consultant not found"));
+
+        var consultantProfile = consultant.getProfile();
+        return new ConsultantProfileResponse(
+                consultantProfile.getUserName(),
+                consultantProfile.getPhoneNumber(),
+                consultantProfile.getAddress(),
+                consultantProfile.getProfilePicture(),
+                consultant.getOnboardingStage(),
+                consultant.getSpecialization().getName()
+        );
 
     }
 
@@ -214,46 +274,66 @@ public class ConsultantService {
         return consultantRepository.findUnCertifiedConsultant();
     }
 
-    @Transactional
-    public boolean handleOnboarding(String userId, ConsultantOnboardingRequest request) {
-        Consultant consultant = consultantRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Consultant with id: %s not found".formatted(userId)));
+    private Consultant handleProfileInfoOnboarding(Consultant consultant, ProfileInformationRequest request) {
+        if (Objects.nonNull(request.bio())) {
+            consultant.getProfile().setBio(request.bio());
+        }
+
+        ProfilePicture profilePicture = new ProfilePicture(request.profilePictureUrl());
+        consultant.getProfile().setProfilePicture(profilePicture);
+
+        consultant.setOnboardingStage(nextOnboardingStage(OnboardingStage.PROFILE_INFO));
+        consultant.setUserStage(UserStage.ACTIVE_USER);
+
+        return consultantRepository.save(consultant);
+    }
+
+    private Consultant handleProfessionalInfoOnboarding(Consultant consultant, ProfessionalInfoRequest request) {
         MedicalCategoryEntity medicalCategory = medicalCategoryService.getMedicalCategoryById(request.specialization());
         consultant.setSpecialization(medicalCategory);
-
         if (Objects.nonNull(request.subSpecialties()) && !request.subSpecialties().isEmpty()) {
             consultant.getProfile().setSubSpecialties(request.subSpecialties().toArray(new String[0]));
-        }
-        if (Objects.nonNull(request.availableDays()) && !request.availableDays().isEmpty()) {
-            consultant.getProfile().setAvailableDaysOfWeek(request.availableDays().toArray(new String[0]));
-        }if (Objects.nonNull(request.preferredTimeSlots()) && !request.preferredTimeSlots().isEmpty()) {
-            consultant.getProfile().setPreferredTimeSlots(request.preferredTimeSlots().toArray(new String[0]));
-        }
-        if (Objects.nonNull(request.certifications())) {
-            consultant.getProfile().setCertifications(request.certifications());
         }
         if (Objects.nonNull(request.languages()) && !request.languages().isEmpty()) {
             consultant.getProfile().setLanguages(request.languages().toArray(new String[0]));
         }
+        consultant.getProfile().setLicenseNumber(request.licenseNumber());
+        consultant.getProfile().setYearsOfExperience(request.yearsOfExperience());
+        consultant.getProfile().setLocationOfInstitution(request.currentWorkplace());
+
+        consultant.setOnboardingStage(nextOnboardingStage(OnboardingStage.PROFESSIONAL_INFO));
+        return consultantRepository.save(consultant);
+    }
+
+    private Consultant handlePracticeDetailsOnboarding(Consultant consultant, PracticeDetails request) {
+        if (Objects.nonNull(request.availableDays()) && !request.availableDays().isEmpty()) {
+            consultant.getProfile().setAvailableDaysOfWeek(request.availableDays().toArray(new String[0]));
+        }
+        if (Objects.nonNull(request.preferredTimeSlots()) && !request.preferredTimeSlots().isEmpty()) {
+            consultant.getProfile().setPreferredTimeSlots(request.preferredTimeSlots().toArray(new String[0]));
+        }
+
+
         if (Objects.nonNull(request.consultationFee())) {
             consultant.getProfile().setOnlineConsultationFee(request.consultationFee());
-        }else {
+        } else {
             consultant.getProfile().setOnlineConsultationFee(10000);
         }
         if (Objects.nonNull(request.consultationDuration())) {
             consultant.getProfile().setConsultationDuration(request.consultationDuration());
-        }else {
+        } else {
             consultant.getProfile().setConsultationDuration(60);
         }
-        if (Objects.nonNull(request.bio())) {
-            consultant.getProfile().setBio(request.bio());
-        }
-        consultant.getProfile().setLicenseNumber(request.licenseNumber());
-        consultant.getProfile().setYearsOfExperience(request.yearsOfExperience());
-        consultant.getProfile().setLocationOfInstitution(request.currentWorkplace());
-        ProfilePicture profilePicture = new ProfilePicture(request.profilePictureUrl());
-        consultant.getProfile().setProfilePicture(profilePicture);
 
+        consultant.setOnboardingStage(nextOnboardingStage(OnboardingStage.PRACTICE_DETAILS));
+
+        return consultantRepository.save(consultant);
+    }
+
+    private Consultant handleQualificationsOnboarding(Consultant consultant, QualificationsRequest request) {
+        if (Objects.nonNull(request.certifications())) {
+            consultant.getProfile().setCertifications(request.certifications());
+        }
         Set<Certification> certifications = new HashSet<>(5);
         certifications.add(new Certification(consultant, request.resume().name(), request.resume().fileUrl(), CertificateType.RESUME));
 
@@ -261,20 +341,46 @@ public class ConsultantService {
                 .map(credential -> new Certification(consultant, credential.name(), credential.fileUrl(), CertificateType.CERTIFICATE))
                 .toList()
         );
-
-
         ConsultantEducation education = new ConsultantEducation();
         education.setConsultant(consultant);
         education.setYear(request.graduationYear());
         education.setInstitution(request.university());
         education.setDegree(request.medicalDegree());
-
+        consultant.addEducation(education);
         consultantEducationRepository.save(education);
         certificationRepository.saveAll(certifications);
+        consultant.setOnboardingStage(nextOnboardingStage(OnboardingStage.QUALIFICATIONS));
+        return consultantRepository.save(consultant);
+    }
 
-        consultant.setUserStage(UserStage.ACTIVE_USER);
+    private OnboardingStage nextOnboardingStage(OnboardingStage onboardingStage) {
+        return switch (onboardingStage) {
+            case PRACTICE_DETAILS -> OnboardingStage.PROFILE_INFO;
+            case QUALIFICATIONS -> OnboardingStage.PRACTICE_DETAILS;
+            case PROFESSIONAL_INFO -> OnboardingStage.QUALIFICATIONS;
+            case PROFILE_INFO, COMPLETED -> OnboardingStage.COMPLETED;
+        };
+    }
 
-        return true;
+    @Transactional
+    public ConsultantInfoResponse handleOnboarding(String onboardingStage, ConsultantOnboardingRequest request) {
+        Jwt user = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Consultant consultant = consultantRepository.findByUserPrincipal_Email(user.getSubject())
+                .orElseThrow(() -> new EntityNotFoundException("Consultant not found"));
+
+        OnboardingStage enumOnboardingStage = OnboardingStage.valueOf(onboardingStage.toUpperCase());
+        if (consultant.getOnboardingStage() != enumOnboardingStage) {
+            throw new AppBadRequestException("Current onboarding stage is " + consultant.getOnboardingStage().name());
+        }
+        Consultant result = switch (enumOnboardingStage) {
+            case PROFILE_INFO -> handleProfileInfoOnboarding(consultant, (ProfileInformationRequest) request);
+            case QUALIFICATIONS -> handleQualificationsOnboarding(consultant, (QualificationsRequest) request);
+            case PROFESSIONAL_INFO -> handleProfessionalInfoOnboarding(consultant, (ProfessionalInfoRequest) request);
+            case PRACTICE_DETAILS -> handlePracticeDetailsOnboarding(consultant, (PracticeDetails) request);
+            case COMPLETED -> consultant;
+        };
+
+        return consultantMapper.toInfoResponse(result);
     }
 
     public ConsultantInfoResponse getConsultantInfoByUserId(String userId) {
@@ -285,7 +391,6 @@ public class ConsultantService {
 
     public ConsultantMinimal getConsultantRecommendationProfileMinimal(Consultant consultant) {
         ConsultantProfile consultantProfile = consultant.getProfile();
-        Set<ConsultantEducation> consultantEducations = consultantEducationRepository.findAllByConsultant(consultant);
         var availabilityResult = availabilityService.getConsultantAvailability(consultant.getUserId());
 
         String availabilty = null;
@@ -312,7 +417,7 @@ public class ConsultantService {
                 availabilty,
                 new ConsultationFee(200, 300),
                 consultantProfile.getProfilePicture().getPictureUrl(),
-                consultantEducations.stream()
+                consultant.getConsultantEducations().stream()
                         .map(ConsultantEducation::getDegree)
                         .collect(Collectors.toList()),
                 Arrays.stream(consultantProfile.getLanguages() == null ? new String[0] : consultantProfile.getLanguages()).toList(),
@@ -368,57 +473,38 @@ public class ConsultantService {
     @Transactional(readOnly = true)
     public ConsultantProfileDetails getConsultantProfileDetails() {
         var userProjection = authUtils.getCurrentUser();
-        var consultantProfileWithEducationProjectionOpt = consultantCustomRepository.findConsultantProjectionByUserId(userProjection.userId());
-        if (consultantProfileWithEducationProjectionOpt.isPresent()) {
-            var consultantProfile = consultantProfileWithEducationProjectionOpt.get();
-            var consultantProfileDetails = ConsultantProfileFull.builder()
-                    .address(consultantProfile.address())
-                    .bio(consultantProfile.bio())
-                    .dateOfBirth(consultantProfile.dateOfBirth().toString())
-                    .email(userProjection.userPrincipal().getUsername())
-                    .location(consultantProfile.location())
-                    .experience(String.valueOf(consultantProfile.experience()))
-                    .gender(userProjection.gender().name().toLowerCase())
-                    .languages(consultantProfile.languages())
-                    .specialty(consultantProfile.specialty().name())
-                    .userName(consultantProfile.userName())
-                    .phoneNumber(consultantProfile.phoneNumber())
-                    .medicalLicenseNumber(consultantProfile.licenseNumber())
-                    .subSpecialties(consultantProfile.subSpecialties())
-                    .medicalCertifications(consultantProfile.certifications())
-                    .profileImgUrl(Optional.ofNullable(consultantProfile.profilePicture())
-                            .map(ProfilePicture::getPictureUrl).orElse(null))
-                    .build();
+        var consultant = consultantRepository.findByUserId(userProjection.userId())
+                .orElseThrow(() -> new EntityNotFoundException("Consultant not found"));
 
-            Set<ConsultantEducationResponse> educations = consultantProfile.educations().stream()
-                    .map(consultantEducation -> new ConsultantEducationResponse(
-                            String.valueOf(consultantEducation.year()),
-                            consultantEducation.institution(),
-                            consultantEducation.degree())).collect(Collectors.toSet());
+        return ConsultantProfileDetails.builder()
+                .profile(consultantMapper.toConsultantProfileFull(consultant))
+                .educations(consultant.getConsultantEducations().stream()
+                        .map(education -> new ConsultantEducationDTO(
+                                education.getInstitution(),
+                                education.getDegree(),
+                                String.valueOf(education.getYear())))
+                        .collect(Collectors.toSet()))
+                .securityPreference(consultant.getConsultantSecuritySetting())
+                .notificationPreference(consultant.getNotificationPreference())
+                .build();
 
-            return new ConsultantProfileDetails(
-                    consultantProfileDetails,
-                    educations
-            );
 
-        }
-        throw new EntityNotFoundException("Couldn't find this customer's profile");
     }
 
+    @Transactional
     public ConsultantProfileDetails updateConsultantProfileDetails(ConsultantProfileUpdateRequest consultantProfileUpdateRequest) {
         String consultantId = authUtils.getCurrentUser().userId();
-        ConsultantEducation consultantEducation;
+
         Consultant consultant = consultantRepository.findByUserId(consultantId)
                 .orElseThrow(() -> new EntityNotFoundException("No consultant of id %s exists".formatted(consultantId)));
 
-        try {
-            consultantEducation = consultantEducationRepository
-                    .findAllByConsultant_UserId(consultantId)
-                    .stream().findAny().orElse(ConsultantEducation.ofEmpty());
+
+        var consultantEducationRequest = consultantProfileUpdateRequest.education();
+        if (Objects.nonNull(consultantEducationRequest)) {
+            log.info("ConsultantEducationRequest {}", consultantEducationRequest);
+            ConsultantEducation consultantEducation = getConsultantEducation(consultantEducationRequest);
             consultantEducation.setConsultant(consultant);
-        } catch (NoSuchElementException ex) {
-            consultantEducation = ConsultantEducation.ofEmpty();
-            consultantEducation.setConsultant(consultant);
+            consultant.addEducation(consultantEducation);
         }
         ConsultantProfileFull profile = consultantProfileUpdateRequest.profile();
         if (Objects.nonNull(profile)) {
@@ -469,48 +555,31 @@ public class ConsultantService {
                     consultant.getProfile().setProfilePicture(profilePicture);
                 }
             }
-
-            consultant = consultantRepository.save(consultant);
         }
-        var consultantEducationRequest = consultantProfileUpdateRequest.education();
-        if (Objects.nonNull(consultantEducationRequest)) {
-            if (Objects.nonNull(consultantEducationRequest.degree())) {
-                consultantEducation.setDegree(consultantEducationRequest.degree());
-            }
-            if (Objects.nonNull(consultantEducationRequest.institution())) {
-                consultantEducation.setInstitution(consultantEducationRequest.institution());
-            }
-            if (Objects.nonNull(consultantEducationRequest.year())) {
-                consultantEducation.setYear(Integer.parseInt(consultantEducationRequest.year()));
-            }
-            consultantEducation = consultantEducationRepository.save(consultantEducation);
+        UserSecuritySetting securitySetting = consultantProfileUpdateRequest.securityPreference();
+        if (Objects.nonNull(securitySetting)) {
+            var updatingSecurityPreference = getUserSecuritySetting(securitySetting, consultant.getConsultantSecuritySetting());
+            consultant.setConsultantSecuritySetting(updatingSecurityPreference);
+        }
+        ConsultantNotificationPreference notificationPreference = consultantProfileUpdateRequest.notificationPreference();
+        if (Objects.nonNull(notificationPreference)) {
+            var consultantNotificationPreference = getConsultantNotificationPreference(notificationPreference, consultant.getNotificationPreference());
+            consultant.setNotificationPreference(consultantNotificationPreference);
         }
 
-        var consultantProfile = ConsultantProfileFull.builder()
-                .address(consultant.getProfile().getAddress())
-                .bio(consultant.getProfile().getBio())
-                .dateOfBirth(consultant.getProfile().getDateOfBirth().toString())
-                .email(consultant.getUserPrincipal().getUsername())
-                .location(consultant.getProfile().getLocationOfInstitution())
-                .experience(String.valueOf(consultant.getProfile().getYearsOfExperience()))
-                .gender(consultant.getGender().name().toLowerCase())
-                .languages(consultant.getProfile().getLanguages())
-                .specialty(consultant.getSpecialization().getName())
-                .userName(consultant.getProfile().getUserName())
-                .phoneNumber(consultant.getProfile().getPhoneNumber())
-                .profileImgUrl(Optional.ofNullable(
-                        consultant.getProfile().getProfilePicture()).map(ProfilePicture::getPictureUrl).orElse(null))
+        consultant = consultantRepository.save(consultant);
+        return ConsultantProfileDetails.builder()
+                .profile(consultantMapper.toConsultantProfileFull(consultant))
+                .educations(consultant.getConsultantEducations().stream()
+                        .map(education -> new ConsultantEducationDTO(
+                                education.getInstitution(),
+                                education.getDegree(),
+                                String.valueOf(education.getYear())))
+                        .collect(Collectors.toSet()))
+                .securityPreference(consultant.getConsultantSecuritySetting())
+                .notificationPreference(consultant.getNotificationPreference())
                 .build();
 
-
-        return new ConsultantProfileDetails(
-                consultantProfile,
-                Set.of(new ConsultantEducationResponse(
-                        String.valueOf(consultantEducation.getYear()),
-                        consultantEducation.getInstitution(),
-                        consultantEducation.getDegree()
-                ))
-        );
 
     }
 

@@ -88,6 +88,8 @@ public class PatientNotificationIT extends BaseIntegrationTest {
 
         var responseString = mockMvc.perform(
                         get("/api/v1/notifications")
+                                .param("cursorCreatedAt","MjAyNi0wNS0xOFQxOToxMTo1My45MzY0MDg4MDFa")
+                                .param("cursorId", "TlRGLTAxS1JZODBZVkdYMUtURVpWSjlHV0daUjND")
                                 .with(user(patient.getUserPrincipal()))
                 ).andExpect(status().isOk()).andExpect(jsonPath("$.data.nextCursor").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();

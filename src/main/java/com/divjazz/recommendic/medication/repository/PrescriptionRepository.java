@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.medication.repository;
 
 import com.divjazz.recommendic.medication.model.Prescription;
+import com.divjazz.recommendic.user.model.Consultant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,7 +14,7 @@ import java.util.Set;
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
 
     Set<Prescription> findAllByPrescribedTo_UserId(String userId);
-    Set<Prescription> findAllByPrescriberId(String prescriberId);
+    Set<Prescription> findAllByPrescriber_UserId(String prescriberId);
     Optional<Prescription> findPrescriptionByPrescriptionId(String prescriptionId);
 
     @Query("""

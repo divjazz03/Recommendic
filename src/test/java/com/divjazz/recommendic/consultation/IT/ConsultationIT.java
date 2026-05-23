@@ -125,7 +125,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .isActive(true)
                 .endTime(LocalTime.now().plusHours(1))
                 .startTime(LocalTime.now())
-                .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
+                .consultationChannels(Set.of(ConsultationChannel.ONLINE.toString()).toArray(String[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
                 .build();
@@ -210,7 +210,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .isActive(true)
                 .endTime(startTime.toLocalTime().plusHours(2).plusMinutes(30))
                 .startTime(startTime.toLocalTime().plusMinutes(20))
-                .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
+                .consultationChannels(Set.of(ConsultationChannel.ONLINE.toString()).toArray(String[]::new))
                 .consultant(consultant)
                 .name("First ScheduleRecurrence")
                 .build();
@@ -285,9 +285,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 }
                 """;
         consultationToStart = consultationRepository.save(consultationToStart);
-        consultationSession.addConsultation(consultationToStart);
         consultationSessionRepository.save(consultationSession);
-
         mockMvc.perform(
                 post("%s/complete".formatted(CONSULTATION_BASE_ENDPOINT))
                         .contentType(MediaType.APPLICATION_JSON)

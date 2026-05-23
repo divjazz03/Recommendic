@@ -62,7 +62,7 @@ public class ScheduleService {
                     var schedule = Schedule.builder()
                             .name(creationRequest.name())
                             .consultant(consultant)
-                            .consultationChannels(toConsultationChannels(creationRequest.channels()))
+                            .consultationChannels(creationRequest.channels().toArray(String[]::new))
                             .startTime(LocalTime.parse(creationRequest.startTime(), DateTimeFormatter.ISO_TIME))
                             .endTime(LocalTime.parse(creationRequest.endTime(), DateTimeFormatter.ISO_TIME))
                             .isActive(creationRequest.isActive())
@@ -200,7 +200,7 @@ public class ScheduleService {
             schedule.setName(modificationRequest.name());
         }
         if (Objects.nonNull(modificationRequest.channels()) && !modificationRequest.channels().isEmpty()) {
-            schedule.setConsultationChannels(toConsultationChannels(modificationRequest.channels()));
+            schedule.setConsultationChannels(modificationRequest.channels().toArray(String[]::new));
         }
         if (Objects.nonNull(modificationRequest.endTime())) {
             schedule.setEndTime(LocalTime.parse(modificationRequest.endTime()));

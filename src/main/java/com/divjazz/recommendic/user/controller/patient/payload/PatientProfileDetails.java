@@ -3,6 +3,8 @@ package com.divjazz.recommendic.user.controller.patient.payload;
 import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.PatientNotificationPreference;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Set;
@@ -19,6 +21,8 @@ public record PatientProfileDetails(
         BloodType bloodType,
         MedicalHistoryDTO medicalHistory,
         LifeStyleInfoDTO lifeStyleInfo,
-        String profileImgUrl
+        String profileImgUrl,
+        PatientNotificationPreference notificationPreference,
+        UserSecuritySetting userSecuritySetting
 ) {
 }

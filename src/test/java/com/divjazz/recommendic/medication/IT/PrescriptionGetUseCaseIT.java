@@ -12,6 +12,7 @@ import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.medication.constants.DurationType;
+import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
 import com.divjazz.recommendic.medication.model.Medication;
 import com.divjazz.recommendic.medication.model.Prescription;
 import com.divjazz.recommendic.medication.repository.PrescriptionRepository;
@@ -138,7 +139,7 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .isActive(true)
                     .endTime(LocalTime.now().plusHours(1))
                     .startTime(LocalTime.now())
-                    .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
+                    .consultationChannels(Set.of(ConsultationChannel.ONLINE.toString()).toArray(String[]::new))
                     .consultant(consultant)
                     .name("First ScheduleRecurrence")
                     .build();
@@ -170,8 +171,9 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .selfReported(false)
                     .consultation(consultation)
                     .prescribedTo(patient)
-                    .prescriberId(consultant.getUserId())
+                    .prescriber(consultant)
                     .diagnosis("Headache")
+                    .status(PrescriptionStatus.ACTIVE)
                     .build();
             var startDate = LocalDate.now();
             Set<Medication> medications = Set.of(Medication.builder()
@@ -190,17 +192,12 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
 
             var savedPrescription = prescriptionRepository.save(prescription);
 
-            log.info("{}", savedPrescription.getPrescriberId());
 
         }
 
 
         @Test
         void shouldGetAllPrescriptionsPrescribedByConsultantIfAny() throws Exception {
-
-            var prescriptions = prescriptionRepository.findAll().stream().map(Prescription::getPrescriberId).toList();
-            log.info(prescriptions.getFirst());
-
             mockMvc.perform(
                             get("/api/v1/prescription")
                                     .with(user(consultant.getUserPrincipal()))
@@ -268,7 +265,7 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .isActive(true)
                     .endTime(LocalTime.now().plusHours(1))
                     .startTime(LocalTime.now())
-                    .consultationChannels(Set.of(ConsultationChannel.ONLINE).toArray(ConsultationChannel[]::new))
+                    .consultationChannels(Set.of(ConsultationChannel.ONLINE.toString()).toArray(String[]::new))
                     .consultant(consultant)
                     .name("First ScheduleRecurrence")
                     .build();
@@ -300,8 +297,9 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .selfReported(false)
                     .consultation(consultation)
                     .prescribedTo(patient)
-                    .prescriberId(consultant.getUserId())
+                    .prescriber(consultant)
                     .diagnosis("Headache")
+                    .status(PrescriptionStatus.ACTIVE)
                     .build();
             var startDate = LocalDate.now();
             Set<Medication> medications = Set.of(Medication.builder()
@@ -319,8 +317,6 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
             prescription.setMedications(medications);
 
             var savedPrescription = prescriptionRepository.save(prescription);
-
-            log.info("{}", savedPrescription.getPrescriberId());
 
         }
 

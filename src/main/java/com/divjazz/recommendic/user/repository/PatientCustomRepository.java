@@ -40,10 +40,10 @@ public class PatientCustomRepository {
                         pf.blood_type as bloodType,
                         pf.medical_history as medicalHistory,
                         pf.lifestyle_info as lifeStyleInfo
-                        FROM patient p
+                        FROM patients p
                         LEFT JOIN patient_profiles pf on p.id = pf.id
-                        LEFT JOIN patient_medical_category pmc on p.id = pmc.patient_id
-                        LEFT JOIN medical_category mc on mc.id = pmc.medical_category_id
+                        LEFT JOIN patients_medical_categories pmc on p.id = pmc.patient_id
+                        LEFT JOIN medical_categories mc on mc.id = pmc.medical_category_id
                         WHERE p.user_id = :userId
             """;
 
@@ -68,7 +68,7 @@ public class PatientCustomRepository {
                        p.gender as gender,
                        age(current_date, pp.date_of_birth) as age
       
-                FROM patient p
+                FROM patients p
                 LEFT JOIN patient_profiles pp on p.id = pp.id
                 WHERE p.user_id = :id
                 """;

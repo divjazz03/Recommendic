@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.model;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,7 +14,7 @@ import org.hibernate.generator.EventType;
 import java.util.Objects;
 
 @Entity
-@Table(name = "medical_category")
+@Table(name = "medical_categories")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -24,7 +25,7 @@ public class MedicalCategoryEntity {
     @Column(name = "name")
     private String name;
     @Column(name = "medical_category_Id")
-    private String medicalCategoryId;
+    private final String medicalCategoryId = "MED_CAT-" + UlidCreator.getMonotonicUlid();
     @Column(name = "description")
     private String description;
     @Column(name = "icon")

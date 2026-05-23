@@ -4,6 +4,7 @@ import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.enums.CertificateType;
 import com.divjazz.recommendic.user.model.Assignment;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,10 +12,11 @@ import lombok.Setter;
 import java.util.Objects;
 
 @Entity
-@Table(name = "certification")
+@Table(name = "certifications")
 @Getter
 @Setter
 public class Certification extends Auditable{
+    private String certificationId = "CERT-" + UlidCreator.getMonotonicUlid();
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id", nullable = false)
     private Consultant ownerOfCertification;

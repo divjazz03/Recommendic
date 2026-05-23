@@ -3,7 +3,9 @@ package com.divjazz.recommendic.medication.model;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Generated;
@@ -16,10 +18,10 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "prescriptions")
 public class Prescription extends Auditable {
-    @Column(name = "prescriptionId", updatable = false, insertable = false)
-    @Generated(event = EventType.INSERT)
-    private String prescriptionId;
+    @Column(name = "prescriptionId", updatable = false)
+    private final String prescriptionId = "PRSC-" + UlidCreator.getMonotonicUlid();
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.PERSIST)
     @Setter
     private Set<Medication> medications;
@@ -30,8 +32,9 @@ public class Prescription extends Auditable {
     private String diagnosis;
     @Column(name = "self_reported")
     private boolean selfReported;
-    @Column(name = "prescriber_id")
-    private String prescriberId;
+    @JoinColumn(name = "prescriber")
+    @ManyToOne(optional = false)
+    private Consultant prescriber;
     @JoinColumn (name = "prescribed_to")
     @ManyToOne (optional = false)
     private Patient prescribedTo;

@@ -4,6 +4,7 @@ import com.divjazz.recommendic.consultation.enums.PatientStatus;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,9 +14,11 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Table(name = "consultation_session")
+@Table(name = "consultation_sessions")
 @Getter
 public class ConsultationSession extends Auditable {
+    @Column(name = "session_id")
+    private final String sessionId = "CSTN_SESS" + UlidCreator.getMonotonicUlid();
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patient patient;

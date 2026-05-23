@@ -18,18 +18,21 @@ import java.util.Set;
 @Repository
 public interface NotificationRepository extends JpaRepository<AppNotification, Long> {
 
-    @Query("""
-            SELECT n
-                FROM AppNotification n
-                WHERE (n.notificationId = :userId AND
-                    (:createdAt IS NULL OR (n.createdAt < :createdAt OR (n.createdAt = :createdAt AND n.id < :id))))
-                ORDER BY n.createdAt DESC, n.id DESC
-            """)
+    @Query(value = """
+            SELECT *
+            FROM notifications n
+            WHERE n.user_id = CAST(:userId AS TEXT)
+                        AND (CAST (:createdAt AS TIMESTAMP) IS NULL
+                                             OR :id IS NULL
+                                             OR(n.created_at, n.notification_id) < (CAST (:createdAt AS TIMESTAMP), CAST(:id AS TEXT)))
+            ORDER BY n.created_at DESC , n.notification_id DESC
+            LIMIT :limit + 1
+            """, nativeQuery = true)
     List<AppNotification> findNextPage(
             @Param("userId") String userId,
             @Param("createdAt") Instant createdAt,
-            @Param("id") Long id,
-            Pageable pageable);
+            @Param("id") String id,
+            @Param("limit") Integer limit);
 
     @Transactional(readOnly = true)
     Set<AppNotification> findTop5ByForUserIdOrderByNotificationIdDesc(String userId);

@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.controller.consultant.payload;
 
+import com.divjazz.recommendic.user.domain.OnboardingStage;
 import com.divjazz.recommendic.user.model.userAttributes.Address;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
@@ -8,6 +9,8 @@ public record ConsultantProfileResponse(
         UserName userName,
         String phoneNumber,
         Address address,
-        ProfilePicture profilePicture
+        ProfilePicture profilePicture,
+        OnboardingStage onboardingStage,
+        String specialty
 ) {
 }

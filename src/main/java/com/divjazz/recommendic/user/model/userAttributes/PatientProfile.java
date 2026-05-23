@@ -2,6 +2,7 @@ package com.divjazz.recommendic.user.model.userAttributes;
 
 import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.transformer.BloodTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -52,8 +53,8 @@ public class PatientProfile{
     @Column(name = "username", nullable = false, columnDefinition = "jsonb")
     private UserName userName;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "blood_type")
+    @Convert(converter = BloodTypeConverter.class)
     private BloodType bloodType;
 
     @Column

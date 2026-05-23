@@ -15,13 +15,4 @@ public class LifeStyleInfo {
     private String alcoholConsumption;
     private String exerciseFrequency;
     private String dietaryRestrictions;
-
-    public LifeStyleInfoDTO toDTO() {
-        return new LifeStyleInfoDTO(
-                smokingStatus,
-                alcoholConsumption,
-                exerciseFrequency,
-                dietaryRestrictions
-        );
-    }
 }

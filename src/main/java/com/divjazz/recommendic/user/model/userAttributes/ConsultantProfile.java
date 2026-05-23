@@ -109,7 +109,7 @@ public class ConsultantProfile{
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
-    @JsonIgnore
+    @JsonBackReference
     @JoinColumn(name = "id", nullable = false)
     private Consultant consultant;
     @Column(name = "date_of_birth")

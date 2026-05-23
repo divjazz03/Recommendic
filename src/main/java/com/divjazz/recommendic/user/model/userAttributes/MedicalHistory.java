@@ -1,6 +1,5 @@
 package com.divjazz.recommendic.user.model.userAttributes;
 
-import com.divjazz.recommendic.user.controller.patient.payload.MedicalHistoryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,14 +15,4 @@ public class MedicalHistory {
     private String pastSurgeries;
     private String familyHistory;
     private String currentMedications;
-
-
-    public MedicalHistoryDTO toDTO() {
-        return new MedicalHistoryDTO(
-                allergies,
-                chronicConditions,
-                currentMedications,
-                pastSurgeries,familyHistory
-        );
-    }
 }

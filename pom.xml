@@ -28,15 +28,15 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-data-redis</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -54,6 +54,11 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>ulid-creator</artifactId>
+            <version>5.2.4</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -182,7 +187,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <finalName>recommendic</finalName>
                     <mainClass>com.divjazz.recommendic.RecommendicApplication</mainClass>
                 </configuration>
                 <executions>
@@ -273,7 +277,7 @@
                     <!--suppress UnresolvedMavenProperty -->
                     <url>${env.DB_URL}</url>
                     <schemas>public</schemas>
-                    <locations>classpath:db/migrations</locations>
+                    <locations>classpath:db/migration</locations>
                     <baselineOnMigrate>true</baselineOnMigrate>
                 </configuration>
             </plugin>

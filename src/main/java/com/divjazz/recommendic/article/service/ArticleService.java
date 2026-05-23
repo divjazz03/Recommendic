@@ -77,7 +77,7 @@ public class ArticleService {
             return PageResponse.fromSet(pageable,
                     result.stream()
                             .map(this::convertFromSearchDTOtoSearchResponse).collect(Collectors.toSet()),
-                    result.isEmpty()? 0 : result.stream().findFirst().get().total());
+                    result.isEmpty() ? 0 : result.stream().findFirst().get().total());
         }
         Set<ArticleSearchDTO> result = articleRepository.queryArticle(query, pageable.getPageSize(), pageable.getPageNumber());
         return PageResponse.fromSet(pageable,
@@ -95,6 +95,13 @@ public class ArticleService {
             eventPublisher.publishEvent(articleEvent);
         }
         return articleMapper.articleToArticleDTO(article);
+    }
+
+    public PageResponse<ArticleSearchResponse> getTopArticles(Pageable pageable) {
+        Set<ArticleSearchDTO> articles = articleRepository.queryTopArticle(pageable.getPageSize(), pageable.getPageNumber());
+        return PageResponse.fromSet(pageable,
+                articles.stream().map(this::convertFromSearchDTOtoSearchResponse).collect(Collectors.toSet()),
+                articles.isEmpty() ? 0:articles.stream().findFirst().get().total());
     }
 
 
@@ -132,6 +139,7 @@ public class ArticleService {
                 article.getTags()
         );
     }
+
     @Transactional
     public PageResponse<ArticleSearchResponse> getByConsultant(String consultantId, Pageable pageable) {
         var pageOfArticle = articleRepository.queryArticleByConsultant_UserId(consultantId, pageable);
@@ -139,17 +147,11 @@ public class ArticleService {
                 .map(article -> convertFromArticleToArticleSearchResponse(article, consultantId));
         return PageResponse.from(pageOfArticleSearchResponse);
     }
+
     @Transactional
     public Stream<Article> getArticleByConsultant(Consultant consultant) {
         return articleRepository.findArticleByConsultant(consultant);
     }
 
-    @Cacheable(value = "articleRecommendationResponse", keyGenerator = "customCacheKeyGenerator")
-    public PageResponse<ArticleSearchResponse> recommendArticles(Pageable pageable, String patient_id) {
-        Set<ArticleSearchDTO> results = articleRepositoryCustom.recommendArticleForPatient(pageable.getPageNumber(), pageable.getPageSize());
-        Set<ArticleSearchResponse> articleSearchResponseSet = results.stream()
-                .map(this::convertFromSearchDTOtoSearchResponse)
-                .collect(Collectors.toSet());
-        return PageResponse.fromSet(pageable, articleSearchResponseSet, 20);
-    }
+
 }

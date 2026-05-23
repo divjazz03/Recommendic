@@ -17,13 +17,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {
         "com.divjazz.recommendic.appointment.repository",
-        "com.divjazz.recommendic.recommendation.repository",
         "com.divjazz.recommendic.consultation.repository",
         "com.divjazz.recommendic.appointment.repository",
         "com.divjazz.recommendic.security.repository",
         "com.divjazz.recommendic.user.repository",
         "com.divjazz.recommendic.chat.repository",
-        "com.divjazz.recommendic.search.repository",
         "com.divjazz.recommendic.article.repository",
         "com.divjazz.recommendic.notification.app.repository",
         "com.divjazz.recommendic.medication.repository"

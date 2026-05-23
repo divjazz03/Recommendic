@@ -1,14 +1,20 @@
 package com.divjazz.recommendic.article.model;
 
 import com.divjazz.recommendic.global.Auditable;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "comment")
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "comments")
 public class Comment extends Auditable {
-
+    @Column(name = "comment_id", updatable = false)
+    private final String commentId = "CMT-" + UlidCreator.getMonotonicUlid();
     @Column(name = "user_id")
     private String userThatCommented;
     @ManyToOne(fetch = FetchType.EAGER)
@@ -17,25 +23,4 @@ public class Comment extends Auditable {
     @OneToOne
     @JoinColumn(name = "parent_comment_id")
     private Comment comments;
-
-    public Comment() {
-    }
-
-    public Comment(String userIdOfCommenter, Article article, Comment comments) {
-        this.userThatCommented = userIdOfCommenter;
-        this.article = article;
-        this.comments = comments;
-    }
-
-    public void setUserThatCommented(String userIdOfCommenter) {
-        this.userThatCommented = userThatCommented;
-    }
-
-    public void setArticle(Article article) {
-        this.article = article;
-    }
-
-    public void setComments(Comment comments) {
-        this.comments = comments;
-    }
 }

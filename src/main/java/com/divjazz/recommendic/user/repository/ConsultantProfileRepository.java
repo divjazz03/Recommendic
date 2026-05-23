@@ -11,8 +11,8 @@ import java.util.Optional;
 @Repository
 public interface ConsultantProfileRepository extends JpaRepository<ConsultantProfile, Long> {
     @Query("""
-        SELECT c.profile from Consultant c
-        WHERE c.userId = :id
+        SELECT cp from ConsultantProfile cp
+        WHERE cp.consultant.userId = :id
     """)
     Optional<ConsultantProfile> findByConsultantId(String id);
 

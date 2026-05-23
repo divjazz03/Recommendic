@@ -42,14 +42,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push image
-        if: github.ref == 'refs/heads/master'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/recommendic:latest
-            ${{ secrets.DOCKER_USERNAME }}/recommendic:${{ github.sha }}
-          
+      - name: Build image with Buildpacks
+        run: |
+          mvn spring-boot:build-image \
+            -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/recommendic:latest
 
+      - name: Tag SHA image
+        run: |
+          docker tag \
+            ${{ secrets.DOCKER_USERNAME }}/recommendic:latest \
+            ${{ secrets.DOCKER_USERNAME }}/recommendic:${{ github.sha }}
+      - name: Push images
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/recommendic:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/recommendic:${{ github.sha }}

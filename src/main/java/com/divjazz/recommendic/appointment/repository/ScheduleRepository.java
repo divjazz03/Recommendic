@@ -31,7 +31,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query(value = """
             SELECT count(*) > 0
-            FROM schedule_slot
+            FROM schedule_slots
             WHERE (
                     (start_time <= end_time and cast(:startTime as time) between start_time and end_time)
                   OR
@@ -50,7 +50,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query(value = """
             SELECT count(*) > 0
-                FROM schedule_slot
+                FROM schedule_slots
                 WHERE (
                     (start_time <= end_time and cast(:startTime as time) between start_time and end_time)
                   OR

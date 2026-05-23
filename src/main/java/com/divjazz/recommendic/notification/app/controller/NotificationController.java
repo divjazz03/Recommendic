@@ -27,16 +27,16 @@ public class NotificationController {
     private final AppNotificationService appNotificationService;
 
     @GetMapping
-    public ResponseEntity<Response<CursorPageResponse<NotificationResponse>>> getNotifications(
-            @PageableDefault Pageable pageable,
-            @RequestParam(value = "pageParam", required = false) String pageParam
+    public Response<CursorPageResponse<NotificationResponse>> getNotifications(
+            @RequestParam(value = "limit", defaultValue = "20") String limit,
+            @RequestParam(value = "cursorCreatedAt", required = false) String cursorCreatedAt,
+            @RequestParam(value = "cursorId", required = false) String cursorId
     ) {
-        Cursor cursor = (Objects.isNull(pageParam))
-                ? null
-                : Cursor.fromPageParam(pageParam);
-        List<NotificationResponse> notifications = appNotificationService.getNotificationsForAuthenticatedUser(cursor,pageable);
+        Cursor cursor = Objects.isNull(cursorId) || Objects.isNull(cursorCreatedAt) ? null
+                : Cursor.decode(cursorCreatedAt,cursorId);
+        List<NotificationResponse> notifications = appNotificationService.getNotificationsForAuthenticatedUser(cursor,Integer.parseInt(limit));
 
-        return ResponseEntity.ok(getResponse(CursorPageResponse.from(notifications),  HttpStatus.OK));
+        return getResponse(CursorPageResponse.from(notifications, Integer.parseInt(limit)),  HttpStatus.OK);
     }
     @PatchMapping("/read")
     public ResponseEntity<Void> seeNotification(@RequestBody String notificationId) {
@@ -48,18 +48,4 @@ public class NotificationController {
         appNotificationService.setAllNotificationToSeen();
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/settings")
-    public ResponseEntity<Response<NotificationSettingResponse>> getNotificationSettings() {
-        var response = appNotificationService.getNotificationSettingConfiguration();
-
-        return ResponseEntity.ok(getResponse(response,HttpStatus.OK));
-    }
-    @PatchMapping("/settings")
-    public ResponseEntity<Response<NotificationSettingResponse>> updateNotificationSettings(@RequestBody NotificationSettingUpdateRequest updateRequest) {
-        var response = appNotificationService.updateNotificationSettingConfiguration(updateRequest);
-
-        return ResponseEntity.ok(getResponse(response, HttpStatus.OK));
-    }
-
 }

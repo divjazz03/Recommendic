@@ -2,13 +2,11 @@ package com.divjazz.recommendic.appointment.mapper;
 
 import com.divjazz.recommendic.appointment.dto.ScheduleResponseDTO;
 import com.divjazz.recommendic.appointment.model.Schedule;
-import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,9 +20,9 @@ public interface ScheduleMapper {
     ScheduleResponseDTO toScheduleResponseDTO(Schedule schedule);
 
     @Named("channelArrToStringSet")
-    static Set<String> fromConsultationChannels(ConsultationChannel[] consultationChannels) {
+    static Set<String> fromConsultationChannels(String[] consultationChannels) {
         return Arrays.stream(consultationChannels)
-                .map(consultationChannel -> consultationChannel.toString().toLowerCase())
+                .map(String::toLowerCase)
                 .collect(Collectors.toSet());
     }
 }

@@ -52,9 +52,9 @@ public class ArticleController {
     public ResponseEntity<Response<PageResponse<ArticleSearchResponse>>> retrieveArticle(@PageableDefault Pageable pageable) {
         var user = authUtils.getCurrentUser();
         var results = switch (user.userType()) {
-            case PATIENT -> articleService.recommendArticles(pageable,user.userId());
+            case PATIENT -> articleService.getTopArticles(pageable);
             case CONSULTANT -> articleService.getByConsultant(user.userId(), pageable);
-            case null, default -> null;
+            case null, default -> PageResponse.<ArticleSearchResponse>ofEmpty();
         };
 
         return ResponseEntity.ok(getResponse(results,  HttpStatus.OK));

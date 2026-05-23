@@ -3,6 +3,7 @@ package com.divjazz.recommendic.user.controller.consultant;
 
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.global.general.PageResponse;
+import com.divjazz.recommendic.user.controller.UserResponse;
 import com.divjazz.recommendic.user.controller.consultant.payload.*;
 import com.divjazz.recommendic.user.domain.RequestContext;
 import com.divjazz.recommendic.user.service.ConsultantService;
@@ -117,13 +118,13 @@ public class ConsultantController {
         return ResponseEntity.ok(getResponse(consultantProfileDetails, HttpStatus.OK));
     }
 
-    @PostMapping("/{userId}/onboard")
+    @PostMapping("/onboard")
     @Operation(summary = "Set Consultant profile details")
-    public ResponseEntity<Boolean> onboardingSetListOfMedicalInterests(
-            @PathVariable("userId") String userId, @RequestBody @Validated ConsultantOnboardingRequest request
+    public Response<ConsultantInfoResponse> onboardingSetListOfMedicalInterests(
+            @RequestParam("onboarding_stage") String onboardingStage, @RequestBody @Validated ConsultantOnboardingRequest request
     ) {
-        boolean value = consultantService.handleOnboarding(userId, request);
-        return ResponseEntity.ok(value);
+        var value = consultantService.handleOnboarding(onboardingStage, request);
+        return getResponse(value, HttpStatus.OK);
     }
 
 }

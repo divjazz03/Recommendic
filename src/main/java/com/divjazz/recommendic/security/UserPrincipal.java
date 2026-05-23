@@ -1,16 +1,19 @@
 package com.divjazz.recommendic.security;
 
+import com.divjazz.recommendic.user.model.userAttributes.Permission;
 import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.projection.UserPrincipalProjection;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Embeddable
@@ -18,6 +21,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Getter
+@Slf4j
 public class UserPrincipal implements UserDetails {
     @Setter
     private boolean accountNonExpired;
@@ -31,6 +35,7 @@ public class UserPrincipal implements UserDetails {
     @JoinColumn(name = "role")
     private Role role;
     @JdbcTypeCode(SqlTypes.JSON)
+    @Setter
     @Column(name = "user_credential", nullable = false, columnDefinition = "jsonb")
 
     private UserCredential userCredential;
@@ -47,8 +52,15 @@ public class UserPrincipal implements UserDetails {
     @Override
     @Transient
     public Set<? extends GrantedAuthority> getAuthorities() {
-
-        return Set.of(new SimpleGrantedAuthority(role.getName()));
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(role.getName()));
+        for (Permission permission : role.getPermissions()) {
+            for (String action : permission.getActions()) {
+                String authority = "%s:%s:%s".formatted(permission.getResource(), action, permission.getScope());
+                authorities.add(new SimpleGrantedAuthority(authority));
+            }
+        }
+        return authorities;
     }
 
     @Override
@@ -82,11 +94,4 @@ public class UserPrincipal implements UserDetails {
         return enabled;
     }
 
-    public static UserPrincipal fromProjection(UserPrincipalProjection userPrincipalProjection) {
-        return new UserPrincipal(
-                userPrincipalProjection.getEmail(),
-                userPrincipalProjection.getUserCredential(),
-                Role.fromProjection(userPrincipalProjection.getRole())
-        );
-    }
 }

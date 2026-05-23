@@ -13,6 +13,8 @@ import com.divjazz.recommendic.user.model.MedicalCategoryEntity;
 import com.divjazz.recommendic.user.model.certification.ConsultantEducation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.ConsultantNotificationPreference;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 import com.divjazz.recommendic.user.repository.AdminRepository;
 import com.divjazz.recommendic.user.repository.ConsultantRepository;
 import com.divjazz.recommendic.user.repository.certificationRepo.ConsultantEducationRepository;
@@ -44,6 +46,7 @@ import java.util.stream.Stream;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.*;
 
@@ -90,6 +93,19 @@ public class ConsultantIT extends BaseIntegrationTest {
         unSavedConsultant.setSpecialization(medicalCategory);
         unSavedConsultant.setUserStage(UserStage.ACTIVE_USER);
         unSavedConsultant.setCertified(true);
+        unSavedConsultant.setConsultantSecuritySetting(UserSecuritySetting.builder()
+                        .multiFactorAuthEnabled(false)
+                        .sessionTimeoutMin(30L)
+                        .loginAlertsEnabled(true)
+                .build());
+        unSavedConsultant.setNotificationPreference(ConsultantNotificationPreference.builder()
+                        .marketingEmailEnabled(true)
+                        .systemUpdatesEnabled(true)
+                        .appointmentRemindersEnabled(true)
+                        .labResultsUpdateEnabled(false)
+                        .smsNotificationEnabled(false)
+                        .emailNotificationEnabled(true)
+                .build());
 
 
 
@@ -106,13 +122,13 @@ public class ConsultantIT extends BaseIntegrationTest {
                 .build();
         unSavedConsultant.setProfile(consultantProfile);
         consultant = consultantRepository.save(unSavedConsultant);
-//        ConsultantEducation consultantEducation = new ConsultantEducation(
-//                consultant,
-//                FAKER.university().degree(),
-//                FAKER.university().name(),
-//                2004);
-//
-//        consultantEducationRepository.save(consultantEducation);
+        ConsultantEducation consultantEducation = new ConsultantEducation(
+                consultant,
+                FAKER.university().degree(),
+                FAKER.university().name(),
+                2004);
+        consultant.addEducation(consultantEducation);
+        consultantEducationRepository.save(consultantEducation);
         adminRole = roleService.getRoleByName(AdminService.ADMIN_ROLE_NAME);
         Admin unSavedAdmin = new Admin(
                 FAKER.internet().emailAddress(),
@@ -200,11 +216,10 @@ public class ConsultantIT extends BaseIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(jsonRequest)
                 ).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
 
-        var validationError = validationErrorresponseJacksonTester.parse(responseString).getObject();
 
-        assertThat(validationError.data().errors()).isNotEmpty();
 
     }
 
@@ -258,12 +273,13 @@ public class ConsultantIT extends BaseIntegrationTest {
     }
     @Test
     void shouldDeleteIfConsultantIsThisUser() throws Exception {
+        var userId = consultant.getUserId();
         mockMvc.perform(
                 delete("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNoContent());
         mockMvc.perform(
-                get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,consultant.getUserId()))
+                get("%s/%s".formatted(CONSULTANT_BASE_ENDPOINT,userId))
                         .with(user(admin.getUserPrincipal()))
         ).andExpect(status().isNotFound());
     }
@@ -315,6 +331,27 @@ public class ConsultantIT extends BaseIntegrationTest {
 
         log.info(response);
 
+    }
+
+    @Test
+    void shouldUpdateSecuritySetting() throws Exception {
+        var request = """
+                {
+                    "securityPreference": {
+                         "sessionTimeoutMin": 60
+                    }
+                }
+                """;
+
+        var responseString = mockMvc.perform(
+                        patch(CONSULTANT_BASE_ENDPOINT + "/profiles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(request)
+                                .with(user(consultant.getUserPrincipal()))
+                ).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        log.info(responseString);
     }
 
     private void populateConsultants() {

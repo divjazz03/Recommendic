@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.user.repository;
 
+import com.divjazz.recommendic.user.model.User;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.repository.projection.UserSecurityProjectionDTO;
@@ -72,18 +73,18 @@ public class UserRepository {
 
         return Optional.ofNullable(credentialJsonB);
     }
-    public void setUserLastLogin(UserProjection userProjection) {
-        String sql = switch (userProjection.getUserType()) {
+    public void setUserLastLogin(User user) {
+        String sql = switch (user.getUserType()) {
             case PATIENT -> """
-                UPDATE patient set last_login = now() where user_id = ?;
+                UPDATE patients set last_login = now() where user_id = ?;
                 """;
             case CONSULTANT -> """
-                UPDATE consultant set last_login = now() where user_id = ?;
+                UPDATE consultants set last_login = now() where user_id = ?;
                 """;
             case ADMIN -> """
-                UPDATE admin set last_login = now() where user_id = ?;
+                UPDATE admins set last_login = now() where user_id = ?;
                 """;
         };
-        jdbcTemplate.update(sql, userProjection.getUserId());
+        jdbcTemplate.update(sql, user.getUserId());
     }
 }

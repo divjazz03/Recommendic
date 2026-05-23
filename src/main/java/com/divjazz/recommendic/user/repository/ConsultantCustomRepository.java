@@ -43,10 +43,10 @@ public class ConsultantCustomRepository {
                        mc.id as specialtyId,
                        mc.name as specialtyName,
                        mc.description as specialtyDesc
-                FROM consultant c
+                FROM consultants c
                 LEFT JOIN consultant_profiles cf on c.id = cf.id
-                LEFT JOIN consultant_education ce on c.id = ce.consultant_id
-                LEFT JOIN medical_category mc on c.specialization = mc.id
+                LEFT JOIN consultant_educations ce on c.id = ce.consultant_id
+                LEFT JOIN medical_categories mc on c.specialization = mc.id
                 WHERE c.user_id = :userId
                 """;
         return jdbcClient.sql(sql)

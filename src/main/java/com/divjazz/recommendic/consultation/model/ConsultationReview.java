@@ -12,7 +12,7 @@ import lombok.Setter;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
-@Table(name = "consultation_review")
+@Table(name = "consultation_reviews")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter

@@ -5,7 +5,9 @@ import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.global.converter.ZoneOffsetConverter;
 import com.divjazz.recommendic.user.model.Consultant;
+import com.github.f4b6a3.ulid.UlidCreator;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
@@ -19,7 +21,7 @@ import java.time.ZoneOffset;
 import java.util.Set;
 
 @Entity
-@Table(name = "schedule_slot")
+@Table(name = "schedule_slots")
 @Getter
 @Setter
 @Builder
@@ -30,9 +32,8 @@ public class Schedule extends Auditable {
     @ManyToOne
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
-    @org.hibernate.annotations.Generated(event = EventType.INSERT)
-    @Column(name = "schedule_id", updatable = false, insertable = false)
-    private String scheduleId;
+    @Column(name = "schedule_id", updatable = false)
+    private final String scheduleId = "SCH-" + UlidCreator.getMonotonicUlid().toString();
     @Column(name = "name")
     private String name;
     @Column(name = "start_time")
@@ -42,11 +43,9 @@ public class Schedule extends Auditable {
     @Column(name = "utf_offset")
     @Convert(converter = ZoneOffsetConverter.class)
     private ZoneOffset zoneOffset;
-    @Type(value = EnumArrayType.class,
-    parameters = @org.hibernate.annotations.Parameter(name = AbstractArrayType.SQL_ARRAY_TYPE,
-            value = "session_channel"))
-    @Column(name = "consultation_channel")
-    private ConsultationChannel[] consultationChannels;
+    @Type(StringArrayType.class)
+    @Column(name = "consultation_channels", columnDefinition = "text[]")
+    private String[] consultationChannels;
     @Column (name = "recurrence_rule")
     @Type(JsonBinaryType.class)
     private RecurrenceRule recurrenceRule;

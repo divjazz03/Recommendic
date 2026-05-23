@@ -96,7 +96,7 @@ public class GlobalControllerExceptionAdvice {
                 .map(fieldError -> new FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
         var problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), "Validation failed");
-        problem.setProperty("data", fieldErrors);
+        problem.setProperty("errors", fieldErrors);
         return problem;
     }
     @ExceptionHandler(HandlerMethodValidationException.class)

@@ -10,8 +10,6 @@ import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.search.dto.SearchResult;
 import com.divjazz.recommendic.search.enums.Category;
-import com.divjazz.recommendic.search.model.Search;
-import com.divjazz.recommendic.search.repository.SearchRepository;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.consultant.payload.ConsultantInfoResponse;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
 public class SearchService {
 
 
-    private final SearchRepository searchRepository;
     private final ConsultantService consultantService;
     private final GeneralUserService userService;
     private final AppointmentMapper appointmentMapper;
@@ -57,12 +54,6 @@ public class SearchService {
             return handleSearchForAuthorizedUsers(query, authUtils.getCurrentUser(), category);
         }
         throw new AuthenticationException("Couldn't get current user");
-    }
-
-    public Set<Search> retrieveSearchesByUserId(String userId) {
-        var currentUser = userService.retrieveUserByUserId(userId);
-
-        return searchRepository.findByOwnerOfSearchId(currentUser.getUserId());
     }
 
     private Set<SearchResult> handleSearchForAuthorizedUsers(String query, UserDTO currentUser, String category) {
@@ -105,8 +96,6 @@ public class SearchService {
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
-
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
 
                     case ARTICLE -> {
                        var articles = articleService.searchArticle(
@@ -160,7 +149,7 @@ public class SearchService {
                         results.add(
                                 new SearchResult(Category.CONSULTATION, consultationsResult));
                     }
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
+
                     case APPOINTMENT -> {
                         var appointments = appointmentService.getAppointmentsByConsultantId(currentUser.userId());
                         Set<AppointmentDTO> appointmentDTOSet = appointments
@@ -210,7 +199,6 @@ public class SearchService {
                             results.add(new SearchResult(Category.ASSIGNMENT, assignments));
                         }
                     }
-                    case SEARCH_HISTORY -> results.addAll(handleSearchBasedOnHistory(currentUser.userId()));
 
                     default -> results.add(new SearchResult(Category.ALL, Collections.emptySet()));
                     //TODO: ADD MORE FUNCTIONALITY TO THE SEARCH ONCE MORE CATEGORIES EXIST;
@@ -220,17 +208,7 @@ public class SearchService {
             }
         }
         User user = userService.retrieveUserByUserId(currentUser.userId());
-        searchRepository.save(new Search(query, searchCategoryEnum, user));
         return results;
     }
 
-    private Set<SearchResult> handleSearchBasedOnHistory(String userId) {
-        var searches = retrieveSearchesByUserId(userId);
-        return searches.stream()
-                .flatMap(search ->
-                        executeQueryForAuthorizedUsers(search.getQuery(),
-                                search.getCategory().name()).stream())
-                .limit(10)
-                .collect(Collectors.toSet());
-    }
 }

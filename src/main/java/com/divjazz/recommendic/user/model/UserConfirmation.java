@@ -12,7 +12,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "users_confirmation")
+@Table(name = "users_confirmations")
 @Getter
 @Setter
 @NoArgsConstructor

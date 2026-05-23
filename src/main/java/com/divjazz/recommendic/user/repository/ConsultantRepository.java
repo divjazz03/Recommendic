@@ -38,8 +38,8 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
             cp.phone_number as phoneNumber,
             cp.address as address,
             c.specialization as medicalSpecialization
-            from consultant c
-            left join consultant_stat cs on c.id = cs.id
+            from consultants c
+            left join consultant_stats cs on c.id = cs.id
             left join consultant_profiles cp on c.id = cp.id
             where certified = true
             """, nativeQuery = true)
@@ -53,7 +53,8 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
                 c.lastLogin as lastLogin,
                 c.userType as userType,
                 c.userStage as userStage,
-                c.userPrincipal as userPrincipal
+                c.userPrincipal as userPrincipal,
+                c.consultantSecuritySetting as userSecuritySetting
         FROM Consultant c
         WHERE c.userPrincipal.email = :email
         """)

@@ -2,13 +2,9 @@ package com.divjazz.recommendic.security.config;
 
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.CustomUserDetailsService;
-import com.divjazz.recommendic.security.filter.AuthFilter;
-import com.divjazz.recommendic.security.filter.BaseAuthFilter;
-import com.divjazz.recommendic.security.filter.TestAuthFilter;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -19,10 +15,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,13 +26,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,9 +46,11 @@ public class WebSecurityConfig {
     @Value("${cors.frontend.domain}")
     private String[] corsFrontendDomain;
     private final GeneralUserService userService;
+    private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
-    public WebSecurityConfig(GeneralUserService userService) {
+    public WebSecurityConfig(GeneralUserService userService, JwtAuthenticationConverter jwtAuthenticationConverter) {
         this.userService = userService;
+        this.jwtAuthenticationConverter = jwtAuthenticationConverter;
     }
 
     @Bean
@@ -77,13 +71,12 @@ public class WebSecurityConfig {
     @Bean
     @Profile({"dev","prod"})
     @Order(1)
-    public SecurityFilterChain webSecurity(HttpSecurity http,
-                                           BaseAuthFilter authFilter) throws Exception {
+    public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(WHITELIST_PATHS.toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.POST, NoAuthPostPaths.toArray(String[]::new)).permitAll()
@@ -91,13 +84,13 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
+                .oauth2ResourceServer(oauth ->
+                        oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .build();
     }
     @Bean
     @Profile("test")
-    public SecurityFilterChain testSecurity(HttpSecurity http,
-                                           BaseAuthFilter authFilter) throws Exception {
+    public SecurityFilterChain testSecurity(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -111,34 +104,17 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterAfter(authFilter, SecurityContextHolderFilter.class)
+
                 .build();
     }
 
 
     @Bean
-    @Profile({"test","dev"})
-    AuthenticationProvider devAuthenticationProvider(UserDetailsService userDetailsService) {
-        return new AuthenticationProvider() {
-            @Override
-            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-                var userDetails = userDetailsService.loadUserByUsername(authentication.getName());
-                return UsernamePasswordAuthenticationToken.authenticated(userDetails, "", userDetails.getAuthorities());
-
-            }
-
-            @Override
-            public boolean supports(Class<?> authentication) {
-                return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-            }
-        };
+    AuthenticationProvider devAuthenticationProvider(UserDetailsService userDetailsService, GeneralUserService userService, PasswordEncoder passwordEncoder) {
+        return new CustomAuthenticationProvider(userService,passwordEncoder,userDetailsService);
     }
 
-    @Bean
-    @Profile({"dev","prod"})
-    BaseAuthFilter authFilter(ObjectMapper ob) {
-        return new AuthFilter(ob);
-    }
+
     @Bean
     FilterRegistrationBean<CorsFilter> corsFilterFilterRegistrationBean(CorsConfigurationSource configurationSource) {
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(configurationSource));
@@ -146,11 +122,6 @@ public class WebSecurityConfig {
         return bean;
     }
 
-    @Bean
-    @Profile("test")
-    BaseAuthFilter testAuthFilter() {
-        return new TestAuthFilter();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {

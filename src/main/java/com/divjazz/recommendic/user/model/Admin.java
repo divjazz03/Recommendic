@@ -8,6 +8,7 @@ import com.divjazz.recommendic.user.model.userAttributes.Role;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import java.util.Set;
 @Getter
 @Entity
 @Setter
+@Table(name = "admins")
 public class Admin extends User {
     @OneToMany(mappedBy = "adminAssigned",
             fetch = FetchType.LAZY,
@@ -36,7 +38,7 @@ public class Admin extends User {
     public Admin(
             String email,
             Gender gender, UserCredential userCredential, Role role) {
-        super( email, gender, role, userCredential, UserType.ADMIN);
+        super( email, gender, role, userCredential, UserType.ADMIN, "ADM-"+ UlidCreator.getMonotonicUlid());
         assignment = new HashSet<>(20);
     }
     public void addAssignment(Assignment assignment) {

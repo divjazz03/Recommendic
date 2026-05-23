@@ -2,10 +2,7 @@ package com.divjazz.recommendic.user.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.notification.app.service.AppNotificationService;
-import com.divjazz.recommendic.recommendation.model.ConsultantRecommendation;
 import com.divjazz.recommendic.recommendation.service.RecommendationService;
-import com.divjazz.recommendic.security.service.SecurityService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.controller.patient.payload.*;
 import com.divjazz.recommendic.user.dto.ConsultantFull;
@@ -23,27 +20,28 @@ import com.divjazz.recommendic.user.model.Patient;
 import com.divjazz.recommendic.user.model.UserConfirmation;
 import com.divjazz.recommendic.user.model.userAttributes.*;
 import com.divjazz.recommendic.user.model.userAttributes.credential.UserCredential;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.PatientNotificationPreference;
+import com.divjazz.recommendic.user.model.userAttributes.preferences.UserSecuritySetting;
 import com.divjazz.recommendic.user.repository.PatientCustomRepository;
 import com.divjazz.recommendic.user.repository.PatientRepository;
 import com.divjazz.recommendic.user.repository.confirmation.UserConfirmationRepository;
-import com.divjazz.recommendic.user.repository.projection.MedicalCategoryProjection;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,7 +50,6 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     public static final String PATIENT_ROLE_NAME = "ROLE_PATIENT";
-
     private final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final UserConfirmationRepository userConfirmationRepository;
     private final GeneralUserService userService;
@@ -65,9 +62,9 @@ public class PatientService {
     private final RoleService roleService;
     private final MedicalCategoryService medicalCategoryService;
     private final PatientCustomRepository patientCustomRepository;
-    private final AppNotificationService appNotificationService;
-    private final SecurityService securityService;
     private final PatientMapper patientMapper;
+    @Value("${spring.session.timeout}")
+    private Duration sessionDuration;
 
     private static Address getAddressToChange(PatientProfileUpdateRequest updateRequest, Patient patient) {
         Address addressToChange = patient.getPatientProfile().getAddress();
@@ -89,7 +86,7 @@ public class PatientService {
     @Transactional
     public PatientInfoResponse createPatient(PatientRegistrationParams patientRegistrationParams) {
 
-        if (!userService.isUserExists(patientRegistrationParams.email())) {
+        if (userService.isUserExists(patientRegistrationParams.email())) {
             UserCredential userCredential = new UserCredential(encoder.encode(patientRegistrationParams.password()));
             Role role = roleService.getRoleByName(PATIENT_ROLE_NAME);
             Patient user = new Patient(
@@ -102,7 +99,7 @@ public class PatientService {
             profilePicture.setPictureUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
             profilePicture.setName("149071.png");
 
-            PatientProfile patientProfile = PatientProfile.builder()
+            var patientProfile = PatientProfile.builder()
                     .patient(user)
                     .dateOfBirth(LocalDate.parse(patientRegistrationParams.dateOfBirth()))
                     .userName(new UserName(patientRegistrationParams.firstName(), patientRegistrationParams.lastName()))
@@ -110,6 +107,20 @@ public class PatientService {
                     .patient(user)
                     .build();
             user.setPatientProfile(patientProfile);
+            var userSecuritySetting = new UserSecuritySetting(
+                    false, sessionDuration.toMinutes(), true
+
+            );
+            user.setPatientSecuritySetting(userSecuritySetting);
+            var notificationPreference = PatientNotificationPreference.builder()
+                    .emailNotificationEnabled(true)
+                    .smsNotificationEnabled(false)
+                    .appointmentRemindersEnabled(true)
+                    .labResultsUpdateEnabled(true)
+                    .systemUpdatesEnabled(true)
+                    .marketingEmailEnabled(false)
+                    .build();
+            user.setNotificationPreference(notificationPreference);
 
             var savedPatient = patientRepository.save(user);
             var userConfirmation = new UserConfirmation(savedPatient);
@@ -120,16 +131,6 @@ public class PatientService {
                             "email", user.getUserPrincipal().getUsername(),
                             "firstname", patientProfile.getUserName().getFirstName()));
             applicationEventPublisher.publishEvent(userEvent);
-            TransactionSynchronizationManager.registerSynchronization(
-                    new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            recommendationService.createConsultantRecommendationForPatient(savedPatient);
-                        }
-                    }
-            );
-            appNotificationService.createNotificationSetting(savedPatient);
-            securityService.createUserSetting(savedPatient);
             log.info("New user with id {} created", user.getUserId());
             return patientMapper.toInfoResponse(savedPatient);
         } else {
@@ -149,7 +150,7 @@ public class PatientService {
 
     @Transactional
     public void deletePatientByUserId(String patient_Id) {
-        if (!userService.isUserExistsByUserId(patient_Id)) {
+        if (userService.isUserExistsByUserId(patient_Id)) {
             throw new EntityNotFoundException("Patient does not exist or has already been deleted");
         }
         patientRepository.deleteByUserId(patient_Id);
@@ -229,35 +230,17 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ConsultantMinimal> getRecommendationForPatient(Pageable pageable) {
+    public PageResponse<ConsultantMinimal> getRecommendationForPatient(Pageable pageable) {
         UserDTO userDTO = authUtils.getCurrentUser();
-        return recommendationService.retrieveRecommendationByPatient(userDTO.userId(), pageable)
-                .map(ConsultantRecommendation::getConsultant)
-                .map(consultantService::getConsultantRecommendationProfileMinimal);
+        var consultants = consultantService.getAllConsultantsMinimal(pageable);
+        return PageResponse.fromSet(pageable, consultants.elements(), consultants.total());
     }
 
     @Transactional(readOnly = true)
     public PatientProfileDetails getMyProfileDetails() {
         UserDTO userDTO = authUtils.getCurrentUser();
-        var patientProfileProjectionOpt = patientCustomRepository.getFullPatientProfileByUserId(userDTO.userId());
-        if (patientProfileProjectionOpt.isPresent()) {
-            var profileProjection = patientProfileProjectionOpt.get();
-            return new PatientProfileDetails(
-                    profileProjection.userName(),
-                    profileProjection.email(),
-                    profileProjection.phoneNumber(),
-                    Objects.nonNull(profileProjection.dateOfBirth()) ? profileProjection.dateOfBirth().toString() : null,
-                    userDTO.gender().name().toLowerCase(),
-                    profileProjection.address(),
-                    profileProjection.medicalCategories().stream().map(MedicalCategoryProjection::name).collect(Collectors.toSet()),
-                    profileProjection.bloodType(),
-                    Optional.ofNullable(profileProjection.medicalHistory()).map(MedicalHistory::toDTO).orElse(null),
-                    Optional.ofNullable(profileProjection.lifeStyleInfo()).map(LifeStyleInfo::toDTO).orElse(null),
-                    profileProjection.profilePicture().getPictureUrl()
-            );
-        }
-
-        throw new EntityNotFoundException("User profile not found");
+        var patient = patientRepository.findByUserId(userDTO.userId()).orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return patientMapper.toPatientProfileDetails(patient);
     }
 
     public PatientFullConsultantView getFullConsultantView(String consultantId) {
@@ -323,22 +306,30 @@ public class PatientService {
             if (Objects.nonNull(updateRequest.profileImgUrl())) {
                 patient.getPatientProfile().getProfilePicture().setPictureUrl(updateRequest.profileImgUrl());
             }
+            if (Objects.nonNull(updateRequest.notificationPreference())) {
+                var requestNotificationPreference = updateRequest.notificationPreference();
+                var notificationPreferenceChanges = PatientNotificationPreference.builder()
+                        .marketingEmailEnabled(requestNotificationPreference.marketingEmailEnabled())
+                        .emailNotificationEnabled(requestNotificationPreference.marketingEmailEnabled())
+                        .labResultsUpdateEnabled(requestNotificationPreference.labResultsUpdateEnabled())
+                        .smsNotificationEnabled(requestNotificationPreference.smsNotificationEnabled())
+                        .appointmentRemindersEnabled(requestNotificationPreference.appointmentRemindersEnabled())
+                        .build();
+                patient.setNotificationPreference(notificationPreferenceChanges);
+            }
+            if (Objects.nonNull(updateRequest.securityPreference())) {
+                var requestSecurityPreference = updateRequest.securityPreference();
+                var securityPreferenceChanges = UserSecuritySetting.builder()
+                        .loginAlertsEnabled(requestSecurityPreference.loginAlertsEnabled())
+                        .multiFactorAuthEnabled(requestSecurityPreference.multiFactorAuthEnabled())
+                        .sessionTimeoutMin(requestSecurityPreference.sessionTimeoutMin())
+                        .build();
+                patient.setPatientSecuritySetting(securityPreferenceChanges);
+            }
 
             patient = patientRepository.save(patient);
         }
-        return new PatientProfileDetails(
-                patient.getPatientProfile().getUserName(),
-                patient.getUserPrincipal().getUsername(),
-                patient.getPatientProfile().getPhoneNumber(),
-                patient.getPatientProfile().getDateOfBirth().toString(),
-                patient.getGender().name().toLowerCase(),
-                patient.getPatientProfile().getAddress(),
-                patient.getMedicalCategories().stream().map(MedicalCategoryEntity::getName).collect(Collectors.toSet()),
-                patient.getPatientProfile().getBloodType(),
-                Optional.ofNullable(patient.getPatientProfile().getMedicalHistory()).map(MedicalHistory::toDTO).orElse(null),
-                Optional.ofNullable(patient.getPatientProfile().getLifeStyleInfo()).map(LifeStyleInfo::toDTO).orElse(null),
-                patient.getPatientProfile().getProfilePicture().getPictureUrl()
-        );
+        return patientMapper.toPatientProfileDetails(patient);
     }
 
     public PatientProfileResponse getThisPatientProfile() {

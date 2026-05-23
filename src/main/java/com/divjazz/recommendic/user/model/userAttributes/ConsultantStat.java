@@ -12,7 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "consultant_stat")
+@Table(name = "consultant_stats")
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor

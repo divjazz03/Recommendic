@@ -9,7 +9,7 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.WARN)
 public interface PatientPrescriptionMapper extends PrescriptionMapper{
     @Mapping(target = "date", source = "createdAt", dateFormat = "yyyy-MM-dd")
-    @Mapping(target = "prescribedBy", source = "prescriberId")
+    @Mapping(target = "prescribedBy", source = "prescriber.userId")
     @Mapping(target = "id", source = "prescriptionId")
     PatientPrescriptionResponse prescriptionToResponse(Prescription prescription);
 }

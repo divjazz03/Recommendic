@@ -27,7 +27,7 @@ public class ScheduleCustomRepository {
         var countQuery = """
                 SELECT
                     count(*)
-                FROM schedule_slot
+                FROM schedule_slots
                 WHERE consultant_id = :id
                 """;
 
@@ -43,16 +43,16 @@ public class ScheduleCustomRepository {
                 start_time,
                 end_time,
                 utf_offset,
-                consultation_channel,
+                consultation_channels,
                 recurrence_rule,
                 is_active,
                 name,
                 created_at,
                 (    SELECT count(*)
-                     from appointment
-                     where schedule_slot_id = schedule_slot.id and appointment.status = 'CONFIRMED'
+                     from appointments
+                     where schedule_slot_id = schedule_slots.id and appointments.status = 'CONFIRMED'
                 ) as upcoming_sessions
-                FROM schedule_slot
+                FROM schedule_slots
                 WHERE consultant_id = :id
                 LIMIT :limit
                 OFFSET ((:page + 1) * :limit) - :limit
@@ -67,7 +67,7 @@ public class ScheduleCustomRepository {
                         rs.getTime("start_time").toString(),
                         rs.getTime("end_time").toString(),
                         rs.getString("utf_offset"),
-                        Arrays.stream(((String[]) rs.getArray("consultation_channel").getArray())).collect(Collectors.toSet()),
+                        Arrays.stream(((String[]) rs.getArray("consultation_channels").getArray())).collect(Collectors.toSet()),
                         recurrenceRuleString != null ? objectMapper.readValue(rs.getString("recurrence_rule"), RecurrenceRule.class) : null,
                         rs.getBoolean("is_active"),
                         rs.getTimestamp("created_at").toString(),

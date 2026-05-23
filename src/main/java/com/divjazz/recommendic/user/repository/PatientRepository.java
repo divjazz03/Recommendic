@@ -14,6 +14,8 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     boolean existsByUserPrincipal_Email(String email);
 
+    Optional<Patient> findByUserPrincipal_Email(String email);
+
     boolean existsByUserId(String userId);
 
     void deleteByUserId(String userId);
@@ -26,7 +28,8 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
                 p.lastLogin as lastLogin,
                 p.userType as userType,
                 p.userStage as userStage,
-                p.userPrincipal as userPrincipal
+                p.userPrincipal as userPrincipal,
+                p.patientSecuritySetting as userSecuritySetting
         FROM Patient p
         WHERE p.userPrincipal.email = :email
         """)

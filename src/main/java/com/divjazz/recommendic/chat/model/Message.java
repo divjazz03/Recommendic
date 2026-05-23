@@ -2,6 +2,7 @@ package com.divjazz.recommendic.chat.model;
 
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +12,7 @@ import java.util.Objects;
 
 @Getter
 @Entity
-@Table(name = "message")
+@Table(name = "messages")
 public class Message extends Auditable {
     @Column(name = "sender_id", updatable = false, nullable = false)
     private String senderId;

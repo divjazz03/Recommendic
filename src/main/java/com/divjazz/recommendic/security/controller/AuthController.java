@@ -2,6 +2,7 @@ package com.divjazz.recommendic.security.controller;
 
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.security.SessionUser;
+import com.divjazz.recommendic.security.controller.payload.RefreshRequest;
 import com.divjazz.recommendic.security.service.AuthService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.LoginResponse;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.AuthenticatedPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import static com.divjazz.recommendic.global.RequestUtils.getResponse;
@@ -29,32 +32,36 @@ public class AuthController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public AuthController.CurrentUser me(AuthenticatedPrincipal authenticatedPrincipal) {
-        SessionUser principal = (SessionUser) authenticatedPrincipal;
-        return new AuthController.CurrentUser(principal.getEmail());
+    public AuthController.CurrentUser me(@AuthenticationPrincipal Jwt jwt) {
+        var principal = authService.getUserFromJwt(jwt);
+        return new AuthController.CurrentUser(principal.getUsername());
     }
 
     @PostMapping("/login")
     @Operation(summary = "Log User in")
-    public ResponseEntity<Response<LoginResponse>> login(@RequestBody LoginRequest loginRequest,
-                                                         HttpServletRequest httpServletRequest) {
-        var result = authService.handleUserLogin(loginRequest,httpServletRequest);
+    public Response<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        var result = authService.handleUserLogin(loginRequest);
 
-        return ResponseEntity.ok(getResponse(result, HttpStatus.OK));
+        return getResponse(result, HttpStatus.OK);
     }
 
     @PostMapping("/logout")
     @Operation(summary = "Log user out")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-        request.getSession().invalidate();
-        return ResponseEntity.ok().build();
+    @ResponseStatus(HttpStatus.OK)
+    public void logout(@RequestBody String userId) {
     }
 
     @PostMapping("/email-token")
     @Operation(summary = "Confirm token got from email send after account creation")
-    public ResponseEntity<Response<String>> verifyEmailConfirmationToken(@RequestParam("token") String token) {
+    public Response<String> verifyEmailConfirmationToken(@RequestParam("token") String token) {
         String response = authService.handleConfirmationTokenValidation(token);
-        return ResponseEntity.ok(getResponse(response, HttpStatus.OK));
+        return getResponse(response, HttpStatus.OK);
+    }
+    @PostMapping("/refresh-token")
+    @Operation(summary = "Confirm token got from email send after account creation")
+    public Response<String> verifyEmailConfirmationToken(@RequestBody RefreshRequest request) {
+        String response = authService.handleTokenRefresh(request.refreshToken());
+        return getResponse(response, HttpStatus.OK);
     }
 
     public record CurrentUser(String principal){}

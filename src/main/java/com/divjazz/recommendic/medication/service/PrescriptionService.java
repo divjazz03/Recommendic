@@ -20,7 +20,9 @@ import com.divjazz.recommendic.medication.repository.PrescriptionRepository;
 import com.divjazz.recommendic.medication.utils.PrescriptionUtils;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.enums.UserType;
+import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
+import com.divjazz.recommendic.user.service.ConsultantService;
 import com.divjazz.recommendic.user.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,14 +43,16 @@ public class PrescriptionService {
     private final ConsultationService consultationService;
     private final PatientPrescriptionMapper patientPrescriptionMapper;
     private final ConsultantPrescriptionMapper consultantPrescriptionMapper;
+    private final ConsultantService consultantService;
 
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
     public PrescriptionResponse createPrescription(PrescriptionRequest request) {
         var currentUser = authUtils.getCurrentUser();
         var isSelfReported = currentUser.userType() == UserType.PATIENT && request.prescribedTo().equals(currentUser.userId());
         Patient patient = isSelfReported
                 ? patientService.findPatientByUserId(currentUser.userId())
                 : patientService.findPatientByUserId(request.prescribedTo());
+        Consultant consultant = consultantService.getReference(currentUser.id());
         Consultation consultation = null;
         if (!isSelfReported) {
             consultation = consultationService.getConsultationById(request.consultationId());
@@ -71,7 +75,7 @@ public class PrescriptionService {
                 .selfReported(isSelfReported)
                 .consultation(consultation)
                 .prescribedTo(patient)
-                .prescriberId(currentUser.userId())
+                .prescriber(consultant)
                 .diagnosis(request.diagnosis())
                 .status(PrescriptionStatus.ACTIVE)
                 .notes(request.notes())
@@ -112,7 +116,7 @@ public class PrescriptionService {
                         .collect(Collectors.toSet());
             }
             case CONSULTANT -> {
-                var prescriptions = prescriptionRepository.findAllByPrescriberId(currentUser.userId());
+                var prescriptions = prescriptionRepository.findAllByPrescriber_UserId(currentUser.userId());
                 yield prescriptions.stream()
                         .map(consultantPrescriptionMapper::prescriptionToResponse)
                         .collect(Collectors.toSet());

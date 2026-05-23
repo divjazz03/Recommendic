@@ -3,6 +3,7 @@ package com.divjazz.recommendic.global.general;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -35,9 +36,23 @@ public record PageResponse<T>(
                 page.isEmpty()
         );
     }
+    public static <T> PageResponse<T> ofEmpty() {
+        return new PageResponse<>(
+                Collections.emptyList(),
+                0,
+                0,
+                true,
+                0,
+                0,
+                null,
+                0,
+                true,
+                true
+        );
+    }
     public static <T> PageResponse<T> fromSet(Pageable pageable, Set<T> result, long total) {
         if (Objects.isNull(result) || result.isEmpty()) {
-            return PageResponse.from(Page.empty());
+            return ofEmpty();
         }
         var isLast = result.size() < pageable.getPageSize();
         var isFirst = pageable.getPageNumber() == 0;

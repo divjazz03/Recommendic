@@ -5,6 +5,7 @@ import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -17,7 +18,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
-@Table(name = "consultation")
+@Table(name = "consultations")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -38,9 +39,8 @@ public class Consultation extends Auditable {
     @Column (name = "channel")
     @Enumerated(EnumType.STRING)
     private ConsultationChannel channel;
-    @Column(name = "consultation_id", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(event = EventType.INSERT)
-    private String consultationId;
+    @Column(name = "consultation_id", updatable = false)
+    private final String consultationId = "CSTN-"+ UlidCreator.getMonotonicUlid();
     @OneToOne(mappedBy = "consultation")
     @JsonIgnore
     private ConsultationReview review;
