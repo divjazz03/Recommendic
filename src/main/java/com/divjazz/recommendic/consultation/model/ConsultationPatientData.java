@@ -8,6 +8,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
 @Table(name = "consultation_patient_data")
 public class ConsultationPatientData {
     @JoinColumn(name = "id")

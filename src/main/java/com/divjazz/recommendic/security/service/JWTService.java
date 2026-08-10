@@ -3,9 +3,7 @@ package com.divjazz.recommendic.security.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,6 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JWTService {
     private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
     public String generateToken (UserDetails userDetails) {
         Instant now = Instant.now();
 
@@ -31,5 +30,9 @@ public class JWTService {
                 .claim("roles", roles)
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    public Jwt decodeToken (String accessToken) {
+       return jwtDecoder.decode(accessToken);
     }
 }

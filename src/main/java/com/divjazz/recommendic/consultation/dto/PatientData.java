@@ -1,13 +1,15 @@
 package com.divjazz.recommendic.consultation.dto;
 
 import com.divjazz.recommendic.user.enums.Gender;
+import lombok.Builder;
 
 import java.util.List;
 import java.util.Map;
 
+@Builder
 public record PatientData(
         String name,
-        int age,
+        String age,
         Gender gender,
         List<String> allergies,
         List<String> conditions,

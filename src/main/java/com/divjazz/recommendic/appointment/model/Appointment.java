@@ -3,6 +3,7 @@ package com.divjazz.recommendic.appointment.model;
 import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
@@ -52,6 +53,7 @@ public class Appointment extends Auditable {
     @Column(name = "history")
     @Enumerated(EnumType.STRING)
     private AppointmentHistory history;
+
 
 
     public LocalDateTime getStartDateAndTime() {

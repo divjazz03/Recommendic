@@ -17,6 +17,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,11 @@ public class GlobalControllerExceptionAdvice {
     public record ValidationErrorResponse(String message, List<FieldError> errors){
     }
     public record FieldError(String field, String error){}
+
+    @ExceptionHandler(JwtException.class)
+    public ProblemDetail handleJwtException(JwtException e) {
+        return getErrorResponse(HttpStatus.UNAUTHORIZED, e, "Please Login");
+    }
 
     @ExceptionHandler(AuthorizationException.class)
     public ProblemDetail handleAuthorizationDenied(AuthorizationException e) {

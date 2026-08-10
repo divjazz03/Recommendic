@@ -1,5 +1,7 @@
 package com.divjazz.recommendic.consultation.controller;
 
+import com.divjazz.recommendic.consultation.controller.payload.JoinResponse;
+import com.divjazz.recommendic.consultation.controller.payload.StartResponse;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
@@ -12,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-
 import static com.divjazz.recommendic.global.RequestUtils.*;
 
 @RestController()
@@ -25,12 +25,23 @@ public class ConsultationController {
 
     private final ConsultationService consultationService;
 
-    @PostMapping(value = "/{id}/start/{time}")
+
+    @PostMapping(value = "/appointments/{id}/start")
     @Operation(summary = "Starts a Consultation Session")
-    public ResponseEntity<Response<ConsultationResponse>> start(@PathVariable String id, @PathVariable String time) {
-        ConsultationResponse response = consultationService.startConsultation(id, time);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(getResponse(response, HttpStatus.OK));
+    public Response<StartResponse> start(@PathVariable String id) {
+        var response = consultationService.startConsultation(id);
+        return getResponse(response, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/{id}/join")
+    public Response<JoinResponse> join (@PathVariable String id) {
+        var result = consultationService.joinConsultation(id);
+        return getResponse(result, HttpStatus.OK);
+    }
+    @GetMapping("/{id}")
+    public Response<ConsultationResponse> getConsultationDetails (@PathVariable String id) {
+        var result = consultationService.getConsultationByConsultationId(id);
+        return getResponse(result, HttpStatus.OK);
     }
 
     @PostMapping(value = "/complete")

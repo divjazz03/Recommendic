@@ -7,7 +7,8 @@ import org.springframework.core.io.Resource;
 @ConfigurationProperties(prefix = "app")
 public record ApplicationConfigProp(
         CloudinaryConfiguration cloudinary,
-        AuthProperties auth) {
+        AuthProperties auth,
+        IoStream ioStream) {
 
 
     public record CloudinaryConfiguration(
@@ -20,4 +21,5 @@ public record ApplicationConfigProp(
             , Rsa rsa
     ){}
     public record Rsa(Resource privateKey, Resource publicKey){}
+    public record IoStream(String apiKey, String apiSecret){}
 }

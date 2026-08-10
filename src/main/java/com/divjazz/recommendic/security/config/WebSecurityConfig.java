@@ -2,6 +2,8 @@ package com.divjazz.recommendic.security.config;
 
 import com.divjazz.recommendic.security.CustomAuthenticationProvider;
 import com.divjazz.recommendic.security.CustomUserDetailsService;
+import com.divjazz.recommendic.security.SseAuthenticationFilter;
+import com.divjazz.recommendic.security.service.JWTService;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -30,6 +32,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -62,7 +65,7 @@ public class WebSecurityConfig {
     private static final List<String> WHITELIST_PATHS = List.of(
             "/api/v1/medical-categories","/error",
             "/api-docs","/api-docs/*", "/api-docs.yaml","/swagger-ui/*",
-            "/actuator/**", "/favicon.ico", "/api/v1/auth/*");
+            "/actuator/**", "/favicon.ico", "/api/v1/auth/*", "/api/v1/sse/**");
     @Getter
     private static final List<String> NoAuthPostPaths = List.of(
             "/api/v1/consultants","/api/v1/patients"
@@ -71,7 +74,7 @@ public class WebSecurityConfig {
     @Bean
     @Profile({"dev","prod"})
     @Order(1)
-    public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
+    public SecurityFilterChain webSecurity(HttpSecurity http, JWTService jwtService) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -84,6 +87,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new SseAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth ->
                         oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .build();
@@ -104,7 +108,6 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-
                 .build();
     }
 
@@ -136,9 +139,10 @@ public class WebSecurityConfig {
     @Primary
     CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            corsConfiguration.setAllowedOrigins(
-                    List.of(corsFrontendDomain)
-            );
+//            corsConfiguration.setAllowedOrigins(
+//                    List.of(corsFrontendDomain)
+//            );
+            corsConfiguration.setAllowedOriginPatterns(List.of("*"));
             corsConfiguration.setAllowedMethods(
                     List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS")
             );

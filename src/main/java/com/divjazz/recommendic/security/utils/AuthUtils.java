@@ -1,12 +1,9 @@
 package com.divjazz.recommendic.security.utils;
 
-import com.divjazz.recommendic.security.SessionUser;
-import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.mapper.UserMapper;
 import com.divjazz.recommendic.user.model.User;
-import com.divjazz.recommendic.user.repository.projection.UserProjection;
 import com.divjazz.recommendic.user.service.GeneralUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

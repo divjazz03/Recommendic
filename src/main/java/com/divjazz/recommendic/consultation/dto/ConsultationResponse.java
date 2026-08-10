@@ -13,10 +13,13 @@ public record ConsultationResponse(
         String summary,
         String startTime,
         String patientName,
+        String patientId,
         String consultantName,
+        String consultantId,
         String consultationId,
         ConsultationStatus status,
         ConsultationChannel channel,
-        PatientData patientData
+        PatientData patientData,
+        ConsultantData consultantData
 ) {
 }

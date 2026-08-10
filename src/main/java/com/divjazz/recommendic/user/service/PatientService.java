@@ -189,10 +189,10 @@ public class PatientService {
                 patient.getPatientProfile().setLifeStyleInfo(lifeStyleInfo);
             }
             if ((Objects.nonNull(request.bloodType()))
-                    || (Objects.nonNull(request.chronicConditions()) && !request.chronicConditions().isBlank())
-                    || (Objects.nonNull(request.allergies()) && !request.allergies().isBlank())
-                    || (Objects.nonNull(request.currentMedications()) && !request.currentMedications().isBlank())
-                    || (Objects.nonNull(request.pastSurgeries()) && !request.pastSurgeries().isBlank())
+                    || (Objects.nonNull(request.chronicConditions()) && !request.chronicConditions().isEmpty())
+                    || (Objects.nonNull(request.allergies()) && !request.allergies().isEmpty())
+                    || (Objects.nonNull(request.currentMedications()) && !request.currentMedications().isEmpty())
+                    || (Objects.nonNull(request.pastSurgeries()) && !request.pastSurgeries().isEmpty())
                     || (Objects.nonNull(request.familyHistory()) && !request.familyHistory().isBlank())
             ) {
                 MedicalHistory medicalHistory = new MedicalHistory(

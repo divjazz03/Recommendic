@@ -77,6 +77,7 @@ public class SearchService {
                                 .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toUnmodifiableSet());
                         Set<ConsultationResponse> consultationsResult = consultations
+                                .stream()
                                 .map(consultationMapper::consultationToConsultationResponse)
                                 .limit(10).collect(Collectors.toUnmodifiableSet());
 
@@ -92,6 +93,7 @@ public class SearchService {
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationDetailByPatientId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
+                                .stream()
                                 .map(consultationMapper::consultationToConsultationResponse)
                                 .limit(10).collect(Collectors.toSet());
                         results.add(new SearchResult(Category.CONSULTATION, consultationsResult));
@@ -131,6 +133,7 @@ public class SearchService {
                                 .map(appointmentMapper::appointmentToAppointmentDTO)
                                 .limit(10).collect(Collectors.toSet());
                         Set<ConsultationResponse> consultationsResult = consultations
+                                .stream()
                                 .map(consultationMapper::consultationToConsultationResponse)
                                 .collect(Collectors.toSet());
 
@@ -143,6 +146,7 @@ public class SearchService {
                     case CONSULTATION -> {
                         var consultations = consultationService.retrieveConsultationDetailByConsultantId(currentUser.userId());
                         Set<ConsultationResponse> consultationsResult = consultations
+                                .stream()
                                 .map(consultationMapper::consultationToConsultationResponse)
                                 .collect(Collectors.toSet());
 

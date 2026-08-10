@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.consultation.repository;
 
+import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
@@ -18,8 +19,8 @@ import java.util.stream.Stream;
 @Repository
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     Optional<Consultation> findByConsultationId(String id);
-
     boolean existsByAppointment_AppointmentId(String id);
+    Optional<Consultation> findByAppointment_AppointmentId(String id);
 
     @Query(
             value = """

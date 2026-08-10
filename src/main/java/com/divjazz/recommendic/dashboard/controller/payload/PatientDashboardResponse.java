@@ -4,10 +4,11 @@ import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.notification.app.enums.NotificationCategory;
 
+import java.util.List;
 import java.util.Set;
 
 public record PatientDashboardResponse(
-        Set<DashboardAppointment> appointmentsToday,
+        List<DashboardAppointment> appointmentsToday,
         Set<RecentActivity> recentActivities,
         Set<Medication> medications
 ) implements DashboardResponse {
@@ -18,7 +19,9 @@ public record PatientDashboardResponse(
             String specialty,
             String dateTime,
             ConsultationChannel channel,
-            AppointmentStatus status
+            AppointmentStatus status,
+            Boolean isStarted,
+            Boolean isEnded
     ){}
     public record RecentActivity(
             String title,

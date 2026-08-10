@@ -1,16 +1,12 @@
 package com.divjazz.recommendic.global.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.swagger.v3.oas.models.Components;
+import io.getstream.services.framework.StreamSDKClient;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,18 +14,16 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationPropertiesScan
+@RequiredArgsConstructor
 public class BeanConfig {
+    private final ApplicationConfigProp appConfig;
+
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
@@ -47,6 +41,13 @@ public class BeanConfig {
         threadPoolTaskExecutor.setQueueCapacity(100);
         threadPoolTaskExecutor.initialize();
         return threadPoolTaskExecutor;
+    }
+
+    @Bean
+    public StreamSDKClient streamSDKClient () {
+        var apiSecret = appConfig.ioStream().apiSecret();
+        var apiKey = appConfig.ioStream().apiKey();
+        return new StreamSDKClient(apiKey, apiSecret);
     }
 
 
@@ -73,6 +74,7 @@ public class BeanConfig {
                         .description("SpringShop Wiki Documentation")
                         .url("https://springshop.wiki.github.org/docs"));
     }
+
 }
 
 

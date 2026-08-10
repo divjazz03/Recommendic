@@ -19,15 +19,14 @@ public record AppointmentDTO(
         AppointmentStatus status,
         String startDateTime,
         String endDateTime,
+        Boolean consultationStarted,
         ConsultationChannel consultationChannel,
         AppointmentHistory appointmentHistory,
         LocalDate appointmentDate,
         LocalTime startTime,
         LocalTime endTime,
-
         String reason,
         String note,
-
         Instant createdAt,
         Instant updatedAt
 ) {

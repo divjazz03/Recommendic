@@ -5,14 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class MedicalHistory {
-    private String allergies;
-    private String chronicConditions;
-    private String pastSurgeries;
+    private List<String> allergies;
+    private List<String> chronicConditions;
+    private List<String> pastSurgeries;
     private String familyHistory;
-    private String currentMedications;
+    private List<String> currentMedications;
 }

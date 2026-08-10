@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.appointment.repository.projection;
 
+import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
@@ -8,10 +9,13 @@ import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.UserName;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
 public interface AppointmentProjection {
+    String getAppointmentId();
+    LocalDate getPatientDateOfBirth();
     String getPatientId();
     UserName getPatientFullName();
     String getConsultantId();
@@ -23,4 +27,8 @@ public interface AppointmentProjection {
     LocalTime getEndTime();
     ConsultationChannel getChannel();
     ZoneOffset getOffset();
+    AppointmentHistory getAppointmentHistory();
+    String getReason();
+    LocalDateTime getStartedAt();
+    LocalDateTime getEndedAt();
 }

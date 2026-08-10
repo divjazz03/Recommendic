@@ -12,7 +12,6 @@ public class JwtConverterConfig {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         authoritiesConverter.setAuthorityPrefix("");
         authoritiesConverter.setAuthoritiesClaimName("roles");
-
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
         return converter;

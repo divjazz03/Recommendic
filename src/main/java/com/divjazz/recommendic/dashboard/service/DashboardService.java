@@ -2,23 +2,32 @@ package com.divjazz.recommendic.dashboard.service;
 
 import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.model.Appointment;
+import com.divjazz.recommendic.appointment.repository.projection.AppointmentProjection;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
+import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.service.ConsultationService;
 import com.divjazz.recommendic.dashboard.controller.payload.ConsultantDashboardResponse;
 import com.divjazz.recommendic.dashboard.controller.payload.DashboardResponse;
 import com.divjazz.recommendic.dashboard.controller.payload.PatientDashboardResponse;
+import com.divjazz.recommendic.global.general.DateUtils;
 import com.divjazz.recommendic.notification.app.service.AppNotificationService;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DashboardService {
 
 
@@ -42,17 +51,18 @@ public class DashboardService {
 
         var todayAppointments = appointmentService.getTodayAppointmentByPatientId(patientId);
 
-        Set<PatientDashboardResponse.DashboardAppointment> appointments = todayAppointments
+        List<PatientDashboardResponse.DashboardAppointment> appointments = todayAppointments
                 .stream()
                 .map(appointment -> new PatientDashboardResponse.DashboardAppointment(
                         appointment.getAppointmentId(),
-                        appointment.getConsultant().getProfile().getUserName().getFullName(),
-                        appointment.getConsultant().getSpecialization().getName(),
-                        appointment.getStartDateAndTime().toString(),
-                        appointment.getConsultationChannel(),
-                        appointment.getStatus()
-                ))
-                .collect(Collectors.toSet());
+                        appointment.getPatientFullName().getFullName(),
+                        appointment.getConsultantFullName().getFullName(),
+                        "%sT%s".formatted(appointment.getStartDate(),appointment.getStartTime().toString()),
+                        appointment.getChannel(),
+                        appointment.getStatus(),
+                        appointment.getStartedAt() != null,
+                        appointment.getEndedAt() != null)
+                ).toList();
         Set<PatientDashboardResponse.RecentActivity> recentActivities = appNotificationService.getLatest5NotificationsForThisUser()
                 .stream().map(notificationDTO -> new PatientDashboardResponse.RecentActivity(
                         notificationDTO.header(),
@@ -70,7 +80,7 @@ public class DashboardService {
         );
         var countOfCompletedAppointment = consultationService.countOfCompletedConsultationsFromAppointmentIds(
                 todayAppointments.stream()
-                        .map(Appointment::getAppointmentId)
+                        .map(AppointmentProjection::getAppointmentId)
                         .collect(Collectors.toSet())
         );
 
@@ -79,19 +89,20 @@ public class DashboardService {
                         notificationDTO.timeStamp().toString(),
                         "%s: %s".formatted(notificationDTO.header(), notificationDTO.summary())
                 )).collect(Collectors.toSet());
-        Set<ConsultantDashboardResponse.DashboardAppointment> appointments = todayAppointments.stream()
+        List<ConsultantDashboardResponse.DashboardAppointment> appointments = todayAppointments.stream()
                 .map(appointment -> new ConsultantDashboardResponse.DashboardAppointment(
                         appointment.getAppointmentId(),
-                        appointment.getPatient().getPatientProfile().getUserName().getFullName(),
-                        appointment.getStartDateAndTime().toString(),
-                        appointment.getPatient().getPatientProfile().getAge(),
-                        appointment.getConsultationChannel(),
-                        appointment.getHistory().equals(AppointmentHistory.FOLLOW_UP),
+                        appointment.getPatientFullName().getFullName(),
+                        "%sT%s".formatted(appointment.getStartDate(),appointment.getStartTime().toString())
+                        ,
+                                DateUtils.toAge(appointment.getPatientDateOfBirth()),
+                        appointment.getChannel(),
+                        appointment.getAppointmentHistory().equals(AppointmentHistory.FOLLOW_UP),
                         appointment.getReason(),
-                        appointment.getStatus()
-
-                ))
-                .collect(Collectors.toSet());
+                        appointment.getStatus(),
+                        appointment.getStartedAt() != null,
+                        appointment.getEndedAt() != null
+                )).toList();
 
         return new ConsultantDashboardResponse(
                todayAppointments.size() - countOfYesterdayAppointment,

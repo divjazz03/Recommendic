@@ -50,12 +50,15 @@ public class ScheduleCustomRepository {
                 created_at,
                 (    SELECT count(*)
                      from appointments
-                     where schedule_slot_id = schedule_slots.id and appointments.status = 'CONFIRMED'
+                     where schedule_slot_id = schedule_slots.id
+                        and appointments.date >= now()::date
+                        and schedule_slots.start_time >= now()::time
+                
                 ) as upcoming_sessions
                 FROM schedule_slots
                 WHERE consultant_id = :id
-                LIMIT :limit
                 OFFSET ((:page + 1) * :limit) - :limit
+                LIMIT :limit
                 """;
         RowMapper<ScheduleDisplay> rowMapper = (rs, rowNum) -> {
 

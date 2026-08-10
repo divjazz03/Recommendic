@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.appointment.service;
 
 import com.divjazz.recommendic.appointment.controller.payload.*;
+import com.divjazz.recommendic.appointment.dto.AppointmentDTO;
 import com.divjazz.recommendic.appointment.enums.AppointmentHistory;
 import com.divjazz.recommendic.appointment.event.*;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
@@ -235,12 +236,14 @@ public class AppointmentService {
         return appointmentRepository.findAppointmentsByPatient_UserId(patientId);
     }
 
-    public Set<Appointment> getTodayAppointmentByPatientId(String patientId) {
-        return appointmentRepository.findAllByPatient_UserIdAndAppointmentDate(patientId, LocalDate.now());
+    public List<AppointmentProjection> getTodayAppointmentByPatientId(String patientId) {
+        return appointmentRepository.findPatientsTodayAppointment(patientId);
     }
 
-    public Set<Appointment> getTodayAppointmentByConsultantId(String consultantId) {
-        return appointmentRepository.findAllByConsultant_UserIdAndAppointmentDateAndStatus(consultantId, LocalDate.now(), AppointmentStatus.CONFIRMED);
+
+    public List<AppointmentProjection> getTodayAppointmentByConsultantId(String consultantId) {
+        return appointmentRepository.findConsultantsTodayAppointment(consultantId);
+
     }
 
     public int getCountAppointmentByConsultantIdAndDate(String consultantId, LocalDate date) {

@@ -71,14 +71,72 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     Set<Appointment> findAllByConsultant_UserIdAndAppointmentDateBetween(String consultantId, LocalDate startDate, LocalDate endDate);
 
-    Set<Appointment> findAllByConsultant_UserIdAndAppointmentDateAndStatus(String consultantUserId, LocalDate appointmentDate, AppointmentStatus status); Set<Appointment> findAllByConsultant_UserIdAndAppointmentDate(String consultantUserId, LocalDate appointmentDate);
-    Set<Appointment> findAllByPatient_UserIdAndAppointmentDate(String patientId, LocalDate localDate);
+    Set<Appointment> findAllByConsultant_UserIdAndAppointmentDateAndStatus(String consultantUserId, LocalDate appointmentDate, AppointmentStatus status);
+
+    Set<Appointment> findAllByConsultant_UserIdAndAppointmentDate(String consultantUserId, LocalDate appointmentDate);
+
+    Set<Appointment> findAllByPatient_UserIdAndAppointmentDateAndStatus(String patientId, LocalDate localDate, AppointmentStatus status);
 
     int countAllByConsultant_UserIdAndAppointmentDate(String consultantId, LocalDate date);
 
     boolean existsByAppointmentDateAndSchedule_Id(LocalDate date, long id);
 
     Optional<Appointment> findByAppointmentId(String appointmentId);
+
+    @Query("""
+            SELECT
+                        a.appointmentId as appointmentId,
+                a.patient.patientProfile.dateOfBirth as patientDateOfBirth,
+                a.patient.userId as patientId,
+                a.patient.patientProfile.userName as patientFullName,
+                a.consultant.userId as consultantId,
+                a.consultant.profile.userName as consultantFullName,
+                a.status as status,
+                a.schedule.startTime as startTime,
+                a.schedule.endTime as endTime,
+                a.appointmentDate as startDate,
+                a.appointmentDate as endDate,
+                a.consultationChannel as channel,
+                a.schedule.zoneOffset as offset,
+                a.history as appointmentHistory,
+                a.reason as reason,
+                            c.startedAt as startedAt,
+                            c.endedAt as endedAt
+            FROM Appointment a
+            LEFT JOIN Consultation c on c.appointment.id = a.id
+            WHERE a.patient.userId= :patientId AND a.appointmentDate = CURRENT_DATE
+            """)
+    List<AppointmentProjection> findPatientsTodayAppointment(String patientId);
+
+    @Query("""
+            SELECT
+                a.appointmentId as appointmentId,
+                a.patient.userId as patientId,
+                a.patient.patientProfile.userName as patientFullName,
+                a.consultant.userId as consultantId,
+                a.consultant.profile.userName as consultantFullName,
+                a.status as status,
+                a.schedule.startTime as startTime,
+                a.schedule.endTime as endTime,
+                a.appointmentDate as startDate,
+                a.appointmentDate as endDate,
+                a.consultationChannel as channel,
+                a.schedule.zoneOffset as offset,
+                            a.history as appointmentHistory,
+                a.reason as reason,a.patient.patientProfile.dateOfBirth as patientDateOfBirth,
+                            c.startedAt as startedAt,
+                                        c.endedAt as endedAt
+            
+            FROM Appointment a
+            LEFT JOIN Consultation c on c.appointment.id = a.id
+            JOIN a.schedule
+            JOIN a.consultant
+            JOIN a.patient
+            JOIN a.patient.patientProfile
+            JOIN a.consultant.profile
+            WHERE a.consultant.userId=:consultantId AND a.appointmentDate = CURRENT_DATE
+            """)
+    List<AppointmentProjection> findConsultantsTodayAppointment(String consultantId);
 
     @Modifying
     @Query("""
@@ -104,8 +162,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
                         WHERE a.appointmentId = :appointmentId
             """)
     void updateAppointmentDate(String appointmentId, LocalDate newAppointmentDate);
-
-
 
 
 }

@@ -24,7 +24,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class Consultation extends Auditable {
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")
     private Appointment appointment;
     @Column(name = "summary")
@@ -53,22 +53,5 @@ public class Consultation extends Auditable {
         this.channel = channel;
         this.consultationStatus = ConsultationStatus.ONGOING;
         this.startedAt = LocalDateTime.now();
-    }
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        Consultation that = (Consultation) o;
-
-        return Objects.equals(appointment.getId(), that.getAppointment().getId());
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (appointment != null ? appointment.hashCode() : 0);
-        return result;
     }
 }
