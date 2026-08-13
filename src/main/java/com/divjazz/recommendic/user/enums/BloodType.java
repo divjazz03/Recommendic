@@ -3,9 +3,11 @@ package com.divjazz.recommendic.user.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
+@Slf4j
 @Getter
 public enum BloodType {
 
@@ -25,7 +27,7 @@ public enum BloodType {
         }
 
         for (BloodType bloodType: BloodType.values()) {
-            if (bloodType.value.equalsIgnoreCase(value)) {
+            if (bloodType.getValue().equalsIgnoreCase(value.trim())) {
                 return bloodType;
             }
             if (bloodType.name().equalsIgnoreCase(value)) {

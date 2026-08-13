@@ -185,6 +185,7 @@ public class AppointmentService {
                 LocalDateTime.of(appointment.getEndDate(),appointment.getEndTime()).format(DateTimeFormatter.ISO_DATE_TIME)
         );
 
+
         applicationEventPublisher.publishEvent(appointmentEvent);
     }
 

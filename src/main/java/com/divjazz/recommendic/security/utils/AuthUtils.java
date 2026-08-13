@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.security.utils;
 
+import com.divjazz.recommendic.security.UserPrincipal;
 import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.user.dto.UserDTO;
 import com.divjazz.recommendic.user.mapper.UserMapper;
@@ -25,9 +26,15 @@ public class AuthUtils {
     public UserDTO getCurrentUser() {
         if (Objects.isNull(userHolder.getUser())) {
             var authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            User user = generalUserService.retrieveUserByEmail(jwt.getClaimAsString("sub"));
-            return userMapper.toUserDTO(user);
+            if (authenticationToken.getPrincipal() instanceof Jwt jwt) {
+                User user = generalUserService.retrieveUserByEmail(jwt.getClaimAsString("sub"));
+                return userMapper.toUserDTO(user);
+            } else {
+                UserPrincipal userPrincipal = (UserPrincipal) authenticationToken.getPrincipal();
+                User user = generalUserService.retrieveUserByEmail(userPrincipal.getEmail());
+                return userMapper.toUserDTO(user);
+            }
+
         }
         return userHolder.getUser();
     }

@@ -148,7 +148,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
         var appointment = appointmentRepository.save(unsavedAppointment);
 
         var unsavedConsultation = Consultation.builder()
-                .consultationStatus(ConsultationStatus.ONGOING)
+                .consultationStatus(ConsultationStatus.IN_PROGRESS)
                 .channel(ConsultationChannel.ONLINE)
                 .appointment(appointment)
                 .startedAt(LocalDateTime.now())

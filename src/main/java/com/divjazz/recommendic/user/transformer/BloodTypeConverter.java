@@ -4,11 +4,13 @@ package com.divjazz.recommendic.user.transformer;
 import com.divjazz.recommendic.user.enums.BloodType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
 @Converter
+@Slf4j
 public class BloodTypeConverter implements AttributeConverter<BloodType, String> {
 
     @Override

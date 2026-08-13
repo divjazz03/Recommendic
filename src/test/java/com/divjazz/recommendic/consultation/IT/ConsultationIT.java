@@ -9,10 +9,14 @@ import com.divjazz.recommendic.appointment.repository.AppointmentRepository;
 import com.divjazz.recommendic.appointment.repository.ScheduleRepository;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
+import com.divjazz.recommendic.consultation.enums.DocumentationStatus;
+import com.divjazz.recommendic.consultation.model.ClinicalNote;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.model.ConsultationSession;
+import com.divjazz.recommendic.consultation.repository.ClinicalNoteRepository;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.consultation.repository.ConsultationSessionRepository;
+import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.enums.Gender;
 import com.divjazz.recommendic.user.enums.UserStage;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -66,6 +70,7 @@ public class ConsultationIT extends BaseIntegrationTest {
     private Patient patient;
     private Consultant consultant;
     private Appointment appointment;
+    private Consultation consultation;
     private Schedule schedule;
 
     @Autowired
@@ -77,6 +82,8 @@ public class ConsultationIT extends BaseIntegrationTest {
     private MedicalCategoryEntity medicalCategory;
     @Autowired
     private ConsultationSessionRepository consultationSessionRepository;
+    @Autowired
+    private ClinicalNoteRepository clinicalNoteRepository;
 
     @BeforeEach
     void setup() {
@@ -98,6 +105,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .phoneNumber(FAKER.phoneNumber().phoneNumber())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
+                .bloodType(BloodType.A_MINUS)
                 .build();
         unsavedPatient.setPatientProfile(patientProfile);
         patient = patientRepository.save(unsavedPatient);
@@ -143,15 +151,28 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .history(AppointmentHistory.NEW)
                 .build();
         appointment = appointmentRepository.save(unsavedAppointment);
+
+        Consultation unsavedConsultation = Consultation.builder()
+                .appointment(appointment)
+                .channel(appointment.getConsultationChannel())
+                .build();
+        consultation = consultationRepository.save(unsavedConsultation);
     }
 
 
     @Test
-    void shouldNotStartConsultationIfAppointmentNotFound() throws Exception {
+    void shouldNotStartConsultationIfConsultationNotFound() throws Exception {
         mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, 400000L,LocalDateTime.now().toString()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, 400000L))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isNotFound());
+    }
+    @Test
+    void shouldNotStartConsultationIfStatusIsScheduled() throws Exception {
+        mockMvc.perform(
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, consultation.getConsultationId()))
+                        .with(user(consultant.getUserPrincipal()))
+        ).andExpect(status().isBadRequest());
     }
     @Test
     void shouldNotStartConsultationIfNotAPartOfTheConsultation() throws Exception {
@@ -168,6 +189,7 @@ public class ConsultationIT extends BaseIntegrationTest {
                 .phoneNumber(FAKER.phoneNumber().phoneNumber())
                 .userName(new UserName(FAKER.name().firstName(), FAKER.name().lastName()))
                 .patient(unsavedPatient)
+                .bloodType(BloodType.A_MINUS)
                 .build();
         unsavedPatient.setPatientProfile(patientProfile);
         patient = patientRepository.save(unsavedPatient);
@@ -180,8 +202,9 @@ public class ConsultationIT extends BaseIntegrationTest {
         unsavedConsultant.getUserPrincipal().setEnabled(true);
         unsavedConsultant.setSpecialization(medicalCategory);
         unsavedConsultant.setUserStage(UserStage.ACTIVE_USER);
+
         mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, consultation.getConsultationId()))
                         .with(user(patient.getUserPrincipal()))
         ).andExpect(status().isForbidden());
     }
@@ -189,54 +212,49 @@ public class ConsultationIT extends BaseIntegrationTest {
     void shouldNotRestartConsultationIfAlreadyStarted() throws Exception {
         Consultation startedConsultation = Consultation.builder()
                 .appointment(appointment)
-                .consultationStatus(ConsultationStatus.ONGOING)
+                .consultationStatus(ConsultationStatus.IN_PROGRESS)
                 .channel(appointment.getConsultationChannel())
                 .endedAt(LocalDateTime.now())
                 .startedAt(LocalDateTime.now())
                 .build();
 
-        consultationRepository.save(startedConsultation);
+        startedConsultation = consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
     }
     @Test
     void shouldNotStartLessThan15MinutesToAppointedTime() throws Exception {
-        LocalDateTime startTime = LocalDateTime.now();
-        Schedule unsavedSchedule = Schedule.builder()
-                .zoneOffset(ZoneOffset.ofHours(1))
-                .isActive(true)
-                .endTime(startTime.toLocalTime().plusHours(2).plusMinutes(30))
-                .startTime(startTime.toLocalTime().plusMinutes(20))
-                .consultationChannels(Set.of(ConsultationChannel.ONLINE.toString()).toArray(String[]::new))
-                .consultant(consultant)
-                .name("First ScheduleRecurrence")
-                .build();
-
-        var savedSchedule = scheduleRepository.save(unsavedSchedule);
-
-        Appointment unsavedAppointment = Appointment.builder()
-                .appointmentDate(startTime.toLocalDate())
-                .schedule(savedSchedule)
-                .consultant(consultant)
-                .patient(patient)
-                .status(AppointmentStatus.CONFIRMED)
-                .consultationChannel(ConsultationChannel.ONLINE)
-                .reason("Test reason")
-                .history(AppointmentHistory.NEW)
-                .build();
-        var appointment = appointmentRepository.save(unsavedAppointment);
         mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),startTime.format(DateTimeFormatter.ISO_DATE_TIME)))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, consultation.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isBadRequest());
     }
     @Test
-    void shouldStartConsultationIfAppointmentExistsAndNotStarted() throws Exception {
+    void shouldStartConsultationIfConsultationIsReady() throws Exception {
+        Consultation readyConsultation = Consultation.builder()
+                .appointment(appointment)
+                .consultationStatus(ConsultationStatus.READY)
+                .channel(appointment.getConsultationChannel())
+                .build();
         var result = mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(),appointment.getStartDateAndTime().toString()))
+                post("%s/%s/start/".formatted(CONSULTATION_BASE_ENDPOINT, readyConsultation.getConsultationId()))
+                        .with(user(consultant.getUserPrincipal()))
+        ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        log.info("result: {}", result);
+
+    }
+    @Test
+    void shouldStartConsultationIfConsultationIsCheckedIN() throws Exception {
+        Consultation readyConsultation = Consultation.builder()
+                .appointment(appointment)
+                .consultationStatus(ConsultationStatus.CHECKED_IN)
+                .channel(appointment.getConsultationChannel())
+                .build();
+        var result = mockMvc.perform(
+                post("%s/%s/start/".formatted(CONSULTATION_BASE_ENDPOINT, readyConsultation.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         log.info("result: {}", result);
@@ -246,7 +264,7 @@ public class ConsultationIT extends BaseIntegrationTest {
     void shouldNotStartConsultationIfAlreadyStarted() throws Exception {
         Consultation startedConsultation = Consultation.builder()
                 .appointment(appointment)
-                .consultationStatus(ConsultationStatus.ONGOING)
+                .consultationStatus(ConsultationStatus.IN_PROGRESS)
                 .channel(appointment.getConsultationChannel())
                 .endedAt(LocalDateTime.now())
                 .startedAt(LocalDateTime.now())
@@ -254,7 +272,7 @@ public class ConsultationIT extends BaseIntegrationTest {
 
         consultationRepository.save(startedConsultation);
         mockMvc.perform(
-                post("%s/%s/start/%s".formatted(CONSULTATION_BASE_ENDPOINT, appointment.getAppointmentId(), appointment.getStartDateAndTime().toString()))
+                post("%s/%s/start".formatted(CONSULTATION_BASE_ENDPOINT, startedConsultation.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isConflict());
         consultationRepository.delete(startedConsultation);
@@ -268,9 +286,9 @@ public class ConsultationIT extends BaseIntegrationTest {
         );
         var consultationSession = consultationSessionRepository.save(session);
 
-        Consultation consultationToStart = Consultation.builder()
+        Consultation consultationToEnd = Consultation.builder()
                 .appointment(appointment)
-                .consultationStatus(ConsultationStatus.ONGOING)
+                .consultationStatus(ConsultationStatus.IN_PROGRESS)
                 .channel(appointment.getConsultationChannel())
                 .endedAt(LocalDateTime.now())
                 .startedAt(LocalDateTime.now())
@@ -284,15 +302,25 @@ public class ConsultationIT extends BaseIntegrationTest {
                     "patientStatus": "stable"
                 }
                 """;
-        consultationToStart = consultationRepository.save(consultationToStart);
+        consultationToEnd = consultationRepository.save(consultationToEnd);
+        ClinicalNote clinicalNote = ClinicalNote.builder()
+                .version(1)
+                .status(DocumentationStatus.DRAFT)
+                .patient(patient)
+                .consultant(consultant)
+                .lastSavedAt(LocalDateTime.now())
+                .lastEditedBy(consultant.getUserId())
+                .consultation(consultationToEnd)
+                .build();
+        clinicalNoteRepository.save(clinicalNote);
         consultationSessionRepository.save(consultationSession);
         mockMvc.perform(
                 post("%s/complete".formatted(CONSULTATION_BASE_ENDPOINT))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request.formatted(consultationToStart.getConsultationId()))
+                        .content(request.formatted(consultationToEnd.getConsultationId()))
                         .with(user(consultant.getUserPrincipal()))
         ).andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.data.status").value("ENDED"));
 
     }
 }

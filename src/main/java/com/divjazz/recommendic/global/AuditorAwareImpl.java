@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.global;
 
 
+import com.divjazz.recommendic.security.UserPrincipal;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -18,7 +19,8 @@ public class AuditorAwareImpl implements AuditorAware<String> {
         if (authentication.getPrincipal() instanceof Jwt jwt) {
             return Optional.of(jwt.getSubject());
         }
-        String principal = (String) authentication.getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String principal = userPrincipal.getUsername();
 
         return Optional.ofNullable(principal);
     }

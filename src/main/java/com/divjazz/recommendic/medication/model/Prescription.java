@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.medication.model;
 
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.model.PatientDiagnosis;
 import com.divjazz.recommendic.global.Auditable;
 import com.divjazz.recommendic.medication.constants.PrescriptionStatus;
 import com.divjazz.recommendic.user.model.Consultant;
@@ -26,10 +27,8 @@ public class Prescription extends Auditable {
     @Setter
     private Set<Medication> medications;
     @JoinColumn(name = "consultation_id")
-    @ManyToOne (optional = false)
+    @OneToOne (optional = false)
     private Consultation consultation;
-    @Column(name = "diagnosis")
-    private String diagnosis;
     @Column(name = "self_reported")
     private boolean selfReported;
     @JoinColumn(name = "prescriber")

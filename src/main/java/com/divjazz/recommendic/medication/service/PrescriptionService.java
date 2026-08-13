@@ -76,7 +76,6 @@ public class PrescriptionService {
                 .consultation(consultation)
                 .prescribedTo(patient)
                 .prescriber(consultant)
-                .diagnosis(request.diagnosis())
                 .status(PrescriptionStatus.ACTIVE)
                 .notes(request.notes())
                 .build();

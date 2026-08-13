@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.medication.model;
 
+import com.divjazz.recommendic.consultation.model.PatientDiagnosis;
 import com.divjazz.recommendic.global.Auditable;
 import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
@@ -36,4 +37,7 @@ public class Medication extends Auditable {
     @ManyToOne(optional = false)
     @JoinColumn(name = "prescription_id")
     private Prescription prescription;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "diagnosis_id")
+    private PatientDiagnosis diagnosis;
 }

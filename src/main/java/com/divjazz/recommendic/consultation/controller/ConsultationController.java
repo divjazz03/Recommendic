@@ -26,7 +26,7 @@ public class ConsultationController {
     private final ConsultationService consultationService;
 
 
-    @PostMapping(value = "/appointments/{id}/start")
+    @PostMapping(value = "/{id}/start")
     @Operation(summary = "Starts a Consultation Session")
     public Response<StartResponse> start(@PathVariable String id) {
         var response = consultationService.startConsultation(id);

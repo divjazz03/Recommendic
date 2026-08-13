@@ -22,7 +22,9 @@ import com.divjazz.recommendic.consultation.repository.ConsultationSessionReposi
 import com.divjazz.recommendic.consultation.sse.ConsultationSSEService;
 import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
+import com.divjazz.recommendic.global.exception.ConflictException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
@@ -40,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -63,44 +66,57 @@ public class ConsultationService {
 
 
     @Transactional
-    public StartResponse startConsultation(String appointmentId) {
+    public StartResponse startConsultation(String consultationId) {
         LocalDateTime dateTimeOfRequest = LocalDateTime.now();
-        Appointment appointment = appointmentService.getAppointmentByAppointmentId(appointmentId);
-        Consultant consultant = appointment.getConsultant();
         var currentUser = authUtils.getCurrentUser();
+        Consultation consultation = consultationRepository.findConsultationByConsultationId(consultationId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find consultation with id"));
+        Appointment appointment = consultation.getAppointment();
         if (!(currentUser.userId().equals(appointment.getPatient().getUserId()) ||
-                currentUser.userId().equals(consultant.getUserId()))) {
+                currentUser.userId().equals(appointment.getConsultant().getUserId()))) {
             throw new AuthorizationException("You are not registered for this appointment");
         }
         if (!currentUser.userType().equals(UserType.CONSULTANT)) {
             throw new AuthorizationException("You cannot start this consultation. Only the consultant can");
         }
-        if (consultationRepository.existsByAppointment_AppointmentId(appointmentId)) {
-            Consultation consultation = consultationRepository.findByAppointment_AppointmentId(appointmentId)
-                    .orElseThrow(() -> new EntityNotFoundException("Consultation session not found"));
-            return getStartResponse(appointment, consultant, consultation);
+        var statusesIndicatingEndOfConsultation = List.of(ConsultationStatus.ENDED.name(),
+                ConsultationStatus.COMPLETED.name(),
+                ConsultationStatus.NO_SHOW.name(),
+                ConsultationStatus.CANCELLED.name());
+        var requiredStatusesBeforeStarting = List.of(ConsultationStatus.READY.name(), ConsultationStatus.CHECKED_IN.name());
+        if (!requiredStatusesBeforeStarting.contains(consultation.getConsultationStatus().name())) {
+            if (statusesIndicatingEndOfConsultation.contains(consultation.getConsultationStatus().name())) {
+                throw new ConflictException("This consultation has already ended");
+            }
+            if (consultation.getConsultationStatus() == ConsultationStatus.IN_PROGRESS) {
+                throw new ConflictException("This consultation is in progress");
+            }
+            throw new AppBadRequestException("The patient has not yet checked in or the patient is not yet ready");
         }
-
         // The Consultation should not be started 15 minutes before the actual appointed time
-        if ((env.matchesProfiles("test") || env.matchesProfiles("prod")) && appointment.getStartDateAndTime()
+        if ((env.matchesProfiles("test") || env.matchesProfiles("prod"))
+                && appointment.getStartDateAndTime()
                 .minusMinutes(MINUTES_BEFORE_APPOINTED_TIME_FOR_CONSULTATION_TO_START)
                 .isAfter(dateTimeOfRequest)) {
             throw new ConsultationStartedBeforeAppointmentException();
         }
-        Consultation consultation = new Consultation(appointment, appointment.getConsultationChannel());
-        ConsultationSession consultationSession = new ConsultationSession(appointment.getPatient(), appointment.getConsultant(), consultation);
+        ConsultationSession consultationSession = new ConsultationSession(appointment.getPatient(),
+                appointment.getConsultant(),
+                consultation);
         consultation.setSession(consultationSession);
+        consultation.setConsultationStatus(ConsultationStatus.IN_PROGRESS);
         consultation = consultationRepository.save(consultation);
         consultationSessionRepository.save(consultationSession);
-        return getStartResponse(appointment, consultant, consultation);
+        return getStartResponse(appointment.getConsultant(), consultation);
     }
 
     @NonNull
-    private StartResponse getStartResponse(Appointment appointment, Consultant consultant, Consultation consultation) {
-        String videoCallToken = streamVideoService.createVideoCallToken(appointment.getConsultant().getUserId());
+    private StartResponse getStartResponse(Consultant consultant, Consultation consultation) {
+        String videoCallToken = streamVideoService.createVideoCallToken(consultant.getUserId());
         String callId = consultation.getConsultationId();
         String apiKey = streamVideoService.getApiKey();
-        StartResponse.User user = new StartResponse.User(consultant.getUserId(), consultant.getProfile().getUserName().getFullName());
+        StartResponse.User user = new StartResponse.User(consultant.getUserId(),
+                consultant.getProfile().getUserName().getFullName());
         return new StartResponse(callId, videoCallToken, apiKey, user);
     }
 
@@ -108,7 +124,7 @@ public class ConsultationService {
     public ConsultationResponse completeConsultation(ConsultationCompleteRequest completeRequest) {
         var consultation = consultationRepository.findByConsultationId(completeRequest.consultationId())
                 .orElseThrow(() -> new EntityNotFoundException("Consultation with id: %s either doesn't exist or has been deleted"));
-        consultation.setConsultationStatus(ConsultationStatus.COMPLETED);
+        consultation.setConsultationStatus(ConsultationStatus.ENDED);
         consultation.getAppointment().setStatus(AppointmentStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
         consultation.setSummary(completeRequest.summary());
@@ -152,7 +168,7 @@ public class ConsultationService {
         UserDTO userDTO = authUtils.getCurrentUser();
         Consultation consultation = consultationRepository.findByAppointment_AppointmentId(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Consultation has not been started"));
-        if (consultation.getConsultationStatus().equals(ConsultationStatus.MISSED)
+        if (consultation.getConsultationStatus().equals(ConsultationStatus.NO_SHOW)
                 || consultation.getConsultationStatus().equals(ConsultationStatus.COMPLETED)) {
             throw new AppBadRequestException("Consultation has already ended");
         }

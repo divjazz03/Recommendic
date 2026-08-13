@@ -159,7 +159,7 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
             var appointment = appointmentRepository.save(unsavedAppointment);
 
             var unsavedConsultation = Consultation.builder()
-                    .consultationStatus(ConsultationStatus.ONGOING)
+                    .consultationStatus(ConsultationStatus.IN_PROGRESS)
                     .channel(ConsultationChannel.ONLINE)
                     .appointment(appointment)
                     .startedAt(LocalDateTime.now())
@@ -172,7 +172,6 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .consultation(consultation)
                     .prescribedTo(patient)
                     .prescriber(consultant)
-                    .diagnosis("Headache")
                     .status(PrescriptionStatus.ACTIVE)
                     .build();
             var startDate = LocalDate.now();
@@ -285,7 +284,7 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
             var appointment = appointmentRepository.save(unsavedAppointment);
 
             var unsavedConsultation = Consultation.builder()
-                    .consultationStatus(ConsultationStatus.ONGOING)
+                    .consultationStatus(ConsultationStatus.IN_PROGRESS)
                     .channel(ConsultationChannel.ONLINE)
                     .appointment(appointment)
                     .startedAt(LocalDateTime.now())
@@ -298,7 +297,6 @@ public class PrescriptionGetUseCaseIT extends BaseIntegrationTest {
                     .consultation(consultation)
                     .prescribedTo(patient)
                     .prescriber(consultant)
-                    .diagnosis("Headache")
                     .status(PrescriptionStatus.ACTIVE)
                     .build();
             var startDate = LocalDate.now();

@@ -181,5 +181,10 @@ public class GlobalControllerExceptionAdvice {
         return getErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflictException(ConflictException ex) {
+        return getErrorResponse(HttpStatus.CONFLICT, ex);
+    }
+
 
 }

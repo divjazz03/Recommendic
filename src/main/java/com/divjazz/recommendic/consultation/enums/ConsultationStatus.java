@@ -1,5 +1,5 @@
 package com.divjazz.recommendic.consultation.enums;
 
 public enum ConsultationStatus {
-    ONGOING, MISSED, COMPLETED
+    SCHEDULED, CHECKED_IN, READY, IN_PROGRESS, ENDED, DOCUMENTATION_PENDING, COMPLETED, CANCELLED, NO_SHOW
 }
