@@ -1,4 +1,4 @@
-package com.divjazz.recommendic.global.sse;
+package com.divjazz.recommendic.sse;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SseManager {
         private final Map<String, SseEmitter> emitters =
                 new ConcurrentHashMap<>();
+    public SseEmitter getEmitter(String key) {
+        return this.subscribe(key);
+    }
 
         public SseEmitter subscribe (String key) {
             if (emitters.containsKey(key)) {
@@ -29,11 +32,6 @@ public class SseManager {
 
             return sseEmitter;
         }
-
-        public Optional<SseEmitter> getEmitter(String key) {
-            return Optional.ofNullable(emitters.get(key));
-        }
-
         public void remove(String key) {
             emitters.remove(key);
         }

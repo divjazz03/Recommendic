@@ -1,8 +1,6 @@
 package com.divjazz.recommendic.consultation.mapper;
 
-import com.divjazz.recommendic.consultation.dto.ConsultantData;
-import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
-import com.divjazz.recommendic.consultation.dto.PatientData;
+import com.divjazz.recommendic.consultation.dto.*;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.model.ConsultationPatientData;
 import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
@@ -33,7 +31,7 @@ public interface ConsultationMapper {
     @Mapping(target = "patientData", ignore = true)
     ConsultationResponse consultationToConsultationResponse(ConsultationProjection consultationProjection);
 
-    @Mapping(target = "startTime", source = "consultation.startedAt")
+    @Mapping(target = "startTime", source = "consultation.appointment.startDateAndTime")
     @Mapping(target = "status", source = "consultation.consultationStatus")
     @Mapping(target = "patientName",
             source = "consultation.appointment.patient.patientProfile.userName.fullName")
@@ -45,6 +43,28 @@ public interface ConsultationMapper {
     @Mapping(target = "consultantData", source = "consultant", qualifiedByName = "consultantToConsultantData")
     ConsultationResponse consultationToConsultationResponseWithPatientData(Consultation consultation, Patient patient, Consultant consultant);
 
+    @Mapping(target = "startTime", source = "startedAt")
+    @Mapping(target = "date", source = "appointment.startDateAndTime")
+    @Mapping(target = "consultationId", source = "consultationId")
+    @Mapping(target = "status", source = "consultationStatus")
+    @Mapping(target = "reason", source = "appointment.reason")
+    @Mapping(target = "appointmentId", source = "appointment.appointmentId")
+    @Mapping(target = "patientData",
+            source = "appointment.patient", qualifiedByName = "patientToPatientDataMinimal")
+    @Mapping(target = "consultantData", source = "appointment.consultant", qualifiedByName = "consultantToConsultantData")
+    ConsultationResponseMinimal consultationToConsultationResponseMinimal(Consultation consultation);
+
+    @Named("patientToPatientDataMinimal")
+    default PatientDataMinimal patientToPatientDataMinimal(Patient patient) {
+        Optional<ConsultationPatientData> patientData = Optional.ofNullable(patient.getPatientData());
+        return PatientDataMinimal.builder()
+                .age(patient.getPatientProfile().getAge())
+                .name(patient.getPatientProfile().getUserName().getFullName())
+                .gender(patient.getGender())
+                .id(patient.getUserId())
+                .profileUrl(patient.getPatientProfile().getProfilePicture().getPictureUrl())
+                .build();
+    }
     @Named("patientToPatientData")
     default PatientData patientToPatientData(Patient patient) {
         Optional<ConsultationPatientData> patientData = Optional.ofNullable(patient.getPatientData());
@@ -72,6 +92,9 @@ public interface ConsultationMapper {
                 .location(consultant.getProfile().getLocationOfInstitution())
                 .experience(consultant.getProfile().getYearsOfExperience())
                 .rating(4.5F)
+                .gender(consultant.getGender())
+                .name(consultant.getProfile().getUserName().getFullName())
+                .specialty(consultant.getSpecialization().getName())
                 .build();
     }
 }

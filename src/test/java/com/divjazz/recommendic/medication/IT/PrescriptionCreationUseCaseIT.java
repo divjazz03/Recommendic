@@ -166,7 +166,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -216,7 +216,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -250,7 +250,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -306,7 +306,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -337,7 +337,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -371,7 +371,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "A diagnosis",
+                    "differentialDiagnoses": "A differentialDiagnoses",
                     "medications": [{
                         "name": "",
                         "dosage": "A Dosage",
@@ -403,7 +403,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "A diagnosis",
+                    "differentialDiagnoses": "A differentialDiagnoses",
                     "medications": [{
                         "name": "A name",
                         "dosage": "",
@@ -436,7 +436,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "",
+                    "differentialDiagnoses": "",
                     "medications": [{
                         "name": "A name",
                         "dosage": "A dosage",
@@ -467,7 +467,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
             var request = """
                 {
                     "consultationId": "%s",
-                    "diagnosis": "A diagnosis",
+                    "differentialDiagnoses": "A differentialDiagnoses",
                     "medications": [{
                         "name": "A name",
                         "dosage": "A dosage",
@@ -499,7 +499,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "A diagnosis",
+                    "differentialDiagnoses": "A differentialDiagnoses",
                     "medications": [{
                         "name": "A name",
                         "dosage": "A dosage",
@@ -532,7 +532,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "A diagnosis",
+                    "differentialDiagnoses": "A differentialDiagnoses",
                     "medications": [{
                         "name": "A name",
                         "dosage": "A dosage",
@@ -563,7 +563,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -595,7 +595,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",
@@ -627,7 +627,7 @@ public class PrescriptionCreationUseCaseIT extends BaseIntegrationTest {
                 {
                     "consultationId": "%s",
                     "prescribedTo": "%s",
-                    "diagnosis": "Head ache",
+                    "differentialDiagnoses": "Head ache",
                     "medications": [{
                         "name": "paracetamol",
                         "dosage": "two tablets",

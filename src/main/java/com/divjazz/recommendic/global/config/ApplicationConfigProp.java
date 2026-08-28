@@ -20,6 +20,6 @@ public record ApplicationConfigProp(
             Integer maxAttempts
             , Rsa rsa
     ){}
-    public record Rsa(Resource privateKey, Resource publicKey){}
+    public record Rsa(String privateKey, String publicKey){}
     public record IoStream(String apiKey, String apiSecret){}
 }

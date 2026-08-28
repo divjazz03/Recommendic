@@ -7,6 +7,7 @@ import com.divjazz.recommendic.consultation.controller.payload.JoinResponse;
 import com.divjazz.recommendic.consultation.controller.payload.StartResponse;
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
+import com.divjazz.recommendic.consultation.dto.ConsultationResponseMinimal;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.enums.PatientStatus;
 import com.divjazz.recommendic.consultation.event.ConsultationEndedWithRescheduleData;
@@ -24,6 +25,7 @@ import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.ConflictException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.global.general.PageResponse;
 import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.PatientMedicalData;
@@ -38,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,6 +188,7 @@ public class ConsultationService {
                 consultation.getConsultationId(),
                 patient.getUserId()
         );
+        consultation.setConsultationStatus(ConsultationStatus.READY);
         return new JoinResponse("", videoCallToken, callId, user);
     }
 
@@ -195,6 +200,24 @@ public class ConsultationService {
     @Transactional(readOnly = true)
     public Set<ConsultationProjection> retrieveConsultationDetailByConsultantId(String consultantId) {
         return consultationRepository.findConsultationByConsultantId(consultantId);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ConsultationResponseMinimal> retrieveConsultationPaged(Pageable pageable) {
+        var currentUser = authUtils.getCurrentUser();
+        Page<Consultation> consultations = Page.empty(pageable);
+        if (currentUser.userType() == UserType.PATIENT) {
+           consultations = consultationRepository.findByAppointment_Patient_UserId(currentUser.userId(), pageable);
+        } else if (currentUser.userType() == UserType.CONSULTANT) {
+            consultations = consultationRepository.findByAppointment_Consultant_UserId(currentUser.userId(), pageable);
+        } else {
+            consultations = consultationRepository.findAll(pageable);
+        }
+
+        Page<ConsultationResponseMinimal> consultationResponseMinimals =  consultations
+                .map(consultationMapper::consultationToConsultationResponseMinimal);
+        return PageResponse.from(consultationResponseMinimals);
+
     }
 
     public Consultation getConsultationById(String consultationId) {

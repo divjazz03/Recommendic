@@ -3,6 +3,7 @@ package com.divjazz.recommendic.security.controller;
 import com.divjazz.recommendic.global.Response;
 import com.divjazz.recommendic.security.SessionUser;
 import com.divjazz.recommendic.security.controller.payload.RefreshRequest;
+import com.divjazz.recommendic.security.dto.AccessTokenDTO;
 import com.divjazz.recommendic.security.service.AuthService;
 import com.divjazz.recommendic.user.dto.LoginRequest;
 import com.divjazz.recommendic.user.dto.LoginResponse;
@@ -59,8 +60,8 @@ public class AuthController {
     }
     @PostMapping("/refresh-token")
     @Operation(summary = "Confirm token got from email send after account creation")
-    public Response<String> verifyEmailConfirmationToken(@RequestBody RefreshRequest request) {
-        String response = authService.handleTokenRefresh(request.refreshToken());
+    public Response<AccessTokenDTO> verifyEmailConfirmationToken(@RequestBody RefreshRequest request) {
+        AccessTokenDTO response = authService.handleTokenRefresh(request.refreshToken());
         return getResponse(response, HttpStatus.OK);
     }
 

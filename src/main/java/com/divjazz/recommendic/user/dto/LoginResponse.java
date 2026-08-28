@@ -8,6 +8,7 @@ public record LoginResponse(
         String role,
         String refreshToken,
         String accessToken,
+        String accessTokenExpiresAt,
         String userStage
 
 ) {

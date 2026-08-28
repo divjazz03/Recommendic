@@ -1,6 +1,7 @@
 package com.divjazz.recommendic.security.service;
 
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
+import com.divjazz.recommendic.security.dto.AccessTokenDTO;
 import com.divjazz.recommendic.security.exception.AuthenticationException;
 import com.divjazz.recommendic.security.model.AuthToken;
 import com.divjazz.recommendic.security.repository.AuthTokenRepository;
@@ -55,11 +56,12 @@ public class AuthService {
             generalUserService.updateLoginAttempt(authenticatedUser, LoginType.LOGIN_SUCCESS);
             var refreshToken = generateRefreshToken(authenticatedUser.getUserId(),
                     authenticatedUser.getUserPrincipal().getRole().getName());
-            var accessToken = generateAccessToken(authenticatedUser.getUserPrincipal());
+            AccessTokenDTO accessToken = generateAccessToken(authenticatedUser.getUserPrincipal());
             return new LoginResponse(authenticatedUser.getUserId(),
                     authenticatedUser.getUserPrincipal().getRole().getName(),
                     refreshToken,
-                    accessToken,
+                    accessToken.token(),
+                    accessToken.expiresAt(),
                     authenticatedUser.getUserStage().toString());
         } catch (BadCredentialsException ex) {
             var unauthenticatedUser = generalUserService.retrieveUserByEmail((String) unAuthenticated.getPrincipal());
@@ -78,7 +80,7 @@ public class AuthService {
         var authToken = authTokenRepository.save(_authToken);
         return authToken.getToken();
     }
-    private String generateAccessToken(UserDetails userDetails) {
+    private AccessTokenDTO generateAccessToken(UserDetails userDetails) {
         return jwtService.generateToken(userDetails);
     }
 
@@ -95,7 +97,7 @@ public class AuthService {
         return "confirmed";
     }
 
-    public String handleTokenRefresh(String refreshToken) {
+    public AccessTokenDTO handleTokenRefresh(String refreshToken) {
         AuthToken authToken = authTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new EntityNotFoundException("Token not found"));
         boolean isExpired = Instant.now().isAfter(authToken.getExpiresAt());

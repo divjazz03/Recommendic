@@ -24,6 +24,16 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     boolean existsByAppointment_AppointmentId(String id);
     Optional<Consultation> findByAppointment_AppointmentId(String id);
 
+    Page<Consultation> findByAppointment_Consultant_UserId(String userId,
+                                                           Pageable pageable);
+    Page<Consultation> findByAppointment_Patient_UserId(String userId,
+                                                           Pageable pageable);
+
+    Page<Consultation> findBySession_Consultant_UserId(String userId,
+                                                           Pageable pageable);
+    Page<Consultation> findBySession_Patient_UserId(String userId,
+                                                        Pageable pageable);
+
     @Query(
             value = """
                         SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(

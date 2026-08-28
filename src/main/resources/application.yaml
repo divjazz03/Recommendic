@@ -105,8 +105,8 @@ app:
   auth:
     maxAttempts: 5
     rsa:
-      privateKey: classpath:keys/private.pem
-      publicKey: classpath:keys/public.pem
+      privateKey: ${JWT_PRIVATE_KEY}
+      publicKey: ${JWT_PUBLIC_KEY}
 
 
 logging:

@@ -1,10 +1,12 @@
 package com.divjazz.recommendic.consultation.model;
 
+import java.util.Set;
+
 public record Objective(
         String bloodPressure,
-        Integer heartRate,
-        Integer temperature,
-        Integer respiratoryRate,
-        String generalExamination
+        String heartRate,
+        String temperature,
+        String respiratoryRate,
+        Set<String> findings
 ) {
 }

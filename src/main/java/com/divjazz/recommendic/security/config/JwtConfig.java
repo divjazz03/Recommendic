@@ -50,12 +50,7 @@ public class JwtConfig {
 
     private RSAPublicKey loadPublicKey() throws Exception {
 
-        String key = new String(
-                configProp.auth().rsa().publicKey()
-                        .getInputStream()
-                        .readAllBytes(),
-                StandardCharsets.UTF_8
-        );
+        String key = configProp.auth().rsa().publicKey();
 
         key = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
@@ -74,12 +69,7 @@ public class JwtConfig {
 
     private RSAPrivateKey loadPrivateKey() throws Exception {
 
-        String key = new String(
-                configProp.auth().rsa().privateKey()
-                        .getInputStream()
-                        .readAllBytes(),
-                StandardCharsets.UTF_8
-        );
+        String key = configProp.auth().rsa().privateKey();
 
         key = key
                 .replace("-----BEGIN PRIVATE KEY-----", "")

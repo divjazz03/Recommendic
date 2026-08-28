@@ -53,9 +53,6 @@ public class Appointment extends Auditable {
     @Column(name = "history")
     @Enumerated(EnumType.STRING)
     private AppointmentHistory history;
-
-
-
     public LocalDateTime getStartDateAndTime() {
         return LocalDateTime.of(appointmentDate, schedule.getStartTime());
     }

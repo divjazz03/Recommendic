@@ -1,31 +1,22 @@
 package com.divjazz.recommendic.consultation.sse;
 
 import com.divjazz.recommendic.consultation.event.PatientJoinedEventData;
-import com.divjazz.recommendic.global.sse.SseManager;
-import jakarta.annotation.PreDestroy;
+import com.divjazz.recommendic.sse.SseManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConsultationSSEService {
     private final SseManager sseManager;
-    private final String consultationKeyFormat = "consultation:%s";
-    public SseEmitter getEmitter(String userId) {
-        return sseManager.subscribe(consultationKeyFormat.formatted(userId));
-    }
+
 
     public void notifyConsultationEnded(String userId, String consultationId) {
-        Optional<SseEmitter> optEmitter = sseManager.getEmitter(consultationKeyFormat.formatted(userId));
-        if (optEmitter.isEmpty()) {
-            return;
-        }
-        var emitter = optEmitter.get();
+        SseEmitter emitter = sseManager.getEmitter(userId);
         try {
             emitter.send(
                     SseEmitter.event()
@@ -41,11 +32,8 @@ public class ConsultationSSEService {
     public void notifyPatientJoined(String consultantId,
                                     String consultationId,
                                     String patientId) {
-        Optional<SseEmitter> optEmitter = sseManager.getEmitter(consultationKeyFormat.formatted(consultantId));
-        if (optEmitter.isEmpty()) {
-            return;
-        }
-        var emitter = optEmitter.get();
+        var emitter = sseManager.getEmitter(consultantId);
+        log.info("Notifying {} that {} has joined in emitter {}", consultantId, patientId, emitter.toString());
         try {
             emitter.send(
                     SseEmitter.event()
