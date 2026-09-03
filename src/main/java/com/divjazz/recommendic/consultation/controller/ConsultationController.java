@@ -49,7 +49,7 @@ public class ConsultationController {
     }
 
     @GetMapping
-    public Response<PageResponse<ConsultationResponseMinimal>> getAllConsultationDetails (@PageableDefault Pageable pageable) {
+    public Response<PageResponse<ConsultationResponse>> getAllConsultationDetails (@PageableDefault Pageable pageable) {
         var result = consultationService.retrieveConsultationPaged(pageable);
         return getResponse(result, HttpStatus.OK);
     }

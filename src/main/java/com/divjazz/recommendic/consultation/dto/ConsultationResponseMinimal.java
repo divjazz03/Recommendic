@@ -8,6 +8,9 @@ import lombok.Builder;
 public record ConsultationResponseMinimal(
         String summary,
         String startTime,
+        String endTime,
+        String startedAt,
+        String endedAt,
         String date,
         String reason,
         String consultationId,

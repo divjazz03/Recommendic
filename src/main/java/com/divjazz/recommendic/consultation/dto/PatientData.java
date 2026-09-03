@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.consultation.dto;
 
+import com.divjazz.recommendic.user.enums.BloodType;
 import com.divjazz.recommendic.user.enums.Gender;
 import lombok.Builder;
 
@@ -11,13 +12,16 @@ public record PatientData(
         String name,
         String age,
         Gender gender,
+        String email,
+        String phoneNumber,
         List<String> allergies,
         List<String> conditions,
         String lastVisit,
         String insurance,
         RecordedVitals lastRecordedVitals,
         List<ConnectedDevice> connectedDevices,
-        PatientReported patientReported
+        PatientReported patientReported,
+        BloodType bloodType
 ) {
     public record RecordedVitals(
             String bloodPressure,

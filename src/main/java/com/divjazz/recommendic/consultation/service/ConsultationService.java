@@ -109,6 +109,7 @@ public class ConsultationService {
                 consultation);
         consultation.setSession(consultationSession);
         consultation.setConsultationStatus(ConsultationStatus.IN_PROGRESS);
+        consultation.setStartedAt(LocalDateTime.now());
         consultation = consultationRepository.save(consultation);
         consultationSessionRepository.save(consultationSession);
         return getStartResponse(appointment.getConsultant(), consultation);
@@ -203,20 +204,16 @@ public class ConsultationService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ConsultationResponseMinimal> retrieveConsultationPaged(Pageable pageable) {
+    public PageResponse<ConsultationResponse> retrieveConsultationPaged(Pageable pageable) {
         var currentUser = authUtils.getCurrentUser();
-        Page<Consultation> consultations = Page.empty(pageable);
+        Page<ConsultationResponse> consultationResponse = Page.empty();
         if (currentUser.userType() == UserType.PATIENT) {
-           consultations = consultationRepository.findByAppointment_Patient_UserId(currentUser.userId(), pageable);
+           consultationResponse = consultationCustomRepository.getConsultationsByPatientIdPaged(currentUser.userId(), pageable);
         } else if (currentUser.userType() == UserType.CONSULTANT) {
-            consultations = consultationRepository.findByAppointment_Consultant_UserId(currentUser.userId(), pageable);
-        } else {
-            consultations = consultationRepository.findAll(pageable);
+            consultationResponse =
+                    consultationCustomRepository.getConsultationsByConsultationIdPaged(currentUser.userId(), pageable);
         }
-
-        Page<ConsultationResponseMinimal> consultationResponseMinimals =  consultations
-                .map(consultationMapper::consultationToConsultationResponseMinimal);
-        return PageResponse.from(consultationResponseMinimals);
+        return PageResponse.from(consultationResponse);
 
     }
 

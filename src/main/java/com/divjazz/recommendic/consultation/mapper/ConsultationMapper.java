@@ -32,6 +32,9 @@ public interface ConsultationMapper {
     ConsultationResponse consultationToConsultationResponse(ConsultationProjection consultationProjection);
 
     @Mapping(target = "startTime", source = "consultation.appointment.startDateAndTime")
+    @Mapping(target = "endTime", source = "consultation.appointment.endDateAndTime")
+    @Mapping(target = "startedAt", source = "consultation.startedAt")
+    @Mapping(target = "endedAt", source = "consultation.endedAt")
     @Mapping(target = "status", source = "consultation.consultationStatus")
     @Mapping(target = "patientName",
             source = "consultation.appointment.patient.patientProfile.userName.fullName")
@@ -43,8 +46,11 @@ public interface ConsultationMapper {
     @Mapping(target = "consultantData", source = "consultant", qualifiedByName = "consultantToConsultantData")
     ConsultationResponse consultationToConsultationResponseWithPatientData(Consultation consultation, Patient patient, Consultant consultant);
 
-    @Mapping(target = "startTime", source = "startedAt")
-    @Mapping(target = "date", source = "appointment.startDateAndTime")
+    @Mapping(target = "startTime", source = "consultation.appointment.startDateAndTime")
+    @Mapping(target = "endTime", source = "consultation.appointment.endDateAndTime")
+
+    @Mapping(target = "startedAt", source = "consultation.startedAt")
+    @Mapping(target = "endedAt", source = "consultation.endedAt")
     @Mapping(target = "consultationId", source = "consultationId")
     @Mapping(target = "status", source = "consultationStatus")
     @Mapping(target = "reason", source = "appointment.reason")
@@ -62,6 +68,7 @@ public interface ConsultationMapper {
                 .name(patient.getPatientProfile().getUserName().getFullName())
                 .gender(patient.getGender())
                 .id(patient.getUserId())
+                .bloodType(patient.getPatientProfile().getBloodType())
                 .profileUrl(patient.getPatientProfile().getProfilePicture().getPictureUrl())
                 .build();
     }
@@ -79,6 +86,9 @@ public interface ConsultationMapper {
                 .patientReported(patientData.map(ConsultationPatientData::getPatientReported).orElse(null))
                 .lastVisit(patientData.map(ConsultationPatientData::getLastVisit).map(LocalDateTime::toString).orElse(null))
                 .allergies(patientData.map(ConsultationPatientData::getAllergies).orElse(List.of()))
+                .bloodType(patient.getPatientProfile().getBloodType())
+                .email(patient.getUserPrincipal().getEmail())
+                .phoneNumber(patient.getPatientProfile().getPhoneNumber())
                 .build();
     }
 
