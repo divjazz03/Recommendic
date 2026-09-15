@@ -1,13 +1,15 @@
 package com.divjazz.recommendic.dashboard.controller.payload;
 
-import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
+import lombok.Builder;
 
 import java.util.List;
 import java.util.Set;
 
+@Builder
 public record ConsultantDashboardResponse(
-        int yesterdayTodayAppointmentCountDifference,
+        long yesterdayTodayConsultationCountDifference,
 
         long completedConsultationsTodayCount,
 
@@ -16,8 +18,7 @@ public record ConsultantDashboardResponse(
 
         int pendingTasks,
         int highPriorityTasks,
-
-        List<DashboardAppointment> todayAppointments,
+        List<DashboardConsultation> todayConsultations,
         Set<RecentUpdate> recentUpdates
 
 )
@@ -25,7 +26,8 @@ implements DashboardResponse {
 
 
     public record RecentUpdate(String timestamp, String message){}
-    public record DashboardAppointment(
+
+    public record DashboardConsultation(
             String appointmentId,
             String fullName,
             String dateTime,
@@ -33,8 +35,9 @@ implements DashboardResponse {
             ConsultationChannel channel,
             boolean isFollowUp,
             String reason,
-            AppointmentStatus status,
+            ConsultationStatus status,
             Boolean isStarted,
-            Boolean isEnded
+            Boolean isEnded,
+            String zoneOffset
     ) {}
 }

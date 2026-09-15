@@ -1,5 +1,6 @@
 package com.divjazz.recommendic.consultation.controller;
 
+import com.divjazz.recommendic.consultation.controller.payload.CheckInResponse;
 import com.divjazz.recommendic.consultation.controller.payload.JoinResponse;
 import com.divjazz.recommendic.consultation.controller.payload.StartResponse;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponseMinimal;
@@ -40,6 +41,11 @@ public class ConsultationController {
     @PostMapping(value = "/{id}/join")
     public Response<JoinResponse> join (@PathVariable String id) {
         var result = consultationService.joinConsultation(id);
+        return getResponse(result, HttpStatus.OK);
+    }
+    @PostMapping(value = "/{id}/check-in")
+    public Response<CheckInResponse> checkIn (@PathVariable String id) {
+        var result = consultationService.checkIn(id);
         return getResponse(result, HttpStatus.OK);
     }
     @GetMapping("/{id}")

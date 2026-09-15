@@ -29,6 +29,20 @@ public class ConsultationSSEService {
         }
     }
 
+    public void notifyConsultationStarted(String userId, String consultationId) {
+        SseEmitter emitter = sseManager.getEmitter(userId);
+        try {
+            emitter.send(
+                    SseEmitter.event()
+                            .name(ConsultationSSEEvent.CONSULTATION_STARTED.name())
+                            .data(consultationId)
+            );
+        } catch (IOException ex) {
+            emitter.complete();
+            sseManager.remove(userId);
+        }
+    }
+
     public void notifyPatientJoined(String consultantId,
                                     String consultationId,
                                     String patientId) {

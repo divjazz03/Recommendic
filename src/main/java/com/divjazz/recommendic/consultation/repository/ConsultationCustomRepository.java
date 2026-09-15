@@ -36,6 +36,10 @@ public class ConsultationCustomRepository {
             "consultations/getConsultationsForConsultant.sql";
     private static final String PATH_TO_GET_CONSULTATIONS_BY_PATIENT =
             "consultations/getConsultationsForPatient.sql";
+    private static final String PATH_TO_GET_CONSULTATIONS_BY_CONSULTANT_COUNT =
+            "consultations/getConsultationsForConsultantCount.sql";
+    private static final String PATH_TO_GET_CONSULTATIONS_BY_PATIENT_COUNT =
+            "consultations/getConsultationsForPatientCount.sql";
     private final JdbcClient jdbcClient;
     private final SqlQueryLoader sqlQueryLoader;
     private final ObjectMapper objectMapper;
@@ -69,13 +73,8 @@ public class ConsultationCustomRepository {
 
     public Page<ConsultationResponse> getConsultationsByConsultationIdPaged(String consultantId, Pageable pageable) {
         String sql = sqlQueryLoader.load(PATH_TO_GET_CONSULTATIONS_BY_CONSULTANT);
-        int total = jdbcClient.sql("""
-                        SELECT count(*)
-                        FROM public.consultations ctn
-                        JOIN public.appointments a on ctn.appointment_id = a.id
-                        JOIN public.consultants cons on a.consultant_id = cons.id
-                        WHERE cons.user_id = :userId
-                        """).param("userId", consultantId)
+        String countSql = sqlQueryLoader.load(PATH_TO_GET_CONSULTATIONS_BY_CONSULTANT_COUNT);
+        int total = jdbcClient.sql(countSql).param("userId", consultantId)
                 .query((rs, rowNum) -> rs.getInt(1)).single();
         List<ConsultationResponse> result = jdbcClient
                 .sql(sql)
@@ -89,13 +88,8 @@ public class ConsultationCustomRepository {
 
     public Page<ConsultationResponse> getConsultationsByPatientIdPaged(String patientId, Pageable pageable) {
         String sql = sqlQueryLoader.load(PATH_TO_GET_CONSULTATIONS_BY_PATIENT);
-        int total = jdbcClient.sql("""
-                        SELECT count(*)
-                        FROM public.consultations ctn
-                        JOIN public.appointments a on ctn.appointment_id = a.id
-                        JOIN public.consultants cons on a.consultant_id = cons.id
-                        WHERE cons.user_id = :userId
-                        """).param("userId", patientId)
+        String countSql = sqlQueryLoader.load(PATH_TO_GET_CONSULTATIONS_BY_PATIENT_COUNT);
+        int total = jdbcClient.sql(countSql).param("userId", patientId)
                 .query((rs, rowNum) -> rs.getInt(1)).single();
         List<ConsultationResponse> result = jdbcClient
                 .sql(sql)
@@ -166,11 +160,6 @@ public class ConsultationCustomRepository {
         String insurance = rs.getString("patientInsurance");
         PatientData.RecordedVitals lastRecordedVitals;
         PatientData.PatientReported patientReported;
-
-//            lastRecordedVitals = objectMapper.readValue(rs.getString("patientLastRecordedVitals"),
-//                    PatientData.RecordedVitals.class);
-//            patientReported = objectMapper.readValue(rs.getString("patientReported"),
-//                    PatientData.PatientReported.class);
         lastRecordedVitals = Optional.ofNullable(rs.getString("patientLastRecordedVitals"))
                 .map(value -> {
                     try {

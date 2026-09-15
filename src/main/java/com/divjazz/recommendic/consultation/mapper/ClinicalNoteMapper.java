@@ -16,5 +16,6 @@ public interface ClinicalNoteMapper {
     @Mapping(target = "objective", source = "objective")
     @Mapping(target = "assessment", source = "assessment")
     @Mapping(target = "plan", source = "plan")
+    @Mapping(target = "quickNote", source = "quickNote")
     NoteUpdateResponse toNoteUpdateResponse (ClinicalNote clinicalNote);
 }

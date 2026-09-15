@@ -22,10 +22,10 @@ public class ConsultationSession extends Auditable {
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patient patient;
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id")
     private Consultant consultant;
-    @OneToMany(mappedBy = "session")
+    @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
     private Set<Consultation> consultations;
     @Column(name = "patient_status")
     @Enumerated(value = EnumType.STRING)

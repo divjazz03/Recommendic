@@ -21,7 +21,8 @@ public record PatientData(
         RecordedVitals lastRecordedVitals,
         List<ConnectedDevice> connectedDevices,
         PatientReported patientReported,
-        BloodType bloodType
+        BloodType bloodType,
+        String profileUrl
 ) {
     public record RecordedVitals(
             String bloodPressure,

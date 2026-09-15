@@ -1,15 +1,17 @@
 package com.divjazz.recommendic.consultation.controller;
 
+import com.divjazz.recommendic.consultation.controller.payload.ClinicalNoteResponse;
 import com.divjazz.recommendic.consultation.dto.FinalizeNoteRequest;
 import com.divjazz.recommendic.consultation.dto.NoteUpdateRequest;
 import com.divjazz.recommendic.consultation.dto.NoteUpdateResponse;
 import com.divjazz.recommendic.consultation.service.ClinicalNoteService;
+import com.divjazz.recommendic.global.Response;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import static com.divjazz.recommendic.global.RequestUtils.getResponse;
 
 @RestController
 @RequestMapping("/api/v1/clinical-notes")
@@ -17,7 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ClinicalNoteController {
     private final ClinicalNoteService clinicalNoteService;
     @PostMapping
-    public NoteUpdateResponse initOrUpdateNote(@RequestBody @Valid NoteUpdateRequest updateRequest) {
-        return clinicalNoteService.updateNote(updateRequest);
+    public Response<NoteUpdateResponse> initOrUpdateNote(@RequestBody @Valid NoteUpdateRequest updateRequest) {
+        return getResponse(clinicalNoteService.updateNote(updateRequest), HttpStatus.OK);
+    }
+    @GetMapping("/consultation/{consultationId}")
+    public Response<ClinicalNoteResponse> getLatestClinicalNoteByConsultationId(@PathVariable String consultationId) {
+        ClinicalNoteResponse result = clinicalNoteService.getLatestClinicalNoteByConsultationId(consultationId);
+        return getResponse(result, HttpStatus.OK);
     }
 }

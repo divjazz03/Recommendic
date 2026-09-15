@@ -28,13 +28,13 @@ import java.time.LocalDateTime;
 public class Appointment extends Auditable {
     @Column(name = "appointment_id")
     private final String appointmentId = "APT-" + UlidCreator.getMonotonicUlid().toString();
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id")
     private Patient patient;
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "consultant_id", updatable = false)
     private Consultant consultant;
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_slot_id", updatable = false)
     private Schedule schedule;
     @Column(name = "note")

@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 @Getter
 @Entity
 public class ConsultationReview extends Auditable {
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consultation_id", updatable = false, nullable = false)
     private Consultation consultation;
     @Max(value = 5)

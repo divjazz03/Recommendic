@@ -3,30 +3,27 @@ package com.divjazz.recommendic.consultation.service;
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.appointment.service.AppointmentService;
+import com.divjazz.recommendic.consultation.controller.payload.CheckInResponse;
 import com.divjazz.recommendic.consultation.controller.payload.JoinResponse;
 import com.divjazz.recommendic.consultation.controller.payload.StartResponse;
 import com.divjazz.recommendic.consultation.dto.ConsultationCompleteRequest;
 import com.divjazz.recommendic.consultation.dto.ConsultationResponse;
-import com.divjazz.recommendic.consultation.dto.ConsultationResponseMinimal;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
-import com.divjazz.recommendic.consultation.enums.PatientStatus;
-import com.divjazz.recommendic.consultation.event.ConsultationEndedWithRescheduleData;
 import com.divjazz.recommendic.consultation.event.ConsultationEndedWithoutFollowUpData;
 import com.divjazz.recommendic.consultation.exception.ConsultationStartedBeforeAppointmentException;
 import com.divjazz.recommendic.consultation.mapper.ConsultationMapper;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.model.ConsultationSession;
 import com.divjazz.recommendic.consultation.repository.ConsultationCustomRepository;
-import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
 import com.divjazz.recommendic.consultation.repository.ConsultationRepository;
 import com.divjazz.recommendic.consultation.repository.ConsultationSessionRepository;
+import com.divjazz.recommendic.consultation.repository.projection.ConsultationProjection;
 import com.divjazz.recommendic.consultation.sse.ConsultationSSEService;
 import com.divjazz.recommendic.global.exception.AppBadRequestException;
 import com.divjazz.recommendic.global.exception.AuthorizationException;
 import com.divjazz.recommendic.global.exception.ConflictException;
 import com.divjazz.recommendic.global.exception.EntityNotFoundException;
 import com.divjazz.recommendic.global.general.PageResponse;
-import com.divjazz.recommendic.security.domain.CurrentUserHolder;
 import com.divjazz.recommendic.security.utils.AuthUtils;
 import com.divjazz.recommendic.user.dto.PatientMedicalData;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
@@ -45,11 +42,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -112,6 +108,7 @@ public class ConsultationService {
         consultation.setStartedAt(LocalDateTime.now());
         consultation = consultationRepository.save(consultation);
         consultationSessionRepository.save(consultationSession);
+        consultationSSEService.notifyConsultationStarted(appointment.getPatient().getUserId(), consultationId);
         return getStartResponse(appointment.getConsultant(), consultation);
     }
 
@@ -132,35 +129,13 @@ public class ConsultationService {
         consultation.setConsultationStatus(ConsultationStatus.ENDED);
         consultation.getAppointment().setStatus(AppointmentStatus.COMPLETED);
         consultation.setEndedAt(LocalDateTime.now());
-        consultation.setSummary(completeRequest.summary());
+        var event = new ConsultationEndedWithoutFollowUpData(
+                consultation.getConsultationId(),
+                consultation.getAppointment().getPatient().getUserId(),
+                consultation.getAppointment().getConsultant().getUserId()
+        );
+        applicationEventPublisher.publishEvent(event);
 
-        if (Objects.isNull(consultation.getSession())) {
-            throw new EntityNotFoundException(
-                    "No session found for consultation %s".formatted(consultation.getConsultationId()));
-        }
-
-        var session = consultation.getSession();
-        session.setPatientStatus(PatientStatus.fromValue(completeRequest.patientStatus()));
-        session.setCondition(completeRequest.summary());
-
-        if (completeRequest.shouldReschedule()) {
-            var event = new ConsultationEndedWithRescheduleData(
-                    consultation.getConsultationId(),
-                    completeRequest.scheduleId(),
-                    completeRequest.date(),
-                    consultation.getChannel(),
-                    consultation.getAppointment().getConsultant().getUserId(),
-                    completeRequest.reason()
-            );
-            applicationEventPublisher.publishEvent(event);
-        } else {
-            var event = new ConsultationEndedWithoutFollowUpData(
-                    consultation.getConsultationId(),
-                    consultation.getAppointment().getPatient().getUserId(),
-                    consultation.getAppointment().getConsultant().getUserId()
-            );
-            applicationEventPublisher.publishEvent(event);
-        }
         consultationSSEService.notifyConsultationEnded(consultation.getAppointment().getPatient().getUserId(),
                 consultation.getConsultationId());
         return consultationMapper.consultationToConsultationResponseWithPatientData(consultation,
@@ -168,15 +143,25 @@ public class ConsultationService {
                 consultation.getAppointment().getConsultant());
     }
 
-    @Transactional
-    public JoinResponse joinConsultation(String appointmentId) {
-        UserDTO userDTO = authUtils.getCurrentUser();
-        Consultation consultation = consultationRepository.findByAppointment_AppointmentId(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Consultation has not been started"));
+    private void verifyConsultationNotStartedOrEnded (Consultation consultation) {
+        var consultationStarted = List.of(ConsultationStatus.CHECKED_IN,
+                ConsultationStatus.READY,
+                ConsultationStatus.IN_PROGRESS).contains(consultation.getConsultationStatus());
+        if (consultationStarted) {
+            throw new ConflictException("Consultation already started");
+        }
         if (consultation.getConsultationStatus().equals(ConsultationStatus.NO_SHOW)
                 || consultation.getConsultationStatus().equals(ConsultationStatus.COMPLETED)) {
             throw new AppBadRequestException("Consultation has already ended");
         }
+    }
+
+    @Transactional
+    public JoinResponse joinConsultation(String consultationId) {
+        UserDTO userDTO = authUtils.getCurrentUser();
+        Consultation consultation = consultationRepository.findByConsultationId(consultationId)
+                .orElseThrow(() -> new EntityNotFoundException("Consultation not found"));
+        verifyConsultationNotStartedOrEnded(consultation);
         Patient patient = consultation.getAppointment().getPatient();
         if (!userDTO.userId().equals(patient.getUserId())) {
             throw new AuthorizationException("You cannot join this consultation because you weren't registered with it");
@@ -193,6 +178,26 @@ public class ConsultationService {
         return new JoinResponse("", videoCallToken, callId, user);
     }
 
+    @Transactional
+    public CheckInResponse checkIn(String consultationId) {
+        UserDTO userDTO = authUtils.getCurrentUser();
+        Consultation consultation = consultationRepository.findByConsultationId(consultationId)
+                .orElseThrow(() -> new EntityNotFoundException("Consultation not found"));
+       verifyConsultationNotStartedOrEnded(consultation);
+        Patient patient = consultation.getAppointment().getPatient();
+        if (!userDTO.userId().equals(patient.getUserId())) {
+            throw new AuthorizationException("You cannot join this consultation because you weren't registered with it");
+        }
+        consultationSSEService.notifyPatientJoined(
+                consultation.getAppointment().getConsultant().getUserId(),
+                consultation.getConsultationId(),
+                patient.getUserId()
+        );
+        consultation.setConsultationStatus(ConsultationStatus.CHECKED_IN);
+        consultation.setCheckedInAt(LocalDateTime.now());
+        return new CheckInResponse(consultation.getCheckedInAt().toString());
+    }
+
     @Transactional(readOnly = true)
     public Set<ConsultationProjection> retrieveConsultationDetailByPatientId(String patientId) {
         return consultationRepository.findConsultationByPatientId(patientId);
@@ -204,11 +209,20 @@ public class ConsultationService {
     }
 
     @Transactional(readOnly = true)
+    public Set<ConsultationProjection> retrieveConsultationsByPatientIdToday(String patientId){
+        return consultationRepository.findConsultationByPatientIdForDate(patientId, LocalDate.now());
+    }
+    @Transactional(readOnly = true)
+    public Set<ConsultationProjection> retrieveConsultationsByConsultantIdToday(String consultantId){
+        return consultationRepository.findConsultationByConsultantIdForDate(consultantId, LocalDate.now());
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<ConsultationResponse> retrieveConsultationPaged(Pageable pageable) {
         var currentUser = authUtils.getCurrentUser();
         Page<ConsultationResponse> consultationResponse = Page.empty();
         if (currentUser.userType() == UserType.PATIENT) {
-           consultationResponse = consultationCustomRepository.getConsultationsByPatientIdPaged(currentUser.userId(), pageable);
+            consultationResponse = consultationCustomRepository.getConsultationsByPatientIdPaged(currentUser.userId(), pageable);
         } else if (currentUser.userType() == UserType.CONSULTANT) {
             consultationResponse =
                     consultationCustomRepository.getConsultationsByConsultationIdPaged(currentUser.userId(), pageable);
@@ -244,9 +258,13 @@ public class ConsultationService {
                 consultant);
     }
 
-    public long countOfCompletedConsultationsFromAppointmentIds(Set<String> appointmentIds) {
-        if (appointmentIds.isEmpty()) return 0;
+    public long countOfCompletedConsultationsFromAppointmentIds(Set<String> consultationIds) {
+        if (consultationIds.isEmpty()) return 0;
 
-        return consultationRepository.countAllConsultationByAppointment_IdsAndStatus(appointmentIds, ConsultationStatus.COMPLETED);
+        return consultationRepository.countAllConsultationByConsultationIdsAndStatus(consultationIds, ConsultationStatus.COMPLETED);
+    }
+
+    public Long getCountConsultationsByConsultantIdAndDate(String consultantId, LocalDate date) {
+        return consultationRepository.countAllConsultationsByConsultantIdForDate(consultantId, date);
     }
 }

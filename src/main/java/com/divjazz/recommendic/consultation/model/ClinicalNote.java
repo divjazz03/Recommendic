@@ -29,26 +29,31 @@ public class ClinicalNote{
     @Column(name = "note_id", updatable = false)
     @Builder.Default
     private final String noteId = "NT-"+ UlidCreator.getMonotonicUlid();
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "consultation_id")
     @JsonIgnore
     private Consultation consultation;
-    @ManyToOne
-    @JoinColumn(name = "patient_id")
-    private Patient patient;
-    @ManyToOne
-    @JoinColumn(name = "consultant_id")
-    private Consultant consultant;
+    @Column(name = "patient_id")
+    private String patientId;
+    @Column(name = "consultant_id")
+    private String consultantId;
     private Integer version;
     private String amendmentReason;
     @Type(JsonBinaryType.class)
+    @Column(name = "subjective", columnDefinition = "jsonb")
     private Subjective subjective;
     @Type(JsonBinaryType.class)
+    @Column(name = "objective", columnDefinition = "jsonb")
     private Objective objective;
     @Type(JsonBinaryType.class)
+    @Column(name = "assessment", columnDefinition = "jsonb")
     private Assessment assessment;
+    @Column(name = "plan", columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
     private Plan plan;
+    @Type(JsonBinaryType.class)
+    @Column(name = "quick_note", columnDefinition = "jsonb")
+    private QuickNote quickNote;
     @LastModifiedDate
     private LocalDateTime lastSavedAt;
     private String lastEditedBy;

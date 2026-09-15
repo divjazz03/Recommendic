@@ -54,12 +54,14 @@ public class Consultation extends Auditable {
     @ManyToOne
     @JoinColumn(name = "session_id")
     private ConsultationSession session;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name= "consultations_diagnosis",
             joinColumns = @JoinColumn(name = "consultation_id")
     )
     private Set<Diagnosis> diagnosis;
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
 
     public Consultation(Appointment appointment, ConsultationChannel channel) {
         this.appointment = appointment;

@@ -3,11 +3,9 @@ package com.divjazz.recommendic.consultation.mapper;
 import com.divjazz.recommendic.consultation.dto.*;
 import com.divjazz.recommendic.consultation.model.Consultation;
 import com.divjazz.recommendic.consultation.model.ConsultationPatientData;
-import com.divjazz.recommendic.consultation.repository.ConsultationProjection;
+import com.divjazz.recommendic.consultation.repository.projection.ConsultationProjection;
 import com.divjazz.recommendic.user.model.Consultant;
 import com.divjazz.recommendic.user.model.Patient;
-import com.divjazz.recommendic.user.model.userAttributes.ConsultantProfile;
-import com.divjazz.recommendic.user.model.userAttributes.PatientProfile;
 import com.divjazz.recommendic.user.model.userAttributes.ProfilePicture;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,19 +14,23 @@ import org.mapstruct.ReportingPolicy;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.WARN)
 public interface ConsultationMapper {
-    @Mapping(target = "startTime", source = "startedAt")
-    @Mapping(target = "consultationId", source = "id")
-    @Mapping(target = "status", source = "consultationStatus")
+    @Mapping(target = "startTime", source = "startTime")
+    @Mapping(target = "endTime", source = "endTime")
+    @Mapping(target = "startedAt", source = "startedAt")
+    @Mapping(target = "endedAt", source = "endedAt")
+    @Mapping(target = "consultationId", source = "consultationId")
+    @Mapping(target = "patientId", source = "patientId")
+    @Mapping(target = "consultantId", source = "consultantId")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "channel", source = "channel")
     @Mapping(target = "patientName",
-            source = "appointment.patient.patientProfile.userName.fullName")
+            source = "patientFullName.fullName")
     @Mapping(target = "consultantName",
-            source = "appointment.consultant.profile.userName.fullName")
-    @Mapping(target = "patientData", ignore = true)
+            source = "consultantFullName.fullName")
     ConsultationResponse consultationToConsultationResponse(ConsultationProjection consultationProjection);
 
     @Mapping(target = "startTime", source = "consultation.appointment.startDateAndTime")
@@ -89,6 +91,7 @@ public interface ConsultationMapper {
                 .bloodType(patient.getPatientProfile().getBloodType())
                 .email(patient.getUserPrincipal().getEmail())
                 .phoneNumber(patient.getPatientProfile().getPhoneNumber())
+                .profileUrl(patient.getPatientProfile().getProfilePicture().getPictureUrl())
                 .build();
     }
 

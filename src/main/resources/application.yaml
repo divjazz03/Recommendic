@@ -114,6 +114,7 @@ logging:
     org.flywaydb: info
     io.zonky.test: warn
     org.springframework.security: warn
+    org.springframework.context.support.DefaultLifecycleProcessor: debug
     org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: error
 
 

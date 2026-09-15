@@ -2,26 +2,28 @@ package com.divjazz.recommendic.dashboard.controller.payload;
 
 import com.divjazz.recommendic.appointment.enums.AppointmentStatus;
 import com.divjazz.recommendic.consultation.enums.ConsultationChannel;
+import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.notification.app.enums.NotificationCategory;
 
 import java.util.List;
 import java.util.Set;
 
 public record PatientDashboardResponse(
-        List<DashboardAppointment> appointmentsToday,
+        List<DashboardConsultation> consultationsToday,
         Set<RecentActivity> recentActivities,
         Set<Medication> medications
 ) implements DashboardResponse {
 
-    public record DashboardAppointment(
-            String appointmentId,
+    public record DashboardConsultation(
+            String consultationId,
             String consultantFullName,
             String specialty,
             String dateTime,
             ConsultationChannel channel,
-            AppointmentStatus status,
+            ConsultationStatus status,
             Boolean isStarted,
-            Boolean isEnded
+            Boolean inEnded,
+            String zoneOffset
     ){}
     public record RecentActivity(
             String title,

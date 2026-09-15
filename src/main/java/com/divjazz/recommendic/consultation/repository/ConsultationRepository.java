@@ -1,74 +1,155 @@
 package com.divjazz.recommendic.consultation.repository;
 
-import com.divjazz.recommendic.appointment.model.Appointment;
 import com.divjazz.recommendic.consultation.enums.ConsultationStatus;
 import com.divjazz.recommendic.consultation.model.Consultation;
+import com.divjazz.recommendic.consultation.repository.projection.ConsultationProjection;
 import com.divjazz.recommendic.user.dto.ReviewDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 @Repository
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     Optional<Consultation> findByConsultationId(String id);
 
     Optional<Consultation> findConsultationByConsultationId(String consultationId);
-    boolean existsByAppointment_AppointmentId(String id);
-    Optional<Consultation> findByAppointment_AppointmentId(String id);
-
-    Page<Consultation> findByAppointment_Consultant_UserId(String userId,
-                                                           Pageable pageable);
-    Page<Consultation> findByAppointment_Patient_UserId(String userId,
-                                                           Pageable pageable);
-
-    Page<Consultation> findBySession_Consultant_UserId(String userId,
-                                                           Pageable pageable);
-    Page<Consultation> findBySession_Patient_UserId(String userId,
-                                                        Pageable pageable);
 
     @Query(
             value = """
-                        SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
-                            c.consultationId,
-                            c.appointment,
-                            c.appointment.patient.patientProfile,
-                            c.appointment.consultant.profile,
-                            c.summary,
-                            c.consultationStatus,
-                            c.channel,
-                            c.endedAt,
-                            c.startedAt
-                        ) FROM Consultation c
-                        WHERE c.appointment.consultant.userId = :consultantId
+                        SELECT
+                               con.consultationId as consultationId,
+                                                pp.dateOfBirth as patientDateOfBirth,
+                              p.userId as patientId,
+                              pp.userName as patientFullName,
+                              c.userId as consultantId,
+                              cp.userName as consultantFullName,
+                              con.consultationStatus as status,
+                              a.appointmentDate as endDate,
+                              a.appointmentDate as startDate,
+                              s.startTime as startTime,
+                              s.endTime as endTime,
+                              con.channel as channel,
+                              s.zoneOffset as offset,
+                              a.history as appointmentHistory,
+                              a.reason as reason,
+                              con.startedAt as startedAt,
+                              con.endedAt as endedAt
+                              FROM Consultation con
+                              LEFT JOIN Appointment a on a.id = con.appointment.id
+                              JOIN a.schedule s
+                              JOIN a.patient p
+                              JOIN a.consultant c
+                              JOIN a.patient.patientProfile pp
+                              JOIN a.consultant.profile cp
+                              WHERE a.consultant.userId=:consultantId
+                    
                     """
     )
     Set<ConsultationProjection> findConsultationByConsultantId(String consultantId);
 
     @Query(
             value = """
-                        SELECT new com.divjazz.recommendic.consultation.repository.ConsultationProjection(
-                            c.consultationId,
-                            c.appointment,
-                            c.appointment.patient.patientProfile,
-                            c.appointment.consultant.profile,
-                            c.summary,
-                            c.consultationStatus,
-                            c.channel,
-                            c.endedAt,
-                            c.startedAt
-                        ) FROM Consultation c
-                        WHERE c.appointment.consultant.userId = :patientId
+                        SELECT
+                    
+                              con.consultationId as consultationId,
+                                                pp.dateOfBirth as patientDateOfBirth,
+                              p.userId as patientId,
+                              pp.userName as patientFullName,
+                              c.userId as consultantId,
+                              cp.userName as consultantFullName,
+                              con.consultationStatus as status,
+                              a.appointmentDate as endDate,
+                              a.appointmentDate as startDate,
+                              s.startTime as startTime,
+                              s.endTime as endTime,
+                              con.channel as channel,
+                              s.zoneOffset as offset,
+                              a.history as appointmentHistory,
+                              a.reason as reason,
+                              con.startedAt as startedAt,
+                              con.endedAt as endedAt
+                              FROM Consultation con
+                              LEFT JOIN Appointment a on a.id = con.appointment.id
+                              JOIN a.schedule s
+                              JOIN a.patient p
+                              JOIN a.consultant c
+                              JOIN a.patient.patientProfile pp
+                              JOIN a.consultant.profile cp
+                              WHERE a.patient.userId=:patientId
+                    
                     """
     )
     Set<ConsultationProjection> findConsultationByPatientId(String patientId);
+
+    @Query(
+            value = """
+                        SELECT
+                               con.consultationId as consultationId,
+                                                pp.dateOfBirth as patientDateOfBirth,
+                              p.userId as patientId,
+                              pp.userName as patientFullName,
+                              c.userId as consultantId,
+                              cp.userName as consultantFullName,
+                              con.consultationStatus as status,
+                              a.appointmentDate as endDate,
+                              a.appointmentDate as startDate,
+                              s.startTime as startTime,
+                              s.endTime as endTime,
+                              con.channel as channel,
+                              s.zoneOffset as offset,
+                              a.history as appointmentHistory,
+                              a.reason as reason,
+                              con.startedAt as startedAt,
+                              con.endedAt as endedAt
+                              FROM Consultation con
+                              LEFT JOIN Appointment a on a.id = con.appointment.id
+                              JOIN a.schedule s
+                              JOIN a.patient p
+                              JOIN a.consultant c
+                              JOIN a.patient.patientProfile pp
+                              JOIN a.consultant.profile cp
+                              WHERE a.consultant.userId=:consultantId AND a.appointmentDate = :date
+                    
+                    """
+    )
+    Set<ConsultationProjection> findConsultationByConsultantIdForDate(String consultantId, LocalDate date);
+
+    @Query(
+            value = """
+                        SELECT
+                               con.consultationId as consultationId,
+                                                pp.dateOfBirth as patientDateOfBirth,
+                              p.userId as patientId,
+                              pp.userName as patientFullName,
+                              c.userId as consultantId,
+                              cp.userName as consultantFullName,
+                              con.consultationStatus as status,
+                              a.appointmentDate as endDate,
+                              a.appointmentDate as startDate,
+                              s.startTime as startTime,
+                              s.endTime as endTime,
+                              con.channel as channel,
+                              s.zoneOffset as offset,
+                              a.history as appointmentHistory,
+                              a.reason as reason,
+                              con.startedAt as startedAt,
+                              con.endedAt as endedAt
+                              FROM Consultation con
+                              LEFT JOIN Appointment a on a.id = con.appointment.id
+                              JOIN a.schedule s
+                              JOIN a.patient p
+                              JOIN a.consultant c
+                              JOIN a.patient.patientProfile pp
+                              JOIN a.consultant.profile cp
+                              WHERE a.patient.userId=:patientId AND a.appointmentDate = :date
+                    
+                    """
+    )
+    Set<ConsultationProjection> findConsultationByPatientIdForDate(String patientId, LocalDate date);
 
     @Query(value = """
             SELECT new com.divjazz.recommendic.user.dto.ReviewDTO(
@@ -85,8 +166,18 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     @Query("""
             SELECT count(*)
                 FROM Consultation c
-                WHERE c.appointment.appointmentId in :appointmentIds
+                WHERE c.consultationId in :consultationIds
                 AND c.consultationStatus= :status
             """)
-    Long countAllConsultationByAppointment_IdsAndStatus(Set<String> appointmentIds, ConsultationStatus status);
+    Long countAllConsultationByConsultationIdsAndStatus(Set<String> consultationIds, ConsultationStatus status);
+
+    @Query("""
+            SELECT count(*)
+                FROM Consultation con
+                LEFT JOIN Appointment a on a.id = con.appointment.id
+                JOIN a.consultant c
+                WHERE c.userId = :consultantId
+                AND a.appointmentDate = :date
+            """)
+    Long countAllConsultationsByConsultantIdForDate(String consultantId, LocalDate date);
 }
