@@ -104,14 +104,13 @@ public class DashboardService {
                 )).toList();
 
         return ConsultantDashboardResponse.builder()
-                .todayAppointments(List.of())
                 .todayConsultations(consultations)
                 .highPriorityTasks(0)
                 .numberOfActivePatients(0)
                 .numberOfNewPatientThisWeek(0)
                 .recentUpdates(Set.of())
                 .completedConsultationsTodayCount(countOfCompletedConsultations)
-                .yesterdayTodayAppointmentCountDifference(todayConsultations.size() - countOfYesterdayConsultations)
+                .yesterdayTodayConsultationCountDifference(todayConsultations.size() - countOfYesterdayConsultations)
                 .build();
     }
 }
